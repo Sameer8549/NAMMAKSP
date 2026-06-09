@@ -1,0 +1,2001 @@
+Offender_ID,Name,Age,Gender,District,Previous_FIRs,Risk_Category
+OFF00001,Karan Rajagopal,35,Female,Vijayapura,12,High
+OFF00002,Xavier Deo,52,Female,Bengaluru Urban,3,Medium
+OFF00003,Oliver Ramesh,29,Female,Bengaluru Urban,3,High
+OFF00004,Rishi Sandal,45,Female,Davanagere,10,Medium
+OFF00005,Suhani Bhavsar,56,Male,Kalaburagi,6,Medium
+OFF00006,Harini Grewal,20,Female,Bengaluru Urban,6,Medium
+OFF00007,Rachita Doshi,45,Male,Vijayapura,10,High
+OFF00008,Tarak Yohannan,38,Male,Davanagere,9,High
+OFF00009,Anjali Banerjee,37,Female,Belagavi,12,High
+OFF00010,Karan Anne,36,Male,Mangaluru,13,High
+OFF00011,Karan Devan,42,Male,Ballari,9,Medium
+OFF00012,Anjali Boase,53,Male,Hubballi-Dharwad,9,Low
+OFF00013,Omisha Nagy,45,Female,Shivamogga,14,Medium
+OFF00014,Wridesh Merchant,61,Male,Tumakuru,15,High
+OFF00015,Kamala Thaker,28,Male,Hubballi-Dharwad,10,Low
+OFF00016,Mitali Choudhary,33,Female,Mangaluru,6,Low
+OFF00017,Rachit Roy,19,Male,Mangaluru,15,High
+OFF00018,Janya Mutti,22,Female,Kalaburagi,6,High
+OFF00019,Triya Jaggi,62,Female,Shivamogga,12,Low
+OFF00020,Ranveer Chadha,27,Male,Chikkamagaluru,3,Medium
+OFF00021,Sanaya Chaudhary,32,Male,Hassan,14,Low
+OFF00022,Yadavi Nori,53,Male,Chikkamagaluru,3,Medium
+OFF00023,Gaurav Tata,26,Female,Vijayapura,10,Medium
+OFF00024,Jalsa Sankar,57,Female,Udupi,14,Low
+OFF00025,Adya Wason,65,Female,Shivamogga,8,Low
+OFF00026,Raagini Vora,58,Female,Hassan,15,High
+OFF00027,Zilmil Nagar,33,Female,Shivamogga,2,High
+OFF00028,Harish Radhakrishnan,36,Male,Hubballi-Dharwad,10,Medium
+OFF00029,Barkha Modi,52,Male,Mysuru,4,Low
+OFF00030,Kavya Raja,42,Male,Davanagere,6,Low
+OFF00031,Vaishnavi Doshi,44,Female,Belagavi,14,Medium
+OFF00032,Saanvi Char,21,Male,Udupi,13,Medium
+OFF00033,Yasti Mann,55,Male,Udupi,12,Medium
+OFF00034,Nathaniel Kibe,18,Female,Hubballi-Dharwad,12,Medium
+OFF00035,Alexander Buch,52,Male,Shivamogga,7,Medium
+OFF00036,Umang Walla,45,Female,Bengaluru Urban,12,Medium
+OFF00037,Vyanjana Sama,60,Female,Davanagere,5,Medium
+OFF00038,Rehaan Mani,26,Male,Chikkamagaluru,12,High
+OFF00039,Nachiket Pal,54,Male,Bengaluru Rural,13,Low
+OFF00040,Kamya Arora,47,Male,Bengaluru Urban,8,Medium
+OFF00041,Aishani Sibal,38,Male,Shivamogga,10,Medium
+OFF00042,Chaitanya Zachariah,42,Female,Hassan,13,Medium
+OFF00043,Rushil Chaudhari,23,Female,Bengaluru Urban,1,Medium
+OFF00044,Aadhya Sarna,32,Male,Hassan,1,Low
+OFF00045,Vasatika Shanker,33,Male,Udupi,0,High
+OFF00046,Vedika Luthra,27,Male,Mysuru,15,High
+OFF00047,Geetika Nazareth,25,Male,Shivamogga,8,Medium
+OFF00048,Karan Banik,28,Male,Hassan,5,Medium
+OFF00049,Wahab Chadha,24,Male,Chikkamagaluru,9,High
+OFF00050,Nihal Sibal,61,Female,Kalaburagi,6,Low
+OFF00051,Rajeshri Menon,55,Male,Bengaluru Rural,9,High
+OFF00052,Zaid Sani,56,Male,Hassan,1,Medium
+OFF00053,Anamika Babu,52,Female,Vijayapura,11,Low
+OFF00054,Zansi Toor,50,Female,Bengaluru Urban,13,Medium
+OFF00055,Ekapad Apte,24,Female,Belagavi,14,High
+OFF00056,Xavier Naidu,27,Female,Mysuru,8,High
+OFF00057,Caleb Dubey,52,Female,Shivamogga,13,High
+OFF00058,Jackson Issac,55,Female,Belagavi,7,Low
+OFF00059,Varsha Pandey,35,Female,Mangaluru,14,High
+OFF00060,Indrajit Sankar,57,Female,Belagavi,0,Medium
+OFF00061,Chandran Manda,38,Male,Shivamogga,6,Medium
+OFF00062,Zehaan Rout,34,Female,Hubballi-Dharwad,8,High
+OFF00063,Bachittar Joshi,18,Male,Bengaluru Rural,7,High
+OFF00064,Fiyaz Narula,44,Female,Tumakuru,7,High
+OFF00065,Divya Master,48,Female,Shivamogga,0,Low
+OFF00066,Sanaya Kalita,36,Male,Kalaburagi,7,Medium
+OFF00067,Zaitra Chatterjee,60,Female,Shivamogga,11,Medium
+OFF00068,Frado Pathak,65,Female,Belagavi,14,Medium
+OFF00069,Vihaan Goyal,37,Female,Mangaluru,3,High
+OFF00070,Quincy Chaudhuri,30,Female,Bengaluru Rural,5,Low
+OFF00071,Irya Andra,31,Female,Hubballi-Dharwad,9,Low
+OFF00072,Vaishnavi Sachdeva,30,Female,Mangaluru,11,Low
+OFF00073,Mahika Bora,37,Male,Davanagere,4,Medium
+OFF00074,Zarna Singhal,20,Male,Tumakuru,9,High
+OFF00075,Urishilla Rajagopalan,26,Female,Bengaluru Rural,0,High
+OFF00076,Ikbal Ganguly,36,Female,Shivamogga,14,Medium
+OFF00077,Xavier Bhandari,29,Male,Hubballi-Dharwad,15,Low
+OFF00078,Amaira Seshadri,22,Female,Shivamogga,2,High
+OFF00079,George Wadhwa,58,Male,Mysuru,4,High
+OFF00080,Urvi Bobal,37,Male,Mangaluru,3,High
+OFF00081,Qabil Edwin,44,Male,Hassan,12,Medium
+OFF00082,Yashoda Dhar,46,Female,Udupi,13,Medium
+OFF00083,Oni Zachariah,54,Male,Ballari,3,Low
+OFF00084,Rushil Shanker,58,Male,Hubballi-Dharwad,2,Low
+OFF00085,Jason Chopra,33,Male,Tumakuru,2,Low
+OFF00086,Rohan Raman,18,Female,Shivamogga,15,Medium
+OFF00087,Rachita Ram,20,Male,Hubballi-Dharwad,9,High
+OFF00088,Ekapad Bir,47,Male,Vijayapura,7,Medium
+OFF00089,Neelima Mitter,58,Male,Kalaburagi,3,High
+OFF00090,Dhruv Sani,32,Male,Chikkamagaluru,8,Low
+OFF00091,Vaishnavi Desai,22,Male,Mysuru,9,High
+OFF00092,Warda Sahni,65,Female,Shivamogga,3,Medium
+OFF00093,Kamala Choudhury,62,Female,Davanagere,12,Medium
+OFF00094,Elijah Mani,50,Female,Shivamogga,2,High
+OFF00095,Manthan Khare,20,Female,Davanagere,10,High
+OFF00096,Viraj Bajaj,34,Male,Bengaluru Rural,7,High
+OFF00097,Isha Lala,54,Male,Hassan,8,High
+OFF00098,Triya Char,20,Male,Shivamogga,14,Medium
+OFF00099,Ishaan Vasa,29,Female,Vijayapura,15,Low
+OFF00100,Urmi Madan,48,Female,Kalaburagi,10,Medium
+OFF00101,Rachit Shanker,60,Male,Udupi,5,Medium
+OFF00102,Teerth Shukla,44,Female,Hubballi-Dharwad,12,High
+OFF00103,Christopher Palan,20,Female,Bengaluru Rural,10,Medium
+OFF00104,Waida Sundaram,38,Male,Hassan,12,High
+OFF00105,Ikbal Sagar,18,Female,Kalaburagi,1,Low
+OFF00106,Baghyawati Atwal,51,Female,Ballari,15,High
+OFF00107,Kala Kulkarni,46,Male,Mangaluru,8,High
+OFF00108,Maya Divan,26,Female,Shivamogga,15,Low
+OFF00109,Maanas Subramanian,19,Male,Davanagere,5,Medium
+OFF00110,Agastya Minhas,53,Male,Tumakuru,13,Low
+OFF00111,Ucchal Goswami,32,Male,Shivamogga,3,High
+OFF00112,Abdul Mandal,27,Female,Chikkamagaluru,9,High
+OFF00113,Maanav Saha,63,Female,Kalaburagi,15,Medium
+OFF00114,Bahadurjit Garg,33,Female,Tumakuru,4,Medium
+OFF00115,Jeevika Saha,30,Male,Udupi,2,Medium
+OFF00116,Varsha Kohli,44,Female,Chikkamagaluru,8,Low
+OFF00117,Ranbir Radhakrishnan,36,Female,Udupi,15,Low
+OFF00118,Andrew Sunder,46,Female,Belagavi,10,High
+OFF00119,Umang Saha,52,Female,Shivamogga,10,Low
+OFF00120,Kamala Andra,62,Male,Ballari,12,Low
+OFF00121,Anusha Ramaswamy,44,Male,Belagavi,15,High
+OFF00122,Charles Sahni,42,Female,Vijayapura,4,Medium
+OFF00123,William Narang,20,Male,Tumakuru,10,Low
+OFF00124,Gopal Ahuja,46,Male,Tumakuru,14,Low
+OFF00125,Orinder Mistry,64,Male,Kalaburagi,4,Low
+OFF00126,Gautam Kota,48,Female,Belagavi,12,High
+OFF00127,Daksh Varty,23,Female,Udupi,12,Medium
+OFF00128,Vihaan Kapur,58,Female,Udupi,1,High
+OFF00129,Xalak Pal,22,Male,Vijayapura,9,Low
+OFF00130,Ria Halder,65,Male,Kalaburagi,3,High
+OFF00131,Leela Pandey,63,Male,Shivamogga,5,High
+OFF00132,Vincent Balan,37,Male,Bengaluru Urban,10,Low
+OFF00133,Caleb Handa,36,Female,Belagavi,13,Low
+OFF00134,Divya Chaudhary,33,Female,Ballari,5,Low
+OFF00135,Gaurika Arora,29,Male,Ballari,12,High
+OFF00136,Oeshi Khare,61,Male,Shivamogga,4,Low
+OFF00137,Anamika Viswanathan,47,Female,Shivamogga,8,High
+OFF00138,Devika Dalal,18,Female,Chikkamagaluru,9,High
+OFF00139,Abhimanyu Pillai,52,Male,Bengaluru Rural,14,Medium
+OFF00140,Simon Wadhwa,55,Female,Vijayapura,13,High
+OFF00141,Bhanumati Kibe,34,Female,Udupi,9,Low
+OFF00142,Parth Kota,42,Female,Bengaluru Rural,7,Medium
+OFF00143,Ayush Srivastava,54,Female,Ballari,9,High
+OFF00144,Patrick Kashyap,36,Male,Udupi,12,Medium
+OFF00145,Ekalinga Sinha,18,Male,Chikkamagaluru,15,Medium
+OFF00146,Aradhana Saxena,32,Female,Mangaluru,6,High
+OFF00147,Tejas Pandey,34,Male,Vijayapura,3,High
+OFF00148,Tanish Ranganathan,59,Male,Hubballi-Dharwad,14,Low
+OFF00149,Aradhana Viswanathan,55,Female,Davanagere,4,Low
+OFF00150,Faris Shenoy,36,Female,Davanagere,13,Low
+OFF00151,Xalak Nigam,30,Male,Hassan,11,High
+OFF00152,Joshua Sankar,50,Female,Udupi,5,Medium
+OFF00153,Finn Agarwal,48,Female,Davanagere,10,Low
+OFF00154,Jason Kakar,47,Male,Mysuru,7,High
+OFF00155,Naveen Sharaf,64,Female,Udupi,11,Low
+OFF00156,Gavin Nadig,43,Male,Hubballi-Dharwad,3,Medium
+OFF00157,Diya Chaudhary,41,Female,Ballari,12,High
+OFF00158,Ekani Shere,41,Male,Vijayapura,7,Medium
+OFF00159,Zashil Kumer,19,Female,Chikkamagaluru,7,High
+OFF00160,Kalpit Babu,22,Female,Chikkamagaluru,9,High
+OFF00161,Ekansh Kapoor,44,Male,Mysuru,1,Low
+OFF00162,Nilima Tella,37,Female,Bengaluru Rural,3,Low
+OFF00163,Lila Lala,52,Male,Kalaburagi,14,Medium
+OFF00164,Vyanjana Grover,60,Female,Ballari,4,Medium
+OFF00165,Bina Verma,59,Male,Udupi,15,High
+OFF00166,Sarthak Ramanathan,44,Female,Bengaluru Urban,11,Low
+OFF00167,Saumya Karnik,46,Female,Mangaluru,11,Low
+OFF00168,William Bava,61,Female,Tumakuru,11,Low
+OFF00169,Zinal Butala,43,Female,Mangaluru,3,Medium
+OFF00170,Zilmil Pandya,23,Male,Vijayapura,0,Low
+OFF00171,Bhanumati Buch,39,Male,Mysuru,6,Low
+OFF00172,Neha Handa,53,Male,Ballari,6,Low
+OFF00173,Adya Bhatnagar,39,Male,Hassan,0,Medium
+OFF00174,Diya Bora,27,Male,Tumakuru,8,Low
+OFF00175,Gagan Prashad,25,Male,Mysuru,0,Medium
+OFF00176,Advaith Karan,33,Female,Bengaluru Urban,5,Medium
+OFF00177,Manthan De,21,Male,Davanagere,13,High
+OFF00178,Urishilla Choudhry,25,Male,Shivamogga,14,Medium
+OFF00179,Inaya Ratti,50,Male,Shivamogga,7,High
+OFF00180,Bishakha Bali,20,Female,Shivamogga,0,Low
+OFF00181,Chandani Choudhry,48,Female,Kalaburagi,3,Medium
+OFF00182,Samar Sant,63,Female,Bengaluru Rural,2,Medium
+OFF00183,Yasti Mannan,56,Male,Bengaluru Rural,4,Medium
+OFF00184,Lila Nagar,57,Female,Kalaburagi,9,Medium
+OFF00185,Chandani Tripathi,50,Female,Bengaluru Rural,3,High
+OFF00186,Mekhala Thakur,59,Male,Kalaburagi,14,Low
+OFF00187,Rachana Mishra,44,Female,Udupi,14,Medium
+OFF00188,Gautam Kashyap,44,Male,Belagavi,13,Medium
+OFF00189,Chatura Peri,60,Female,Belagavi,4,High
+OFF00190,Henry Khanna,48,Male,Bengaluru Rural,2,Low
+OFF00191,Vihaan Nayak,45,Male,Davanagere,11,Low
+OFF00192,Lakshmi Mangal,53,Male,Ballari,10,High
+OFF00193,Anay Saraf,25,Female,Belagavi,13,High
+OFF00194,Yahvi Gill,21,Female,Ballari,9,Medium
+OFF00195,Ira Mohan,24,Male,Mysuru,15,Low
+OFF00196,Dayita Nagar,24,Female,Udupi,11,Low
+OFF00197,Turvi Patla,35,Male,Hassan,13,High
+OFF00198,Madhavi Srivastava,57,Male,Ballari,8,Low
+OFF00199,Abha Vaidya,29,Female,Davanagere,9,Medium
+OFF00200,Upadhriti Prakash,40,Male,Mysuru,4,High
+OFF00201,Darpan Parmar,60,Female,Bengaluru Rural,4,High
+OFF00202,Manbir Chad,58,Male,Bengaluru Rural,6,Medium
+OFF00203,Janaki Sawhney,44,Female,Belagavi,5,Medium
+OFF00204,Ridhi Date,37,Female,Hassan,2,Low
+OFF00205,Xavier Balan,27,Male,Hassan,1,High
+OFF00206,Simon Datta,23,Female,Shivamogga,13,Medium
+OFF00207,Ria Soman,56,Female,Kalaburagi,8,Low
+OFF00208,Garima Warrior,50,Male,Belagavi,13,Low
+OFF00209,Elijah Ben,36,Female,Tumakuru,9,Low
+OFF00210,Aradhana Yadav,32,Female,Ballari,1,Low
+OFF00211,Shivansh Dugar,31,Female,Mangaluru,4,Medium
+OFF00212,Gautami Chowdhury,36,Female,Bengaluru Rural,0,Medium
+OFF00213,Charita Badal,65,Female,Mysuru,4,Medium
+OFF00214,Aadhya Bakshi,52,Male,Tumakuru,11,Low
+OFF00215,Damini Bal,43,Male,Kalaburagi,0,Medium
+OFF00216,Inaya Natarajan,22,Female,Ballari,13,High
+OFF00217,Upadhriti Srinivas,43,Female,Hubballi-Dharwad,3,Medium
+OFF00218,Caleb Sanghvi,19,Female,Mysuru,14,High
+OFF00219,Ekapad Hegde,41,Male,Kalaburagi,3,Low
+OFF00220,Ekta Saxena,45,Female,Tumakuru,2,Medium
+OFF00221,Jai Pal,37,Female,Mangaluru,10,Low
+OFF00222,Hiral Modi,22,Male,Tumakuru,6,Medium
+OFF00223,Tara Bala,40,Male,Mangaluru,3,Low
+OFF00224,Ishanvi Borra,34,Male,Mysuru,4,High
+OFF00225,Varsha Parmer,22,Male,Hassan,15,Medium
+OFF00226,Ayushman Singhal,54,Female,Vijayapura,10,High
+OFF00227,Chandresh Kari,38,Male,Shivamogga,2,Medium
+OFF00228,Guneet Sanghvi,46,Female,Hassan,8,High
+OFF00229,Falan Shan,21,Female,Tumakuru,2,Medium
+OFF00230,Manbir Khosla,47,Female,Bengaluru Urban,1,Medium
+OFF00231,Arin Ben,36,Male,Vijayapura,2,High
+OFF00232,Oeshi Dyal,56,Female,Shivamogga,1,Medium
+OFF00233,Anamika Badami,54,Male,Belagavi,15,High
+OFF00234,Dhriti Dewan,27,Male,Shivamogga,3,Medium
+OFF00235,Samaksh Prasad,63,Male,Tumakuru,5,Low
+OFF00236,Gunbir Bhagat,33,Female,Shivamogga,5,Medium
+OFF00237,Omaja Loke,41,Female,Kalaburagi,13,Medium
+OFF00238,Umang Shankar,61,Male,Hassan,10,Low
+OFF00239,Aarush Srinivas,39,Male,Tumakuru,12,Medium
+OFF00240,Anusha Pradhan,34,Male,Belagavi,2,High
+OFF00241,Dhriti Karnik,60,Male,Chikkamagaluru,11,Medium
+OFF00242,Vrinda Bhalla,59,Female,Mysuru,2,Medium
+OFF00243,Gagan Agate,53,Female,Vijayapura,10,Low
+OFF00244,Ekantika Garg,60,Male,Vijayapura,13,High
+OFF00245,Orinder Mand,41,Male,Belagavi,9,Low
+OFF00246,Anamika Chaudhari,31,Female,Hassan,15,Low
+OFF00247,Noah Sankaran,32,Male,Mysuru,2,Medium
+OFF00248,Guneet Walia,24,Male,Vijayapura,10,High
+OFF00249,Rachana Mani,26,Female,Mysuru,5,Low
+OFF00250,Rajata Bal,62,Male,Davanagere,14,Low
+OFF00251,Arjun Banerjee,44,Female,Vijayapura,7,Medium
+OFF00252,Amara Bora,57,Female,Hassan,14,Low
+OFF00253,Henry Loke,52,Male,Hubballi-Dharwad,15,Low
+OFF00254,Aarnav Morar,41,Female,Shivamogga,9,Medium
+OFF00255,Nathaniel Cherian,50,Female,Mysuru,6,High
+OFF00256,Oscar Toor,26,Female,Bengaluru Urban,15,Medium
+OFF00257,Wahab Dada,53,Male,Davanagere,3,Medium
+OFF00258,Damyanti Sheth,23,Male,Hubballi-Dharwad,14,High
+OFF00259,Sarthak Dar,27,Female,Bengaluru Rural,7,Medium
+OFF00260,Jeet Mukhopadhyay,40,Male,Kalaburagi,1,Medium
+OFF00261,George Batra,50,Female,Mangaluru,12,Low
+OFF00262,Jasmit Wable,41,Male,Bengaluru Urban,10,Low
+OFF00263,Wakeeta Samra,63,Female,Hassan,4,Low
+OFF00264,Zinal Rao,20,Female,Chikkamagaluru,15,High
+OFF00265,Chatresh Kala,26,Female,Shivamogga,0,Low
+OFF00266,Aarini Ray,19,Female,Mangaluru,4,High
+OFF00267,Chanchal Dhawan,64,Female,Bengaluru Rural,9,Low
+OFF00268,Ikbal Aggarwal,37,Male,Bengaluru Urban,7,Medium
+OFF00269,Quincy Grover,58,Female,Bengaluru Rural,3,Medium
+OFF00270,Vedant Dutta,56,Male,Vijayapura,7,High
+OFF00271,Veer Guha,27,Female,Kalaburagi,0,High
+OFF00272,Darpan Srinivas,40,Male,Ballari,13,Low
+OFF00273,Triya Mukherjee,60,Male,Tumakuru,11,Low
+OFF00274,Ekaja Mand,51,Male,Kalaburagi,15,Low
+OFF00275,Ikbal Prabhu,58,Female,Belagavi,8,High
+OFF00276,Vedika Pal,19,Female,Hassan,2,Medium
+OFF00277,Kavya Ramanathan,33,Male,Hassan,10,Low
+OFF00278,Brijesh Oza,20,Female,Tumakuru,10,High
+OFF00279,Chanakya Khare,29,Female,Davanagere,15,High
+OFF00280,Anay Karan,29,Male,Bengaluru Rural,14,Low
+OFF00281,Kavya Shenoy,36,Male,Bengaluru Urban,6,Low
+OFF00282,Niharika Sathe,38,Female,Tumakuru,12,High
+OFF00283,Manbir Vohra,48,Female,Bengaluru Urban,6,Medium
+OFF00284,Damini Naik,40,Male,Udupi,10,Medium
+OFF00285,Kai Thakur,25,Female,Kalaburagi,12,High
+OFF00286,Lucky Dey,46,Female,Belagavi,5,Medium
+OFF00287,Dayita Chad,62,Female,Belagavi,8,Low
+OFF00288,Harita Bhattacharyya,64,Female,Bengaluru Rural,13,High
+OFF00289,Chameli Gole,29,Female,Belagavi,3,Low
+OFF00290,Bachittar Roy,38,Female,Hubballi-Dharwad,14,High
+OFF00291,Hemang Kurian,63,Female,Mysuru,14,Medium
+OFF00292,Forum Bhagat,46,Male,Davanagere,11,High
+OFF00293,Amaira Sanghvi,45,Female,Vijayapura,1,Low
+OFF00294,Harrison Narayan,60,Female,Belagavi,5,Low
+OFF00295,Praneel Sawhney,27,Female,Bengaluru Urban,4,Low
+OFF00296,Ekantika Yohannan,33,Female,Belagavi,12,High
+OFF00297,Inaya Khanna,20,Male,Vijayapura,14,Medium
+OFF00298,Jack Mishra,41,Female,Hassan,2,High
+OFF00299,Nitesh Buch,26,Female,Kalaburagi,10,High
+OFF00300,Dalaja Hari,35,Male,Bengaluru Rural,0,High
+OFF00301,Damini Talwar,29,Female,Tumakuru,12,High
+OFF00302,Ira Jani,25,Female,Hassan,8,High
+OFF00303,Bhanumati Dutt,46,Male,Ballari,9,High
+OFF00304,Dalbir Thakkar,49,Male,Bengaluru Rural,4,Low
+OFF00305,Hemang Prashad,46,Male,Chikkamagaluru,14,Low
+OFF00306,Wishi Sethi,61,Female,Vijayapura,11,High
+OFF00307,Dalbir Natarajan,22,Female,Chikkamagaluru,9,Low
+OFF00308,Jonathan Basak,63,Male,Hassan,11,High
+OFF00309,Samarth Bawa,32,Male,Mangaluru,4,Low
+OFF00310,Vrishti Om,49,Male,Belagavi,11,Medium
+OFF00311,Azad Aggarwal,53,Male,Ballari,2,Low
+OFF00312,Amol Lata,37,Female,Davanagere,15,High
+OFF00313,Qabil Bajaj,44,Female,Udupi,2,Low
+OFF00314,Aarini Merchant,38,Male,Shivamogga,14,High
+OFF00315,Diya Mahajan,51,Female,Mysuru,5,Low
+OFF00316,Anjali Dyal,45,Male,Udupi,3,High
+OFF00317,Nilima Srivastava,27,Female,Mysuru,5,Medium
+OFF00318,Wazir D’Alia,63,Male,Belagavi,9,Low
+OFF00319,Bhavani Sangha,34,Male,Vijayapura,8,Low
+OFF00320,Janya Thaker,58,Female,Ballari,2,High
+OFF00321,Harrison Parikh,59,Male,Ballari,4,Low
+OFF00322,Simon Loyal,60,Female,Udupi,1,Low
+OFF00323,Aradhana Lanka,23,Male,Vijayapura,8,High
+OFF00324,Unni Bhalla,31,Female,Ballari,0,Medium
+OFF00325,Upasna Pandey,58,Female,Vijayapura,9,Medium
+OFF00326,Jairaj Raman,33,Female,Hubballi-Dharwad,14,Low
+OFF00327,Michael Nigam,62,Male,Mysuru,14,Medium
+OFF00328,Rachit Shanker,48,Female,Mangaluru,10,High
+OFF00329,George Tara,27,Female,Udupi,10,High
+OFF00330,Falguni Gill,40,Female,Mysuru,11,High
+OFF00331,Pahal Date,53,Male,Belagavi,7,Medium
+OFF00332,Siya Dhawan,25,Female,Shivamogga,7,Low
+OFF00333,Vasatika More,24,Male,Hubballi-Dharwad,12,High
+OFF00334,Joshua Sharaf,44,Male,Udupi,5,Medium
+OFF00335,Adya Sanghvi,54,Female,Mangaluru,5,Medium
+OFF00336,Abhiram Doshi,50,Female,Shivamogga,9,Medium
+OFF00337,Rehaan Kar,19,Male,Kalaburagi,14,Low
+OFF00338,Harsh Sant,31,Female,Bengaluru Urban,1,Medium
+OFF00339,Shivansh Handa,49,Female,Hubballi-Dharwad,0,Low
+OFF00340,Pranav Shanker,45,Male,Chikkamagaluru,8,High
+OFF00341,Brinda Jaggi,41,Female,Belagavi,1,Medium
+OFF00342,Manbir Bandi,21,Male,Belagavi,9,Low
+OFF00343,Praneel Dewan,42,Female,Hassan,8,High
+OFF00344,Yuvraj Kibe,61,Male,Mysuru,3,Medium
+OFF00345,Indira Pradhan,41,Female,Tumakuru,11,Low
+OFF00346,Faraj Sule,30,Female,Tumakuru,1,Low
+OFF00347,Gauri Palla,20,Male,Davanagere,10,Medium
+OFF00348,Zilmil Subramanian,51,Female,Mysuru,4,Medium
+OFF00349,Dhriti Chakrabarti,57,Female,Mysuru,12,High
+OFF00350,Amol Rastogi,65,Female,Ballari,10,High
+OFF00351,Aadhya Cheema,50,Female,Davanagere,9,Medium
+OFF00352,Sanya Tiwari,19,Female,Belagavi,3,Medium
+OFF00353,Falguni Raj,55,Female,Hassan,0,High
+OFF00354,Radhika Wali,48,Female,Vijayapura,7,High
+OFF00355,Nathan Chada,21,Female,Mysuru,12,Low
+OFF00356,Leena Nair,61,Male,Bengaluru Urban,3,Low
+OFF00357,Omya Agate,19,Female,Belagavi,13,Low
+OFF00358,Samarth Aggarwal,44,Male,Kalaburagi,15,High
+OFF00359,Gaurav Chaudhary,64,Male,Davanagere,4,High
+OFF00360,Ronith Golla,31,Female,Vijayapura,15,High
+OFF00361,Ekapad Halder,42,Female,Mysuru,14,High
+OFF00362,Gautam Sanghvi,39,Female,Vijayapura,8,High
+OFF00363,Udyati Tak,48,Male,Mangaluru,8,High
+OFF00364,Gaurang Sandal,37,Male,Hubballi-Dharwad,9,High
+OFF00365,Abdul Nagar,31,Female,Belagavi,15,Medium
+OFF00366,Guneet Badami,53,Female,Hubballi-Dharwad,3,High
+OFF00367,Udant Vig,61,Female,Chikkamagaluru,12,Medium
+OFF00368,Niharika Tiwari,27,Female,Bengaluru Urban,9,High
+OFF00369,Shivansh Rajagopal,23,Female,Chikkamagaluru,14,High
+OFF00370,Caleb Kannan,34,Female,Mangaluru,6,High
+OFF00371,Vedhika Prasad,35,Female,Mysuru,3,High
+OFF00372,Kamala Kant,65,Male,Mangaluru,1,High
+OFF00373,Abhimanyu Rana,51,Male,Vijayapura,7,Low
+OFF00374,Lajita Patil,24,Female,Belagavi,15,Low
+OFF00375,Balendra Gaba,61,Male,Bengaluru Urban,5,Medium
+OFF00376,Abeer Kapoor,59,Female,Shivamogga,6,Medium
+OFF00377,Faris Mohanty,38,Female,Vijayapura,1,Low
+OFF00378,Upma Lata,59,Male,Tumakuru,1,Low
+OFF00379,Bhavika Vaidya,44,Male,Chikkamagaluru,1,Medium
+OFF00380,Anirudh Karnik,49,Male,Chikkamagaluru,9,Low
+OFF00381,Ryan Chaudhuri,18,Female,Ballari,3,Medium
+OFF00382,Qabil Bumb,36,Female,Vijayapura,15,Low
+OFF00383,Vasana Tara,50,Female,Hubballi-Dharwad,6,Low
+OFF00384,Chatura Iyer,39,Male,Davanagere,14,High
+OFF00385,Jatin Din,34,Male,Bengaluru Urban,10,Medium
+OFF00386,Shravya Kale,54,Male,Mysuru,12,Medium
+OFF00387,Ekalinga Palla,50,Female,Bengaluru Rural,12,High
+OFF00388,Azad Mallick,24,Male,Mysuru,15,Medium
+OFF00389,Rohan Deo,33,Male,Hubballi-Dharwad,12,Low
+OFF00390,Vyanjana Kala,46,Female,Belagavi,9,High
+OFF00391,Theodore Iyer,64,Male,Hubballi-Dharwad,11,High
+OFF00392,Yatin Nagarajan,33,Male,Vijayapura,3,Medium
+OFF00393,Libni Pandit,37,Male,Kalaburagi,9,High
+OFF00394,Inaya Chaudhary,25,Female,Belagavi,7,Low
+OFF00395,Rajeshri Nagy,26,Female,Mysuru,14,High
+OFF00396,Vansha Agarwal,56,Female,Kalaburagi,15,High
+OFF00397,Arunima Gaba,60,Male,Hassan,7,High
+OFF00398,Tanish Nori,56,Male,Tumakuru,14,High
+OFF00399,Yasti Chahal,63,Female,Bengaluru Rural,3,Low
+OFF00400,Vedhika Das,53,Male,Ballari,4,Low
+OFF00401,Samuel Doctor,38,Female,Bengaluru Rural,6,High
+OFF00402,Aditya Savant,55,Female,Bengaluru Rural,14,Low
+OFF00403,Yutika Parsa,47,Male,Tumakuru,13,Medium
+OFF00404,Wahab Dhawan,54,Male,Tumakuru,14,High
+OFF00405,Nathaniel Karan,37,Male,Kalaburagi,8,Low
+OFF00406,Diya Talwar,65,Male,Ballari,2,Low
+OFF00407,Kala More,45,Female,Davanagere,2,High
+OFF00408,Nikita Padmanabhan,21,Male,Chikkamagaluru,15,Low
+OFF00409,Eta Sur,36,Female,Mysuru,4,High
+OFF00410,Samaksh Gara,64,Female,Belagavi,12,Medium
+OFF00411,Peter Savant,42,Female,Bengaluru Rural,4,High
+OFF00412,Priya Sodhi,40,Male,Mysuru,12,High
+OFF00413,Radhika Rajan,26,Male,Udupi,0,Low
+OFF00414,Max Mutti,37,Female,Vijayapura,13,High
+OFF00415,Diya Barad,42,Male,Mangaluru,14,Medium
+OFF00416,Anya Soni,27,Female,Mangaluru,3,Low
+OFF00417,Ekanta Badal,60,Female,Ballari,0,Low
+OFF00418,Pranit Handa,31,Male,Bengaluru Rural,1,Medium
+OFF00419,Zaid Varughese,56,Male,Mangaluru,1,Medium
+OFF00420,Jack Bassi,46,Male,Tumakuru,6,Low
+OFF00421,Rachana Iyengar,26,Female,Mangaluru,10,High
+OFF00422,Tara Rana,56,Female,Mangaluru,9,Low
+OFF00423,Ranveer Bal,60,Male,Kalaburagi,9,Medium
+OFF00424,Alexander Dugar,21,Male,Vijayapura,13,High
+OFF00425,Balhaar Suri,49,Male,Belagavi,12,High
+OFF00426,Turvi Raj,38,Female,Kalaburagi,4,Medium
+OFF00427,Advik Anand,42,Male,Hassan,15,Low
+OFF00428,Amara Suresh,32,Female,Udupi,4,Medium
+OFF00429,Bhavya Devi,21,Female,Kalaburagi,4,Medium
+OFF00430,Nimrat Bala,33,Female,Mangaluru,10,High
+OFF00431,Jason Lanka,23,Female,Udupi,11,Low
+OFF00432,Urvi Dugal,52,Male,Bengaluru Urban,8,Medium
+OFF00433,Shaurya Kumer,61,Male,Udupi,2,Low
+OFF00434,Charvi Kunda,55,Male,Shivamogga,6,Medium
+OFF00435,Ekapad Sinha,37,Male,Mangaluru,6,High
+OFF00436,Patrick Rajagopal,25,Female,Chikkamagaluru,7,High
+OFF00437,Barkha Kari,56,Male,Kalaburagi,7,High
+OFF00438,Ronith Ratti,38,Female,Kalaburagi,14,High
+OFF00439,Sachi Krishnamurthy,59,Female,Hubballi-Dharwad,8,Medium
+OFF00440,Chakrika Barad,50,Female,Shivamogga,3,High
+OFF00441,Zarna Shroff,48,Female,Chikkamagaluru,6,Medium
+OFF00442,Vidhi Setty,38,Female,Bengaluru Urban,7,High
+OFF00443,Simon Dalal,27,Male,Hubballi-Dharwad,13,Medium
+OFF00444,Ranbir Kala,27,Male,Belagavi,7,Medium
+OFF00445,Gautam Deol,54,Male,Shivamogga,10,Medium
+OFF00446,Manya Seth,49,Female,Shivamogga,5,High
+OFF00447,Aradhana Kaul,40,Male,Mysuru,15,Low
+OFF00448,Chanakya Nayak,52,Male,Tumakuru,1,Low
+OFF00449,Indira Pingle,60,Male,Hassan,0,Medium
+OFF00450,Matthew Sahota,26,Male,Bengaluru Rural,4,Low
+OFF00451,Chavvi Devi,31,Female,Belagavi,1,High
+OFF00452,Zaid Bhavsar,58,Female,Vijayapura,15,Low
+OFF00453,Zehaan Mall,18,Female,Bengaluru Urban,0,High
+OFF00454,Fariq Kunda,64,Female,Tumakuru,9,Low
+OFF00455,Saumya Borah,50,Female,Hassan,5,Low
+OFF00456,Chaitanya Butala,24,Male,Mangaluru,6,High
+OFF00457,Farhan Ramaswamy,51,Female,Udupi,11,Medium
+OFF00458,Urvashi Raghavan,43,Male,Belagavi,12,Medium
+OFF00459,Banjeet Dutt,54,Male,Davanagere,7,Medium
+OFF00460,Ishita Prashad,61,Male,Vijayapura,1,Low
+OFF00461,Chandani Jain,43,Female,Kalaburagi,15,Low
+OFF00462,Jeet Das,58,Male,Davanagere,5,Low
+OFF00463,Jagdish Khalsa,49,Female,Vijayapura,10,High
+OFF00464,Warhi Tara,24,Male,Mangaluru,6,High
+OFF00465,Rayaan Purohit,54,Female,Hubballi-Dharwad,1,Low
+OFF00466,Alexander Kapadia,61,Female,Chikkamagaluru,1,Low
+OFF00467,Ekavir Bhardwaj,38,Male,Mangaluru,4,High
+OFF00468,Ucchal Panchal,43,Male,Hubballi-Dharwad,5,High
+OFF00469,Dalbir Jha,33,Female,Vijayapura,10,Medium
+OFF00470,Arya Manda,65,Male,Hassan,2,High
+OFF00471,Yashasvi Shanker,65,Female,Bengaluru Urban,3,Medium
+OFF00472,Chameli Bir,32,Male,Belagavi,12,Medium
+OFF00473,Bhavna Yadav,19,Female,Hassan,14,Medium
+OFF00474,Hredhaan Sanghvi,32,Female,Tumakuru,12,Medium
+OFF00475,Samar Bhat,29,Female,Bengaluru Rural,9,Low
+OFF00476,Ryan Brar,63,Male,Bengaluru Rural,8,Low
+OFF00477,Hardik Goswami,42,Male,Davanagere,12,Medium
+OFF00478,Unni Borra,41,Male,Bengaluru Rural,0,Medium
+OFF00479,Dayamai Chokshi,46,Female,Hassan,8,Low
+OFF00480,Aarini Mohan,26,Male,Mysuru,13,Medium
+OFF00481,Rachit Palan,53,Female,Bengaluru Rural,0,Low
+OFF00482,Krishna Boase,40,Male,Ballari,10,Medium
+OFF00483,Faqid Bhandari,18,Female,Kalaburagi,12,Low
+OFF00484,Vinaya Handa,64,Male,Ballari,5,High
+OFF00485,Amol Sen,42,Male,Mysuru,8,Medium
+OFF00486,Omaja Ravi,35,Female,Mysuru,2,Low
+OFF00487,Sudiksha Bhalla,45,Female,Kalaburagi,9,Medium
+OFF00488,Hiral Khosla,22,Female,Hubballi-Dharwad,7,High
+OFF00489,Frado Nair,58,Female,Ballari,6,Medium
+OFF00490,Balveer Borde,24,Male,Hubballi-Dharwad,0,Medium
+OFF00491,Gautam Prabhu,39,Female,Hassan,10,Medium
+OFF00492,Bahadurjit Sheth,39,Female,Udupi,4,Medium
+OFF00493,Ekani Narasimhan,38,Male,Shivamogga,10,Low
+OFF00494,Darsh Natarajan,43,Female,Hubballi-Dharwad,15,High
+OFF00495,Vansha Krish,33,Female,Kalaburagi,8,Medium
+OFF00496,Jeremiah Chokshi,41,Male,Chikkamagaluru,6,High
+OFF00497,Neha Agarwal,52,Male,Vijayapura,0,High
+OFF00498,Krisha Sridhar,47,Male,Shivamogga,9,High
+OFF00499,Noah Chauhan,22,Female,Vijayapura,15,Low
+OFF00500,Yutika Bhasin,58,Female,Mangaluru,8,High
+OFF00501,Hemang Madan,27,Female,Hassan,12,Low
+OFF00502,Aradhana Pal,46,Female,Ballari,12,High
+OFF00503,Aarav Aurora,50,Female,Tumakuru,1,Medium
+OFF00504,Triya Raval,62,Male,Bengaluru Rural,7,High
+OFF00505,Amruta Jhaveri,60,Female,Mysuru,1,High
+OFF00506,Harsh Garde,59,Female,Hassan,10,Medium
+OFF00507,Gopal Sha,24,Male,Bengaluru Rural,8,Low
+OFF00508,Janaki Kaul,50,Male,Shivamogga,11,Medium
+OFF00509,Jason Taneja,47,Male,Belagavi,0,Medium
+OFF00510,Krishna Dugal,24,Female,Kalaburagi,2,Low
+OFF00511,Balendra Gulati,64,Male,Belagavi,9,Medium
+OFF00512,Daksha Pau,47,Male,Tumakuru,15,Medium
+OFF00513,Osha Kurian,48,Male,Shivamogga,14,Medium
+OFF00514,Vidhi Mani,22,Female,Bengaluru Urban,3,Low
+OFF00515,Anya Venkatesh,39,Male,Vijayapura,5,High
+OFF00516,Tarak Goyal,33,Male,Tumakuru,5,Medium
+OFF00517,Rushil Biswas,53,Female,Shivamogga,7,Medium
+OFF00518,Vedant Raju,58,Male,Mysuru,13,Medium
+OFF00519,Fitan Roy,19,Male,Shivamogga,13,Medium
+OFF00520,Champak Palla,18,Male,Mangaluru,8,High
+OFF00521,Yahvi Tata,22,Male,Hassan,5,Medium
+OFF00522,Vidhi Ramesh,38,Male,Shivamogga,3,Medium
+OFF00523,Kashish Pingle,60,Female,Tumakuru,10,High
+OFF00524,Zaitra Bahl,42,Female,Ballari,3,Medium
+OFF00525,Shivansh Dara,40,Female,Ballari,5,High
+OFF00526,Nakul Keer,63,Female,Chikkamagaluru,2,High
+OFF00527,Isaac Bobal,26,Female,Bengaluru Rural,7,Medium
+OFF00528,Aarna Pandey,25,Male,Belagavi,4,High
+OFF00529,Madhav Korpal,42,Female,Ballari,4,High
+OFF00530,Mohini Brahmbhatt,42,Female,Mysuru,15,High
+OFF00531,Harshil Mane,52,Male,Tumakuru,5,Medium
+OFF00532,Gautami Brar,36,Male,Mysuru,10,Medium
+OFF00533,Wakeeta Sastry,57,Male,Udupi,11,Low
+OFF00534,Anamika Bandi,49,Male,Mangaluru,12,High
+OFF00535,Bhavani Saraf,50,Female,Kalaburagi,15,Medium
+OFF00536,Nidhi Kadakia,63,Female,Shivamogga,5,Low
+OFF00537,Faraj Sheth,54,Male,Hassan,7,Medium
+OFF00538,Fariq Gala,20,Female,Mangaluru,9,Low
+OFF00539,Abha Cheema,47,Female,Tumakuru,3,High
+OFF00540,Balveer Bhardwaj,25,Female,Hassan,11,High
+OFF00541,Waida Mallick,20,Female,Tumakuru,6,Medium
+OFF00542,Yutika Majumdar,24,Male,Hubballi-Dharwad,1,Medium
+OFF00543,Tristan Varughese,34,Female,Udupi,2,Medium
+OFF00544,Reyansh Setty,25,Male,Mangaluru,11,High
+OFF00545,Laksh Chadha,57,Female,Mysuru,4,Low
+OFF00546,Robert Prakash,31,Male,Ballari,11,High
+OFF00547,Rayaan Bhagat,35,Male,Belagavi,9,Medium
+OFF00548,Amrita Sekhon,54,Female,Udupi,3,Low
+OFF00549,Reyansh More,44,Male,Hubballi-Dharwad,4,High
+OFF00550,Vedhika Hegde,26,Male,Mysuru,10,Low
+OFF00551,Vansha Atwal,61,Female,Shivamogga,4,High
+OFF00552,Qabil Buch,58,Female,Vijayapura,13,Medium
+OFF00553,Mason Devi,46,Male,Vijayapura,2,Medium
+OFF00554,Aradhana Srivastava,50,Female,Davanagere,11,Medium
+OFF00555,Luke Prabhakar,49,Female,Ballari,0,High
+OFF00556,Dalaja Cherian,23,Female,Vijayapura,11,Low
+OFF00557,Imaran Uppal,52,Female,Mangaluru,13,Low
+OFF00558,Advay Patil,49,Female,Belagavi,9,Medium
+OFF00559,Barkha Naidu,53,Male,Ballari,15,Medium
+OFF00560,Rachit Dada,61,Male,Bengaluru Urban,3,High
+OFF00561,Parth Bir,47,Male,Bengaluru Rural,5,Medium
+OFF00562,Rushil Bali,47,Male,Kalaburagi,6,High
+OFF00563,Maanav Chakrabarti,26,Female,Mysuru,8,Low
+OFF00564,Eesha Gera,59,Female,Hubballi-Dharwad,2,Medium
+OFF00565,Jagat Bhasin,60,Male,Bengaluru Urban,12,High
+OFF00566,Bhavani Pandya,37,Male,Kalaburagi,2,High
+OFF00567,Sachi Chawla,24,Male,Mangaluru,15,Low
+OFF00568,Gabriel Kar,26,Male,Tumakuru,14,Low
+OFF00569,Ronith Peri,18,Female,Udupi,3,Medium
+OFF00570,Divya Mital,62,Male,Shivamogga,2,Low
+OFF00571,Peter Bhardwaj,42,Male,Davanagere,3,Low
+OFF00572,Quincy Vohra,38,Female,Chikkamagaluru,9,Low
+OFF00573,Vedhika Nath,42,Male,Vijayapura,4,Low
+OFF00574,Balendra Nayak,51,Male,Ballari,5,Medium
+OFF00575,Lila Kulkarni,40,Male,Vijayapura,4,Medium
+OFF00576,Xavier Bedi,57,Female,Udupi,6,Low
+OFF00577,Ishani Walia,24,Male,Hassan,3,High
+OFF00578,Gagan Oommen,64,Female,Belagavi,13,Medium
+OFF00579,Bhanumati Chanda,26,Male,Hubballi-Dharwad,2,Low
+OFF00580,Gautam Minhas,53,Female,Hassan,0,High
+OFF00581,Banjeet Ramanathan,37,Male,Tumakuru,6,High
+OFF00582,Chanakya Warrior,43,Female,Vijayapura,1,Low
+OFF00583,Wishi Bhandari,49,Female,Bengaluru Rural,7,Medium
+OFF00584,Champak Tailor,58,Male,Tumakuru,0,Medium
+OFF00585,Andrew Mahajan,38,Male,Kalaburagi,13,Medium
+OFF00586,Utkarsh Goel,52,Male,Hassan,15,Low
+OFF00587,Nimrat Seshadri,19,Male,Bengaluru Urban,8,Low
+OFF00588,Vasana Parmer,20,Male,Hassan,12,High
+OFF00589,Gaurangi Varkey,36,Female,Kalaburagi,12,Low
+OFF00590,Vasana Chad,58,Male,Hubballi-Dharwad,2,Medium
+OFF00591,Vasudha Sanghvi,23,Male,Hassan,4,High
+OFF00592,Gauri Soman,38,Female,Ballari,2,Medium
+OFF00593,Yashodhara Korpal,62,Female,Davanagere,7,Low
+OFF00594,Oviya Majumdar,33,Male,Chikkamagaluru,13,Low
+OFF00595,Zansi Grewal,47,Male,Hubballi-Dharwad,5,Low
+OFF00596,Kamala Munshi,18,Male,Davanagere,0,Low
+OFF00597,Bhavani Mandal,49,Female,Tumakuru,8,Low
+OFF00598,Atharv Dar,41,Male,Davanagere,8,High
+OFF00599,Ishani Kalita,25,Male,Belagavi,13,Medium
+OFF00600,Aachal Madan,51,Male,Hubballi-Dharwad,2,Medium
+OFF00601,Nathaniel Wadhwa,47,Female,Bengaluru Urban,15,High
+OFF00602,Dayita Sandal,28,Female,Mysuru,8,Low
+OFF00603,Bakhshi Jhaveri,54,Male,Mangaluru,0,Low
+OFF00604,Hemang Srivastava,18,Male,Bengaluru Urban,15,Medium
+OFF00605,Henry De,42,Male,Mysuru,1,High
+OFF00606,Nilima Hans,63,Female,Mangaluru,10,Low
+OFF00607,Naksh Trivedi,44,Female,Hubballi-Dharwad,2,High
+OFF00608,Yadavi Sehgal,41,Male,Tumakuru,1,Low
+OFF00609,Qasim Contractor,32,Male,Kalaburagi,2,Medium
+OFF00610,Jagdish Tiwari,36,Female,Belagavi,2,High
+OFF00611,Janani Patla,47,Male,Belagavi,6,Medium
+OFF00612,Mohini Sekhon,54,Female,Davanagere,7,Medium
+OFF00613,Yutika Sura,41,Female,Hassan,6,High
+OFF00614,Wriddhish Badami,52,Male,Mysuru,0,Medium
+OFF00615,Peter Sandhu,19,Male,Tumakuru,11,High
+OFF00616,Tarak Yogi,62,Male,Belagavi,0,High
+OFF00617,Zaid Mohan,42,Female,Bengaluru Rural,6,High
+OFF00618,Vrinda Lad,33,Female,Shivamogga,1,Low
+OFF00619,Triya Warrior,63,Female,Bengaluru Rural,1,Low
+OFF00620,Quincy Gera,51,Female,Davanagere,11,Medium
+OFF00621,Girish Gupta,65,Male,Ballari,3,High
+OFF00622,Anita Sridhar,26,Female,Bengaluru Rural,1,Medium
+OFF00623,Ekiya Bora,60,Male,Mangaluru,9,Medium
+OFF00624,Baghyawati Sampath,38,Female,Davanagere,10,Medium
+OFF00625,Devansh Malhotra,46,Female,Mangaluru,2,Low
+OFF00626,Tamanna Ramanathan,26,Male,Mysuru,3,Low
+OFF00627,Owen Kaur,46,Female,Belagavi,13,Low
+OFF00628,Omkaar Bava,52,Female,Hassan,6,Medium
+OFF00629,Lucky Golla,37,Female,Hubballi-Dharwad,3,Low
+OFF00630,Yagnesh Sarma,28,Female,Udupi,1,Low
+OFF00631,Balveer Swamy,38,Male,Bengaluru Rural,7,Medium
+OFF00632,Ira Kalla,43,Male,Vijayapura,9,Medium
+OFF00633,Shivani Natt,29,Male,Kalaburagi,14,High
+OFF00634,Jeet Ram,65,Male,Bengaluru Rural,14,Low
+OFF00635,Krishna Andra,26,Male,Bengaluru Urban,1,Low
+OFF00636,Darsh Bail,26,Male,Udupi,12,Medium
+OFF00637,Ganga Mohanty,61,Male,Ballari,8,Low
+OFF00638,Chaitanya Pandya,19,Male,Mangaluru,14,Low
+OFF00639,Triveni Murty,23,Female,Bengaluru Rural,1,Medium
+OFF00640,Sanaya Ravi,21,Male,Chikkamagaluru,13,High
+OFF00641,Kamala Gaba,43,Female,Bengaluru Urban,12,High
+OFF00642,Ekansh Varma,45,Male,Belagavi,6,Low
+OFF00643,Tripti Kurian,35,Female,Shivamogga,4,Low
+OFF00644,Maanav Dara,57,Male,Vijayapura,9,Medium
+OFF00645,Rishi Prabhu,44,Female,Bengaluru Urban,2,Medium
+OFF00646,Imaran Nair,42,Male,Kalaburagi,6,High
+OFF00647,Rachita Natarajan,51,Male,Vijayapura,0,Medium
+OFF00648,Garima Pandey,63,Female,Shivamogga,15,Medium
+OFF00649,Ekalinga Saha,54,Female,Kalaburagi,8,Low
+OFF00650,Anvi Bhasin,19,Female,Ballari,7,Low
+OFF00651,Aachal Wason,35,Male,Hassan,15,High
+OFF00652,Alexander Devan,40,Male,Mysuru,3,Low
+OFF00653,Chanchal Chauhan,60,Male,Hubballi-Dharwad,1,Low
+OFF00654,Vamakshi Murty,54,Female,Belagavi,5,Low
+OFF00655,Ikshita Mannan,33,Female,Hassan,11,High
+OFF00656,Samuel Loyal,19,Female,Ballari,4,High
+OFF00657,Upasna Ganguly,30,Female,Tumakuru,9,Low
+OFF00658,Yachana Aggarwal,49,Male,Bengaluru Rural,1,Low
+OFF00659,Teerth Baria,56,Male,Bengaluru Urban,15,Low
+OFF00660,George Iyengar,39,Male,Hassan,4,Medium
+OFF00661,Aayush Goda,63,Male,Chikkamagaluru,10,Low
+OFF00662,Chakradev Kale,19,Male,Ballari,4,Low
+OFF00663,Nilima Oak,51,Female,Bengaluru Rural,11,High
+OFF00664,Ishani Krishna,60,Female,Ballari,3,Medium
+OFF00665,Baghyawati Dhillon,37,Female,Mysuru,5,High
+OFF00666,Ranveer Nair,45,Female,Vijayapura,10,Low
+OFF00667,Akshay Jain,63,Female,Mangaluru,5,Medium
+OFF00668,Sanaya Goda,37,Female,Mysuru,5,High
+OFF00669,Vedant Vaidya,18,Female,Udupi,1,Low
+OFF00670,Victor Ahuja,56,Female,Chikkamagaluru,7,High
+OFF00671,Daniel Thaman,54,Male,Chikkamagaluru,15,Low
+OFF00672,Sanya Bhatt,39,Male,Mangaluru,11,Medium
+OFF00673,Ria Jain,28,Male,Udupi,10,Medium
+OFF00674,Avi Naik,18,Female,Mangaluru,7,High
+OFF00675,Daniel Narula,22,Female,Hubballi-Dharwad,3,High
+OFF00676,Warinder Sarkar,18,Male,Kalaburagi,14,High
+OFF00677,Abha Bhagat,44,Male,Chikkamagaluru,13,Medium
+OFF00678,Amruta Chhabra,42,Female,Tumakuru,12,Low
+OFF00679,Yachana Gulati,48,Male,Mysuru,14,Low
+OFF00680,Adweta Sekhon,20,Female,Bengaluru Urban,10,Medium
+OFF00681,Brinda Gokhale,24,Male,Belagavi,5,Medium
+OFF00682,Om Thaker,28,Male,Tumakuru,2,Medium
+OFF00683,Sneha More,56,Female,Davanagere,0,Medium
+OFF00684,Ishaan Bhatia,59,Male,Ballari,13,Low
+OFF00685,Amruta Chaudhary,21,Male,Belagavi,6,Low
+OFF00686,Girish Chatterjee,44,Female,Vijayapura,9,Medium
+OFF00687,Leela Pandit,33,Male,Bengaluru Urban,12,High
+OFF00688,Amruta Garg,53,Female,Mysuru,1,Medium
+OFF00689,Ucchal Bhagat,18,Female,Bengaluru Rural,9,High
+OFF00690,Manbir Chaudry,58,Female,Mangaluru,3,Low
+OFF00691,Amruta Swamy,31,Male,Vijayapura,9,Low
+OFF00692,Ojas Raju,48,Male,Hubballi-Dharwad,12,Medium
+OFF00693,Jagdish Dasgupta,49,Female,Bengaluru Rural,12,Low
+OFF00694,Ojas Kata,41,Female,Belagavi,5,Medium
+OFF00695,Unnati Gala,20,Female,Shivamogga,14,Medium
+OFF00696,Rachana Kar,32,Female,Ballari,1,Low
+OFF00697,Liam Rege,62,Male,Bengaluru Rural,11,High
+OFF00698,Watika Manne,44,Male,Tumakuru,1,Medium
+OFF00699,Falan Nazareth,51,Female,Tumakuru,15,High
+OFF00700,Jatin Sharma,33,Female,Hubballi-Dharwad,2,Medium
+OFF00701,Ijaya Misra,63,Male,Tumakuru,4,Low
+OFF00702,Bimala Sant,46,Male,Mysuru,6,Low
+OFF00703,Anamika Chad,26,Male,Kalaburagi,2,High
+OFF00704,Jonathan Kaul,45,Male,Udupi,4,High
+OFF00705,Yamini Subramanian,34,Female,Chikkamagaluru,2,Low
+OFF00706,Vyanjana Rama,42,Female,Tumakuru,10,Medium
+OFF00707,Raagini Memon,51,Female,Chikkamagaluru,0,High
+OFF00708,Orinder Yogi,57,Female,Bengaluru Rural,13,Low
+OFF00709,Bhavani Ray,27,Male,Chikkamagaluru,3,High
+OFF00710,Arunima Bhalla,24,Female,Udupi,11,Medium
+OFF00711,Vasana Bail,34,Female,Vijayapura,15,High
+OFF00712,Tara Lad,56,Female,Bengaluru Urban,5,Medium
+OFF00713,Bina Ray,43,Male,Ballari,12,Low
+OFF00714,Ishaan Ganesh,43,Female,Davanagere,7,Low
+OFF00715,Geetika Hegde,65,Female,Chikkamagaluru,8,Medium
+OFF00716,Chakradhar Wali,19,Female,Udupi,9,Medium
+OFF00717,Saumya Sachar,35,Female,Udupi,3,Low
+OFF00718,Gopal Salvi,26,Female,Davanagere,14,Medium
+OFF00719,Aryan Samra,35,Female,Ballari,2,Low
+OFF00720,Aarini Nagarajan,46,Male,Chikkamagaluru,13,High
+OFF00721,Zaitra Dass,49,Female,Udupi,1,High
+OFF00722,Lekha Lad,28,Male,Hubballi-Dharwad,12,Low
+OFF00723,Zayan Ghose,51,Male,Mysuru,6,Low
+OFF00724,Ishaan Kota,21,Male,Bengaluru Urban,14,Low
+OFF00725,Faraj Sha,41,Male,Hubballi-Dharwad,11,Medium
+OFF00726,Anamika Krishnamurthy,50,Female,Vijayapura,3,High
+OFF00727,Sneha Master,19,Male,Belagavi,15,High
+OFF00728,Ekani Chadha,46,Male,Udupi,15,High
+OFF00729,Xavier Ratta,53,Female,Belagavi,5,Medium
+OFF00730,Samarth Tandon,65,Male,Hubballi-Dharwad,0,Medium
+OFF00731,Upkaar Seshadri,21,Male,Udupi,6,Low
+OFF00732,Idika Dash,59,Male,Vijayapura,6,Medium
+OFF00733,Xalak Seshadri,59,Female,Tumakuru,0,High
+OFF00734,Amara Deshpande,18,Female,Chikkamagaluru,4,High
+OFF00735,Onkar Tank,29,Male,Mangaluru,8,High
+OFF00736,Darpan Char,37,Female,Kalaburagi,12,Medium
+OFF00737,Urvashi Shere,47,Female,Mangaluru,14,Medium
+OFF00738,Saanvi Ram,61,Female,Ballari,3,Low
+OFF00739,Warhi Buch,50,Female,Tumakuru,9,Medium
+OFF00740,Ekalinga Mand,61,Male,Shivamogga,2,Medium
+OFF00741,Chameli Jain,35,Female,Udupi,8,Medium
+OFF00742,Shivani Hegde,59,Female,Mangaluru,4,High
+OFF00743,Abhiram Iyer,33,Male,Hassan,12,High
+OFF00744,Nidra Samra,38,Male,Davanagere,0,High
+OFF00745,Leena Bath,49,Female,Hubballi-Dharwad,13,Medium
+OFF00746,Xalak Bail,42,Male,Ballari,6,Medium
+OFF00747,Faras Sagar,64,Male,Vijayapura,15,High
+OFF00748,Ekbal Narayanan,40,Female,Udupi,5,High
+OFF00749,Meghana Venkatesh,53,Male,Hubballi-Dharwad,3,Medium
+OFF00750,Vinaya Walla,26,Female,Davanagere,5,High
+OFF00751,Saanvi Yadav,39,Male,Mangaluru,11,Low
+OFF00752,Jack Manda,65,Female,Kalaburagi,10,Medium
+OFF00753,Jasmit Upadhyay,34,Female,Shivamogga,3,Medium
+OFF00754,Yashoda Jaggi,21,Male,Shivamogga,6,High
+OFF00755,Zaid Pandey,25,Female,Tumakuru,9,Medium
+OFF00756,Urishilla Madan,21,Male,Mysuru,6,Medium
+OFF00757,Mohini Comar,44,Female,Mysuru,10,High
+OFF00758,Widisha Parikh,29,Male,Shivamogga,10,High
+OFF00759,Devansh Garg,29,Female,Vijayapura,1,Low
+OFF00760,Anthony Gole,46,Female,Mangaluru,5,High
+OFF00761,Ekantika Dash,28,Female,Hassan,2,Low
+OFF00762,Bahadurjit Hegde,57,Female,Vijayapura,13,Medium
+OFF00763,Tara Devan,45,Female,Kalaburagi,0,Low
+OFF00764,Priya Bora,52,Male,Davanagere,11,Low
+OFF00765,Harinakshi Ganguly,38,Male,Bengaluru Urban,0,High
+OFF00766,Harrison Thaman,64,Male,Mangaluru,11,Medium
+OFF00767,Netra Khalsa,26,Male,Kalaburagi,9,Low
+OFF00768,Vivaan Sule,22,Male,Hubballi-Dharwad,9,Medium
+OFF00769,Ucchal Ben,64,Female,Kalaburagi,4,Medium
+OFF00770,Ucchal Deep,49,Female,Hassan,6,Low
+OFF00771,Jagrati Patla,43,Male,Mangaluru,7,High
+OFF00772,Odika Sagar,26,Male,Davanagere,0,High
+OFF00773,Matthew Sharma,50,Male,Bengaluru Rural,11,High
+OFF00774,Jagvi Balasubramanian,59,Male,Kalaburagi,8,High
+OFF00775,Harrison Khare,57,Male,Ballari,1,High
+OFF00776,Tejas Deshpande,24,Male,Bengaluru Urban,3,Medium
+OFF00777,Pranit Biswas,46,Female,Bengaluru Rural,8,Medium
+OFF00778,Chanakya Karnik,62,Male,Mangaluru,0,Medium
+OFF00779,Alka Srinivasan,44,Male,Vijayapura,8,High
+OFF00780,Wriddhish Chauhan,56,Male,Kalaburagi,3,High
+OFF00781,Samarth Rajagopalan,64,Male,Hubballi-Dharwad,3,Low
+OFF00782,Vidhi Mitra,49,Male,Ballari,6,Medium
+OFF00783,Watika Sehgal,51,Male,Belagavi,13,Medium
+OFF00784,Ganga Bora,28,Male,Tumakuru,15,Low
+OFF00785,Mohammed Soman,62,Female,Belagavi,7,Low
+OFF00786,Bishakha Murthy,18,Male,Chikkamagaluru,3,High
+OFF00787,Indira Gupta,60,Female,Mysuru,2,High
+OFF00788,Irya Batta,22,Male,Chikkamagaluru,8,High
+OFF00789,Advik Borde,32,Female,Hubballi-Dharwad,8,Medium
+OFF00790,Chakradev Choudhury,21,Male,Udupi,5,Low
+OFF00791,Jagrati Chaudry,36,Female,Hassan,10,Medium
+OFF00792,Janaki Wali,65,Male,Bengaluru Rural,1,Low
+OFF00793,Logan Ramachandran,26,Male,Belagavi,11,Medium
+OFF00794,Anika Dhar,57,Female,Chikkamagaluru,2,Medium
+OFF00795,Bachittar Dhar,39,Male,Bengaluru Rural,12,Medium
+OFF00796,Nirja Kota,47,Female,Udupi,12,High
+OFF00797,Logan Sarna,48,Female,Vijayapura,5,Low
+OFF00798,Chaitanya Dhar,26,Male,Udupi,5,Low
+OFF00799,Adya Mallick,44,Female,Hassan,14,Low
+OFF00800,Mekhala Dass,57,Female,Hassan,11,High
+OFF00801,Eiravati Chand,19,Male,Shivamogga,15,Low
+OFF00802,Bhanumati Luthra,44,Female,Bengaluru Urban,2,Medium
+OFF00803,Vihaan Saha,59,Female,Bengaluru Urban,7,High
+OFF00804,Anjali Venkatesh,39,Male,Kalaburagi,7,Medium
+OFF00805,Hamsini Bhasin,40,Female,Mysuru,1,Low
+OFF00806,Oscar Mand,59,Male,Tumakuru,15,Medium
+OFF00807,Saumya Golla,28,Male,Hassan,15,Medium
+OFF00808,Priya Pradhan,33,Female,Hubballi-Dharwad,1,High
+OFF00809,Ria Bansal,32,Female,Kalaburagi,7,Low
+OFF00810,Kashish Jain,47,Female,Hassan,14,Low
+OFF00811,Vedhika Borra,49,Female,Belagavi,3,Medium
+OFF00812,Ladli Randhawa,65,Male,Bengaluru Rural,12,Medium
+OFF00813,Aadi Prabhu,20,Male,Udupi,2,High
+OFF00814,Yahvi Morar,57,Female,Chikkamagaluru,6,High
+OFF00815,Osha Ravel,60,Female,Belagavi,11,Low
+OFF00816,Ekavir Hari,32,Female,Belagavi,15,High
+OFF00817,Nicholas Bajwa,60,Female,Davanagere,14,Low
+OFF00818,Jeevika Varma,24,Male,Bengaluru Urban,10,Medium
+OFF00819,Naveen Raman,58,Female,Tumakuru,11,High
+OFF00820,Idika Chaudhari,24,Male,Chikkamagaluru,5,Medium
+OFF00821,Qabil Rattan,26,Female,Bengaluru Rural,8,High
+OFF00822,Jeevika Ray,30,Male,Bengaluru Rural,12,Low
+OFF00823,Girindra Sabharwal,47,Male,Davanagere,10,Low
+OFF00824,Manbir Dayal,44,Male,Chikkamagaluru,3,Medium
+OFF00825,Rishi Agate,47,Male,Shivamogga,0,High
+OFF00826,Ekavir Bhattacharyya,65,Male,Tumakuru,13,High
+OFF00827,Harini Arora,48,Male,Davanagere,5,High
+OFF00828,Krishna Hayer,26,Male,Kalaburagi,10,High
+OFF00829,Janaki Chacko,42,Female,Ballari,7,Medium
+OFF00830,Ansh Mannan,43,Female,Hubballi-Dharwad,14,Low
+OFF00831,Lohit Bir,26,Female,Ballari,9,High
+OFF00832,Azaan Bobal,53,Female,Davanagere,6,Low
+OFF00833,Dominic Badami,31,Female,Vijayapura,11,High
+OFF00834,Ojas Sabharwal,26,Male,Tumakuru,10,High
+OFF00835,George Soman,25,Female,Tumakuru,15,High
+OFF00836,Daksh Raja,54,Female,Vijayapura,9,Medium
+OFF00837,Alexander Modi,18,Male,Bengaluru Urban,12,Low
+OFF00838,Unni Karpe,21,Male,Mangaluru,8,Low
+OFF00839,Theodore Baria,36,Female,Mysuru,1,High
+OFF00840,Sanya Seshadri,36,Male,Hassan,1,Medium
+OFF00841,Ojasvi Desai,46,Male,Ballari,7,High
+OFF00842,Kalpit Bhatti,59,Female,Mangaluru,9,High
+OFF00843,Ijaya Oommen,60,Male,Chikkamagaluru,12,Medium
+OFF00844,Amol Chokshi,44,Female,Tumakuru,1,Low
+OFF00845,Nisha Khalsa,65,Female,Mangaluru,14,Low
+OFF00846,Kevin Jain,58,Female,Hassan,6,High
+OFF00847,Girish Saini,30,Female,Shivamogga,5,High
+OFF00848,Luke Bhandari,22,Male,Mysuru,3,Medium
+OFF00849,Bhavya Subramanian,20,Female,Hubballi-Dharwad,8,Low
+OFF00850,Chanchal Sabharwal,28,Female,Bengaluru Urban,10,Medium
+OFF00851,Om Sidhu,63,Male,Bengaluru Urban,4,Medium
+OFF00852,Aradhana Chokshi,56,Male,Hassan,9,Medium
+OFF00853,Raghav Pall,54,Female,Bengaluru Rural,10,High
+OFF00854,Gaurangi Kibe,32,Male,Tumakuru,2,High
+OFF00855,Hemang Nath,28,Female,Tumakuru,12,Low
+OFF00856,Zansi Mody,40,Male,Chikkamagaluru,6,High
+OFF00857,Harshil Saran,39,Female,Belagavi,9,Low
+OFF00858,Daksh Mander,57,Female,Tumakuru,0,Low
+OFF00859,Elijah Kakar,60,Female,Shivamogga,7,High
+OFF00860,Maanav Borra,57,Male,Bengaluru Urban,10,Medium
+OFF00861,Amol Sampath,25,Female,Hubballi-Dharwad,9,Low
+OFF00862,Zilmil Rege,51,Female,Tumakuru,14,Medium
+OFF00863,Lakshmi Shah,20,Female,Chikkamagaluru,6,Medium
+OFF00864,Eiravati Srinivas,50,Male,Bengaluru Rural,5,High
+OFF00865,Gautam Bedi,52,Male,Vijayapura,2,Low
+OFF00866,Reva Oak,60,Male,Udupi,13,Low
+OFF00867,Logan Mittal,31,Female,Vijayapura,2,High
+OFF00868,Vansha Dora,61,Male,Bengaluru Urban,14,High
+OFF00869,Anay Vasa,39,Male,Bengaluru Rural,2,Low
+OFF00870,Ira Dhawan,29,Female,Tumakuru,2,High
+OFF00871,Mitali Ravi,32,Female,Kalaburagi,12,Medium
+OFF00872,Simon Ganguly,58,Female,Kalaburagi,10,Low
+OFF00873,Maanas Kapur,42,Male,Tumakuru,0,High
+OFF00874,Lohit Narayanan,64,Male,Hassan,1,High
+OFF00875,Unnati Samra,22,Female,Chikkamagaluru,3,Medium
+OFF00876,Vritti Shetty,61,Female,Ballari,2,Medium
+OFF00877,Madhavi Dave,46,Female,Kalaburagi,0,Medium
+OFF00878,Devansh Chad,28,Male,Mysuru,12,High
+OFF00879,Tanveer Gulati,36,Male,Hubballi-Dharwad,11,Low
+OFF00880,Ira Karnik,53,Male,Bengaluru Rural,1,Low
+OFF00881,Barkha Sachar,54,Female,Tumakuru,2,Medium
+OFF00882,Harish Kalla,31,Female,Mangaluru,13,High
+OFF00883,Dayamai Rajan,50,Male,Mysuru,5,Low
+OFF00884,Kai Walia,57,Female,Mangaluru,3,Low
+OFF00885,Jagdish Varty,60,Male,Udupi,14,High
+OFF00886,Gaurav Gole,53,Male,Hubballi-Dharwad,2,Medium
+OFF00887,Rajata Brahmbhatt,24,Male,Davanagere,15,Medium
+OFF00888,Warinder Sane,40,Male,Vijayapura,7,Low
+OFF00889,Vidhi Panchal,36,Male,Chikkamagaluru,6,Medium
+OFF00890,Radhika Devan,49,Female,Belagavi,9,High
+OFF00891,Dakshesh Nadkarni,55,Male,Ballari,11,Medium
+OFF00892,Janya Dhawan,45,Male,Bengaluru Urban,10,Low
+OFF00893,Falak Tara,32,Female,Hubballi-Dharwad,11,Low
+OFF00894,Lucky Pandya,61,Female,Chikkamagaluru,15,Medium
+OFF00895,Abhimanyu Boase,46,Female,Hassan,9,Medium
+OFF00896,Faqid Prakash,53,Male,Mysuru,2,Medium
+OFF00897,Gautam Raghavan,26,Male,Hubballi-Dharwad,2,High
+OFF00898,Eta Krishna,22,Male,Udupi,0,High
+OFF00899,Forum Bajwa,55,Female,Hassan,6,Low
+OFF00900,Jeet Khurana,53,Female,Tumakuru,15,High
+OFF00901,Damini Tandon,27,Female,Kalaburagi,7,High
+OFF00902,Vasana Palla,64,Female,Mysuru,14,High
+OFF00903,Vaishnavi Varghese,50,Male,Kalaburagi,11,High
+OFF00904,Advik Bhandari,18,Male,Udupi,5,High
+OFF00905,Meghana Chaudhari,26,Female,Mysuru,5,High
+OFF00906,Ikshita Nori,54,Male,Davanagere,15,Medium
+OFF00907,Vedika Chandra,20,Male,Hassan,15,Low
+OFF00908,Ekantika Chaudhry,22,Female,Belagavi,7,Low
+OFF00909,Libni Raja,60,Male,Tumakuru,11,Medium
+OFF00910,Aahana Sane,48,Female,Chikkamagaluru,1,Low
+OFF00911,Urishilla Nayak,59,Female,Bengaluru Rural,8,High
+OFF00912,Umang Yohannan,34,Male,Kalaburagi,12,Medium
+OFF00913,Zayan Chauhan,55,Male,Tumakuru,8,Medium
+OFF00914,Atharv Dugar,32,Female,Belagavi,11,Medium
+OFF00915,Arin Bakshi,48,Male,Tumakuru,4,Medium
+OFF00916,Pranit Rajagopal,28,Male,Bengaluru Rural,8,Low
+OFF00917,Bimala Chanda,27,Male,Mysuru,11,High
+OFF00918,Onkar Chatterjee,63,Male,Vijayapura,7,Medium
+OFF00919,Bhanumati Bedi,39,Male,Shivamogga,15,Medium
+OFF00920,Tanish Wable,31,Male,Vijayapura,13,Low
+OFF00921,Fiyaz Nagi,33,Male,Mysuru,5,Low
+OFF00922,Jagat Kadakia,58,Male,Chikkamagaluru,4,Low
+OFF00923,Hema Wagle,28,Female,Chikkamagaluru,5,High
+OFF00924,Zaid Sharma,43,Male,Chikkamagaluru,9,Low
+OFF00925,Chandani Solanki,31,Female,Ballari,15,Medium
+OFF00926,Yauvani Purohit,28,Male,Udupi,13,High
+OFF00927,Xalak Talwar,27,Male,Ballari,8,Low
+OFF00928,Akshay Shah,64,Female,Chikkamagaluru,14,High
+OFF00929,Ansh Chaudhuri,55,Male,Mangaluru,12,Medium
+OFF00930,Chaman Hari,26,Male,Bengaluru Urban,6,High
+OFF00931,Robert Pillai,50,Female,Udupi,4,High
+OFF00932,Quincy Morar,24,Male,Shivamogga,1,High
+OFF00933,Anamika Gade,50,Male,Bengaluru Rural,15,High
+OFF00934,Yashodhara Sahota,26,Male,Chikkamagaluru,13,High
+OFF00935,Urvi Vyas,44,Female,Udupi,1,High
+OFF00936,Yadavi Mand,51,Female,Mangaluru,15,Medium
+OFF00937,Gaurangi Murthy,40,Male,Kalaburagi,4,Medium
+OFF00938,Jasmit Salvi,48,Male,Chikkamagaluru,2,Medium
+OFF00939,Varenya Ravi,56,Female,Hubballi-Dharwad,6,Low
+OFF00940,Charles Guha,63,Male,Ballari,3,High
+OFF00941,Ishanvi Kota,18,Female,Vijayapura,6,High
+OFF00942,Lakshmi Saran,38,Female,Belagavi,3,Low
+OFF00943,Jatin Varma,45,Female,Hubballi-Dharwad,13,High
+OFF00944,Advaith Loke,41,Female,Vijayapura,12,Low
+OFF00945,Christopher Verma,44,Female,Mysuru,11,High
+OFF00946,Amara Grewal,53,Female,Hubballi-Dharwad,9,High
+OFF00947,Ijaya Dayal,40,Female,Davanagere,4,High
+OFF00948,Harita Sachdev,25,Male,Shivamogga,5,Low
+OFF00949,Neha Savant,31,Female,Hassan,10,High
+OFF00950,Zansi Bansal,57,Male,Mysuru,12,High
+OFF00951,Kalpit Murty,18,Male,Udupi,4,Medium
+OFF00952,Anthony Kuruvilla,56,Female,Bengaluru Rural,2,Medium
+OFF00953,Tamanna Palla,32,Female,Bengaluru Rural,1,High
+OFF00954,Saksham Lad,42,Female,Ballari,9,High
+OFF00955,Anjali Dash,56,Male,Hassan,5,High
+OFF00956,Wriddhish Hari,49,Female,Bengaluru Urban,6,High
+OFF00957,Nisha Sankar,51,Female,Mangaluru,1,High
+OFF00958,Jack Mohanty,50,Male,Ballari,5,High
+OFF00959,Yashoda Kothari,20,Female,Mangaluru,0,Low
+OFF00960,Kamala Seth,23,Female,Hassan,12,Medium
+OFF00961,Rajeshri Dave,60,Female,Kalaburagi,6,High
+OFF00962,Ishwar Shukla,18,Male,Chikkamagaluru,2,High
+OFF00963,Chameli Din,36,Female,Belagavi,8,Low
+OFF00964,Nikita Goel,56,Male,Shivamogga,12,High
+OFF00965,Ladli Koshy,18,Female,Mysuru,13,High
+OFF00966,Garima Sundaram,24,Male,Tumakuru,9,Medium
+OFF00967,Alka Bajaj,25,Female,Chikkamagaluru,8,High
+OFF00968,Aarna Bora,46,Female,Ballari,15,Low
+OFF00969,Jhalak Shan,39,Female,Vijayapura,14,High
+OFF00970,Devansh Rama,19,Female,Bengaluru Rural,8,Low
+OFF00971,Vivaan Borde,42,Male,Vijayapura,7,Medium
+OFF00972,Ridhi Raman,44,Female,Tumakuru,0,High
+OFF00973,Matthew Kadakia,34,Male,Hubballi-Dharwad,2,Medium
+OFF00974,Kavya Nadkarni,61,Female,Bengaluru Rural,5,Medium
+OFF00975,Guneet Pandey,38,Female,Mangaluru,8,Low
+OFF00976,Sachi Badami,65,Male,Shivamogga,6,Low
+OFF00977,Rohan Venkataraman,65,Male,Udupi,8,Low
+OFF00978,Faqid Ganesan,32,Male,Udupi,7,High
+OFF00979,Chanchal Srivastava,40,Male,Hassan,3,Low
+OFF00980,Ekansh Varughese,23,Female,Ballari,0,High
+OFF00981,Chameli Sama,20,Female,Belagavi,10,Medium
+OFF00982,Pooja Aurora,54,Female,Shivamogga,5,High
+OFF00983,Patrick Dhawan,35,Female,Mangaluru,4,Low
+OFF00984,Viraj Nadkarni,51,Female,Shivamogga,1,High
+OFF00985,Turvi Nagar,40,Female,Udupi,5,Medium
+OFF00986,Gunbir Shukla,25,Female,Belagavi,0,Low
+OFF00987,Ayaan Sinha,61,Male,Kalaburagi,3,Medium
+OFF00988,Balendra Amble,41,Female,Mysuru,8,Low
+OFF00989,Yashasvi Bobal,35,Female,Ballari,10,Medium
+OFF00990,Siya Rege,29,Female,Kalaburagi,6,Medium
+OFF00991,Varenya Kanda,62,Female,Belagavi,12,Medium
+OFF00992,Brijesh Srinivasan,46,Male,Ballari,4,High
+OFF00993,Timothy Srivastava,61,Male,Udupi,3,High
+OFF00994,Madhav Mandal,35,Male,Tumakuru,13,Medium
+OFF00995,Zansi Kapoor,30,Male,Hassan,4,Medium
+OFF00996,Radha Lad,18,Male,Kalaburagi,15,Low
+OFF00997,Unnati Nagi,58,Female,Hassan,15,Medium
+OFF00998,Balvan Kapadia,34,Male,Kalaburagi,3,High
+OFF00999,Tejas Bhakta,28,Male,Mangaluru,8,Medium
+OFF01000,Charles Parekh,58,Male,Shivamogga,10,Medium
+OFF01001,Nidhi Mahal,41,Female,Tumakuru,8,Medium
+OFF01002,Pushti Sane,19,Female,Bengaluru Rural,11,High
+OFF01003,Mohammed Balay,56,Male,Ballari,5,Medium
+OFF01004,Pallavi Bhattacharyya,40,Female,Vijayapura,15,High
+OFF01005,Michael Kapoor,46,Male,Kalaburagi,9,Medium
+OFF01006,Vasatika Bala,58,Male,Udupi,5,High
+OFF01007,Tarak Bajwa,39,Female,Vijayapura,12,Low
+OFF01008,Elijah Dara,23,Male,Belagavi,7,Medium
+OFF01009,Vaishnavi Dixit,38,Female,Davanagere,8,High
+OFF01010,Libni Kari,59,Female,Hubballi-Dharwad,14,Medium
+OFF01011,Chakrika Golla,65,Female,Kalaburagi,5,Low
+OFF01012,Champak Shukla,19,Male,Davanagere,7,High
+OFF01013,Damini Pant,34,Male,Mangaluru,5,Medium
+OFF01014,Balveer Desai,24,Male,Bengaluru Rural,15,High
+OFF01015,Warjas Lad,21,Male,Hassan,12,High
+OFF01016,Ekapad Saraf,23,Male,Hubballi-Dharwad,4,Low
+OFF01017,Azad Gole,59,Female,Hubballi-Dharwad,7,Low
+OFF01018,Elijah Garde,65,Female,Shivamogga,4,Low
+OFF01019,Yashoda Doctor,51,Male,Bengaluru Urban,1,High
+OFF01020,Falguni Chaudhari,40,Female,Udupi,15,Medium
+OFF01021,Yadavi Bhattacharyya,52,Female,Tumakuru,14,Low
+OFF01022,Yash Nair,62,Male,Ballari,14,High
+OFF01023,Jacob Gopal,65,Female,Tumakuru,9,Medium
+OFF01024,Benjamin Narula,48,Male,Hassan,2,Medium
+OFF01025,Bhavya Garg,37,Female,Kalaburagi,8,Low
+OFF01026,Urmi Saraf,37,Male,Bengaluru Urban,4,Medium
+OFF01027,Avni Khurana,36,Female,Tumakuru,0,High
+OFF01028,Owen Hegde,49,Female,Hubballi-Dharwad,0,Medium
+OFF01029,Chanakya Puri,36,Male,Hassan,0,High
+OFF01030,Unnati Jhaveri,41,Male,Kalaburagi,13,Medium
+OFF01031,Samarth Johal,33,Male,Davanagere,12,Medium
+OFF01032,Jasmit Goyal,32,Female,Bengaluru Rural,13,High
+OFF01033,Xalak Ramachandran,33,Female,Hubballi-Dharwad,8,Medium
+OFF01034,Laban Pathak,30,Male,Mysuru,4,Medium
+OFF01035,Panini Kapadia,25,Female,Ballari,14,Medium
+OFF01036,Jagdish Mittal,62,Female,Mangaluru,10,Low
+OFF01037,Theodore Dora,27,Male,Tumakuru,0,Low
+OFF01038,Rachit Mall,24,Female,Hubballi-Dharwad,4,High
+OFF01039,Azaan Peri,46,Male,Mangaluru,2,Low
+OFF01040,Kashish Choudhry,18,Female,Mangaluru,10,Medium
+OFF01041,Krishna Chacko,37,Female,Belagavi,14,High
+OFF01042,Madhav Chokshi,20,Female,Bengaluru Rural,4,Low
+OFF01043,Girik Patla,35,Female,Bengaluru Rural,15,Low
+OFF01044,Zehaan Roy,30,Female,Udupi,12,Low
+OFF01045,Chasmum Lanka,25,Male,Kalaburagi,14,Low
+OFF01046,Yuvraj Batta,65,Male,Mangaluru,14,High
+OFF01047,Falguni Deo,24,Male,Shivamogga,12,High
+OFF01048,Dayita Khurana,37,Female,Mysuru,1,High
+OFF01049,Nirja Parmer,53,Male,Hubballi-Dharwad,15,High
+OFF01050,Yashvi Aurora,37,Male,Belagavi,1,High
+OFF01051,Vedika Saini,31,Male,Mangaluru,13,Medium
+OFF01052,Jonathan Bora,18,Male,Hassan,8,High
+OFF01053,Sachi Soman,25,Female,Hassan,7,Low
+OFF01054,Sachi Kannan,20,Female,Davanagere,4,Medium
+OFF01055,Vinaya Guha,23,Male,Mysuru,15,Low
+OFF01056,Suhani Mand,61,Female,Chikkamagaluru,1,Low
+OFF01057,Balhaar Tak,40,Male,Davanagere,3,Low
+OFF01058,Anthony Dey,49,Male,Belagavi,11,Medium
+OFF01059,Abha Nayar,64,Male,Bengaluru Urban,12,Medium
+OFF01060,Tarak Issac,64,Male,Hubballi-Dharwad,1,Medium
+OFF01061,Sarthak Khurana,63,Female,Tumakuru,9,High
+OFF01062,Tanmayi Bhavsar,62,Female,Mangaluru,5,High
+OFF01063,Keya Divan,40,Female,Davanagere,14,Medium
+OFF01064,Yahvi Prakash,56,Male,Bengaluru Rural,4,Medium
+OFF01065,Fitan Das,36,Female,Tumakuru,11,Medium
+OFF01066,Mugdha Dhillon,18,Female,Davanagere,5,Low
+OFF01067,Yoshita Mammen,57,Female,Hassan,7,Medium
+OFF01068,Bina Purohit,64,Male,Vijayapura,12,Low
+OFF01069,Ridhi Mall,51,Female,Hassan,4,High
+OFF01070,Nimrat Kanda,36,Female,Kalaburagi,10,Low
+OFF01071,Samarth De,24,Male,Bengaluru Urban,4,Low
+OFF01072,Ridhi Thaman,20,Male,Bengaluru Rural,15,Low
+OFF01073,Isaac Prashad,24,Male,Ballari,12,High
+OFF01074,Ekansh Mangal,49,Female,Bengaluru Urban,11,Low
+OFF01075,Zansi Bobal,56,Male,Bengaluru Urban,6,High
+OFF01076,Nachiket Sahni,49,Male,Shivamogga,1,Medium
+OFF01077,Warinder Parmar,53,Female,Udupi,11,High
+OFF01078,Hiral Gandhi,21,Female,Tumakuru,1,High
+OFF01079,Xiti Keer,22,Female,Bengaluru Rural,6,High
+OFF01080,Agastya Ram,24,Male,Davanagere,7,High
+OFF01081,Ekalinga Karnik,42,Male,Mangaluru,7,High
+OFF01082,Krishna Bhatt,58,Male,Tumakuru,13,High
+OFF01083,Parth Mand,24,Female,Vijayapura,14,High
+OFF01084,Nilima Hans,60,Female,Chikkamagaluru,3,Low
+OFF01085,Ganga Zachariah,29,Female,Tumakuru,10,High
+OFF01086,Unnati Suresh,28,Female,Chikkamagaluru,11,Medium
+OFF01087,Aryan Ramanathan,53,Female,Udupi,11,Medium
+OFF01088,Janani Kadakia,58,Female,Udupi,10,High
+OFF01089,Zilmil Bhakta,33,Male,Kalaburagi,8,Medium
+OFF01090,Lakshmi Mahajan,46,Female,Kalaburagi,0,High
+OFF01091,Shaurya Mitra,20,Female,Ballari,0,High
+OFF01092,Qasim Dani,26,Female,Bengaluru Urban,9,Low
+OFF01093,Zansi Sachdeva,31,Female,Bengaluru Urban,8,High
+OFF01094,Chanakya Muni,50,Male,Bengaluru Rural,1,Medium
+OFF01095,Avi Sheth,40,Male,Mysuru,8,Medium
+OFF01096,Kashish Chakrabarti,55,Male,Mangaluru,8,Medium
+OFF01097,Januja Basak,23,Female,Ballari,6,High
+OFF01098,Matthew Rama,22,Female,Hassan,15,Low
+OFF01099,Jeevika Sampath,49,Male,Ballari,9,Low
+OFF01100,Amara Prasad,64,Female,Bengaluru Rural,1,Medium
+OFF01101,Logan Vora,40,Female,Kalaburagi,3,Low
+OFF01102,Laban Toor,65,Male,Vijayapura,12,Low
+OFF01103,Manbir Jayaraman,37,Male,Belagavi,4,Medium
+OFF01104,Sai Kadakia,50,Male,Mysuru,1,High
+OFF01105,Sai Parmer,64,Female,Shivamogga,2,Low
+OFF01106,Liam Badami,45,Female,Hassan,12,Low
+OFF01107,Rajata Ben,26,Female,Bengaluru Rural,15,High
+OFF01108,Ikbal Sen,65,Male,Tumakuru,12,Medium
+OFF01109,Divya Deol,23,Female,Tumakuru,13,High
+OFF01110,Isha Saha,26,Male,Shivamogga,6,Medium
+OFF01111,Jatin Prashad,43,Male,Tumakuru,7,Low
+OFF01112,Nihal Mutti,22,Female,Hassan,13,Medium
+OFF01113,Viraj Sabharwal,61,Male,Bengaluru Rural,13,Medium
+OFF01114,Zayyan Chaudhry,41,Female,Mangaluru,10,Medium
+OFF01115,Parth Om,56,Male,Hassan,9,Low
+OFF01116,Rayaan Prasad,40,Female,Ballari,4,Medium
+OFF01117,Yochana Bains,20,Male,Mangaluru,11,Low
+OFF01118,Abhiram Kannan,64,Male,Bengaluru Rural,1,Low
+OFF01119,Aahana Shah,57,Male,Udupi,9,Low
+OFF01120,Sachi Rai,39,Male,Hubballi-Dharwad,14,Medium
+OFF01121,Falak Chakrabarti,19,Female,Mangaluru,6,Low
+OFF01122,Pranav Magar,52,Female,Tumakuru,15,High
+OFF01123,Nathaniel Bora,64,Male,Davanagere,0,Medium
+OFF01124,Ekani Kanda,55,Male,Hubballi-Dharwad,5,Low
+OFF01125,Meera Bassi,36,Male,Hassan,8,Low
+OFF01126,Aachal Narasimhan,47,Male,Bengaluru Rural,12,High
+OFF01127,Nilima Bhandari,35,Female,Udupi,3,Low
+OFF01128,Forum Chadha,36,Female,Mangaluru,12,High
+OFF01129,Neel Parekh,63,Male,Chikkamagaluru,10,Medium
+OFF01130,Anika Chaudry,56,Male,Mysuru,6,High
+OFF01131,Zarna Apte,47,Male,Bengaluru Urban,7,High
+OFF01132,Varenya Varkey,37,Female,Shivamogga,12,High
+OFF01133,Faras Nanda,28,Male,Belagavi,11,Medium
+OFF01134,Amara Dutt,58,Female,Mangaluru,8,Low
+OFF01135,Forum Chawla,58,Female,Chikkamagaluru,12,Low
+OFF01136,Rajeshri Goyal,53,Female,Mangaluru,4,Medium
+OFF01137,Urmi Sagar,43,Male,Bengaluru Rural,12,High
+OFF01138,Qarin Magar,61,Male,Kalaburagi,7,High
+OFF01139,Lekha Sridhar,27,Female,Hubballi-Dharwad,10,Medium
+OFF01140,Ronith Iyer,52,Male,Mangaluru,4,High
+OFF01141,Ekansh Bhargava,52,Male,Udupi,4,Medium
+OFF01142,Idika Shenoy,62,Male,Kalaburagi,4,High
+OFF01143,Hemani Mittal,54,Male,Belagavi,2,High
+OFF01144,Yadavi Ahuja,52,Male,Mysuru,10,Low
+OFF01145,Saanvi Mani,64,Male,Hassan,10,Medium
+OFF01146,Aarav Bakshi,44,Female,Shivamogga,8,Low
+OFF01147,Ikshita Hans,30,Male,Mysuru,5,Low
+OFF01148,Netra Tella,57,Female,Ballari,7,High
+OFF01149,Inaya Wagle,32,Male,Vijayapura,0,Medium
+OFF01150,Ishanvi Mangat,23,Female,Mysuru,15,High
+OFF01151,Garima Varkey,59,Female,Mysuru,12,Medium
+OFF01152,Jagdish Bobal,48,Male,Mysuru,6,Low
+OFF01153,Timothy Dayal,20,Female,Hassan,0,Medium
+OFF01154,Orinder Das,44,Male,Davanagere,6,Low
+OFF01155,Jackson Gola,22,Male,Chikkamagaluru,14,High
+OFF01156,Avi Thakkar,49,Female,Udupi,14,Low
+OFF01157,Fiyaz Sahni,45,Female,Hassan,1,High
+OFF01158,Ekavir Sathe,65,Female,Davanagere,10,Medium
+OFF01159,Chakradhar Walia,57,Male,Tumakuru,3,Medium
+OFF01160,Victor Palla,47,Male,Chikkamagaluru,7,High
+OFF01161,Aarush Johal,52,Female,Davanagere,1,High
+OFF01162,Dalbir Majumdar,42,Male,Mangaluru,9,Medium
+OFF01163,Indrajit Dey,43,Female,Hassan,9,Medium
+OFF01164,Rajata Mital,28,Female,Hubballi-Dharwad,1,High
+OFF01165,Abeer Divan,51,Male,Shivamogga,14,Low
+OFF01166,Janani Dhar,64,Male,Mysuru,4,Medium
+OFF01167,Chandran Ganesan,44,Female,Shivamogga,0,Low
+OFF01168,Anya Chander,47,Male,Chikkamagaluru,14,Low
+OFF01169,Urvi Parsa,34,Female,Davanagere,5,High
+OFF01170,Yachana Krishnamurthy,64,Male,Bengaluru Rural,3,High
+OFF01171,Gaurangi Prabhakar,46,Female,Bengaluru Rural,12,High
+OFF01172,Jyoti Radhakrishnan,50,Male,Kalaburagi,12,Low
+OFF01173,Udant Sawhney,28,Female,Ballari,4,Low
+OFF01174,Baghyawati Dhaliwal,27,Male,Hassan,1,Medium
+OFF01175,Vrinda Pingle,37,Female,Davanagere,14,Medium
+OFF01176,Chandresh Shukla,58,Male,Bengaluru Rural,4,Low
+OFF01177,Neel Sibal,18,Female,Bengaluru Urban,14,Medium
+OFF01178,Urvashi Bhavsar,49,Male,Ballari,15,Low
+OFF01179,Devansh Badal,31,Female,Shivamogga,13,Medium
+OFF01180,Divya Bandi,23,Male,Mangaluru,8,High
+OFF01181,Hemal Khare,58,Male,Bengaluru Urban,5,Low
+OFF01182,Chameli Gole,21,Female,Bengaluru Urban,4,Low
+OFF01183,Gautam Aurora,60,Female,Belagavi,2,Low
+OFF01184,Bhavya Venkatesh,24,Female,Mysuru,5,High
+OFF01185,Sneha Dube,36,Male,Shivamogga,11,Low
+OFF01186,Zayyan Kannan,23,Female,Belagavi,11,Medium
+OFF01187,Hemang Madan,22,Female,Udupi,2,Medium
+OFF01188,Banjeet Tank,48,Male,Bengaluru Rural,8,Medium
+OFF01189,Gayathri Gour,51,Female,Tumakuru,6,High
+OFF01190,Yashica Agate,31,Male,Bengaluru Rural,2,Medium
+OFF01191,Yashawini Srivastava,64,Female,Kalaburagi,10,Medium
+OFF01192,Chakrika Hegde,51,Female,Chikkamagaluru,4,High
+OFF01193,Dayamai Kashyap,54,Female,Tumakuru,15,Medium
+OFF01194,Ria Bose,29,Male,Davanagere,9,Low
+OFF01195,Dalbir Bora,18,Male,Bengaluru Urban,14,High
+OFF01196,Abdul Sridhar,25,Male,Hassan,13,Medium
+OFF01197,Rajeshri Solanki,20,Female,Belagavi,6,Low
+OFF01198,Rudra Prakash,58,Male,Davanagere,9,Medium
+OFF01199,Pratyush Sahni,22,Female,Hubballi-Dharwad,10,Low
+OFF01200,Raghav Dasgupta,25,Female,Belagavi,12,High
+OFF01201,Adya Das,54,Male,Udupi,5,Low
+OFF01202,Zarna Murthy,39,Female,Chikkamagaluru,15,Medium
+OFF01203,Veer Gara,20,Male,Shivamogga,4,High
+OFF01204,Naveen Pandey,47,Female,Shivamogga,13,High
+OFF01205,Janaki Pal,21,Female,Ballari,10,High
+OFF01206,Kavya Nazareth,52,Male,Mangaluru,10,Medium
+OFF01207,Bhavna Deol,22,Male,Hubballi-Dharwad,0,Medium
+OFF01208,Rudra Kumar,42,Male,Ballari,12,Low
+OFF01209,Tanmayi Palla,56,Male,Udupi,9,High
+OFF01210,Damyanti Rao,38,Male,Hubballi-Dharwad,13,Low
+OFF01211,Ikbal Shukla,49,Male,Belagavi,14,Medium
+OFF01212,Lajita Dewan,31,Female,Mysuru,3,Medium
+OFF01213,Onveer Arora,20,Male,Chikkamagaluru,2,Medium
+OFF01214,Adya Seshadri,50,Male,Hassan,15,High
+OFF01215,Xiti Vig,27,Male,Belagavi,15,High
+OFF01216,Teerth Pillai,51,Female,Hassan,10,Low
+OFF01217,Yadavi Jha,24,Male,Mangaluru,1,Medium
+OFF01218,Unnati Basak,42,Male,Bengaluru Urban,9,Low
+OFF01219,Omya Deshmukh,61,Male,Belagavi,14,Low
+OFF01220,Lakshit Oommen,24,Female,Bengaluru Urban,9,High
+OFF01221,Vinaya Bera,31,Female,Mangaluru,6,Medium
+OFF01222,Charvi Agarwal,35,Female,Hassan,14,High
+OFF01223,Deepa De,25,Female,Mysuru,5,Medium
+OFF01224,Osha Sem,25,Male,Ballari,3,Low
+OFF01225,Aashi Bansal,52,Female,Tumakuru,10,Medium
+OFF01226,Rajata Krishnan,27,Female,Ballari,7,Low
+OFF01227,Hemangini Bassi,22,Female,Ballari,10,High
+OFF01228,Harita Kant,46,Male,Mysuru,0,Medium
+OFF01229,Yauvani Prasad,61,Male,Bengaluru Rural,12,Low
+OFF01230,Vedant Krishnan,23,Female,Kalaburagi,5,High
+OFF01231,Oliver Dada,56,Female,Ballari,11,Medium
+OFF01232,Kavya Upadhyay,39,Male,Davanagere,2,Medium
+OFF01233,Radha Lala,54,Male,Bengaluru Rural,14,Low
+OFF01234,Kashish Mitra,47,Female,Vijayapura,14,Medium
+OFF01235,Abdul Ramesh,32,Male,Mysuru,8,Medium
+OFF01236,Lajita Balakrishnan,43,Male,Davanagere,10,Medium
+OFF01237,Tanish Brar,47,Female,Bengaluru Urban,2,Medium
+OFF01238,Barkha Bora,25,Female,Shivamogga,14,Low
+OFF01239,Nathan Badal,36,Female,Ballari,4,High
+OFF01240,Bishakha Barman,24,Female,Udupi,3,Medium
+OFF01241,Jeevika Buch,53,Male,Hassan,9,High
+OFF01242,Vedant Bir,47,Female,Ballari,13,Low
+OFF01243,Radhika Mahajan,57,Male,Tumakuru,5,Medium
+OFF01244,Irya Kata,42,Male,Belagavi,6,High
+OFF01245,Lekha Sha,55,Female,Hassan,13,High
+OFF01246,Zaitra Narayan,39,Male,Mysuru,2,High
+OFF01247,Bachittar Golla,63,Female,Bengaluru Rural,14,Medium
+OFF01248,Krish Vala,53,Male,Udupi,14,Low
+OFF01249,Harini Buch,37,Female,Bengaluru Rural,3,High
+OFF01250,Luke Pathak,56,Female,Belagavi,15,High
+OFF01251,Gautam Wali,60,Male,Bengaluru Rural,6,Low
+OFF01252,Irya Madan,55,Male,Hassan,4,High
+OFF01253,Radhika Patil,27,Female,Tumakuru,9,Medium
+OFF01254,Harsh Gala,57,Female,Mangaluru,6,High
+OFF01255,Eta Sarna,38,Female,Ballari,9,Medium
+OFF01256,Sanaya Prabhakar,63,Female,Bengaluru Rural,0,High
+OFF01257,Oscar Srinivas,50,Female,Udupi,4,Medium
+OFF01258,Imaran Apte,21,Female,Chikkamagaluru,1,Low
+OFF01259,Girik Sharma,63,Female,Bengaluru Rural,9,Low
+OFF01260,Vasatika Krishna,33,Female,Davanagere,12,High
+OFF01261,Lila Johal,38,Female,Kalaburagi,12,Medium
+OFF01262,Eshana Boase,52,Male,Vijayapura,5,Medium
+OFF01263,Vanya Aurora,26,Male,Tumakuru,12,Medium
+OFF01264,Udarsh Prabhu,44,Male,Hubballi-Dharwad,4,Low
+OFF01265,Yochana Upadhyay,18,Male,Vijayapura,0,Low
+OFF01266,Vivaan Lall,64,Female,Vijayapura,13,Low
+OFF01267,Upadhriti Sanghvi,23,Male,Vijayapura,13,Medium
+OFF01268,Manthan Bansal,62,Female,Ballari,5,Medium
+OFF01269,Zaid Dubey,50,Female,Tumakuru,14,Medium
+OFF01270,Zashil Bhatnagar,40,Male,Mysuru,13,High
+OFF01271,Warjas Deo,18,Female,Udupi,7,High
+OFF01272,Daksh Oak,50,Female,Kalaburagi,11,Low
+OFF01273,Charita Majumdar,20,Female,Davanagere,11,Low
+OFF01274,Yatan Khalsa,55,Female,Davanagere,2,Low
+OFF01275,Samesh Andra,64,Female,Shivamogga,2,High
+OFF01276,Chakradhar Pillay,57,Male,Mangaluru,15,High
+OFF01277,Jairaj Mitra,65,Male,Vijayapura,9,High
+OFF01278,Arya Sen,21,Female,Tumakuru,0,Medium
+OFF01279,Tripti Vala,47,Female,Ballari,10,Medium
+OFF01280,Chatura Hegde,40,Female,Hubballi-Dharwad,5,Low
+OFF01281,Vrinda Anne,62,Female,Davanagere,8,Low
+OFF01282,Varenya Ganesh,58,Female,Ballari,5,High
+OFF01283,Leela Pandey,21,Female,Hassan,0,Medium
+OFF01284,Eshana Memon,49,Male,Mysuru,2,Medium
+OFF01285,Isaac Randhawa,34,Male,Ballari,8,Medium
+OFF01286,Eshana Brar,34,Male,Davanagere,3,High
+OFF01287,Mohini Dugar,29,Male,Vijayapura,14,Medium
+OFF01288,Jatin Wagle,29,Female,Hassan,7,Medium
+OFF01289,Neel Krishnamurthy,29,Male,Belagavi,2,Low
+OFF01290,Rehaan Bahl,56,Male,Udupi,15,Medium
+OFF01291,Fiyaz Samra,42,Male,Vijayapura,14,High
+OFF01292,Girik Datta,58,Male,Mangaluru,11,Low
+OFF01293,Indira Choudhry,59,Female,Hassan,3,Low
+OFF01294,Watika Sama,28,Female,Kalaburagi,15,Medium
+OFF01295,Charan Nadig,48,Male,Kalaburagi,12,Medium
+OFF01296,Liam Anand,34,Male,Tumakuru,13,Low
+OFF01297,Jacob Ganesh,36,Female,Kalaburagi,10,High
+OFF01298,Chaitanya Bajaj,61,Male,Bengaluru Rural,11,Medium
+OFF01299,Radhika Shukla,57,Female,Belagavi,8,Medium
+OFF01300,Adweta Konda,24,Female,Vijayapura,12,Medium
+OFF01301,Leena Verma,61,Male,Davanagere,6,High
+OFF01302,Rishi Deshpande,39,Male,Belagavi,0,High
+OFF01303,Zaitra Banik,18,Male,Bengaluru Urban,13,Low
+OFF01304,Logan Deshmukh,51,Male,Vijayapura,14,Medium
+OFF01305,Advik Mandal,32,Female,Hubballi-Dharwad,6,Low
+OFF01306,Shaurya Gandhi,19,Male,Bengaluru Urban,6,High
+OFF01307,Warinder Choudhry,58,Male,Davanagere,3,Low
+OFF01308,Harini Majumdar,56,Male,Kalaburagi,5,Low
+OFF01309,Neel Sinha,62,Male,Hubballi-Dharwad,9,Medium
+OFF01310,Jackson Chand,60,Male,Vijayapura,14,Medium
+OFF01311,Gautam Loyal,45,Female,Hubballi-Dharwad,5,Low
+OFF01312,Gayathri Kapadia,35,Male,Kalaburagi,12,Medium
+OFF01313,Rishi Krish,21,Female,Udupi,8,Low
+OFF01314,Nathaniel Mani,46,Male,Shivamogga,6,High
+OFF01315,Kashvi Kohli,43,Male,Vijayapura,15,Low
+OFF01316,Chaitanya Gulati,27,Female,Mangaluru,3,Medium
+OFF01317,Garima Gupta,63,Female,Bengaluru Rural,1,Low
+OFF01318,Hardik Basu,22,Female,Hassan,14,Low
+OFF01319,Dalbir Nadkarni,49,Male,Vijayapura,0,Low
+OFF01320,Lopa Vala,60,Female,Hubballi-Dharwad,4,High
+OFF01321,Chatresh Luthra,39,Female,Ballari,0,High
+OFF01322,Ekta Taneja,63,Female,Shivamogga,13,Medium
+OFF01323,Vihaan Dua,64,Male,Tumakuru,7,Low
+OFF01324,Teerth Ganesh,42,Female,Bengaluru Rural,11,Medium
+OFF01325,Zarna Sharma,61,Female,Kalaburagi,1,High
+OFF01326,Veda Kade,59,Male,Belagavi,10,Low
+OFF01327,Warda Bhatnagar,47,Female,Vijayapura,6,Low
+OFF01328,Gaurika Desai,53,Male,Kalaburagi,6,Medium
+OFF01329,Max Kunda,62,Female,Chikkamagaluru,3,High
+OFF01330,Harshil Tandon,62,Female,Shivamogga,2,High
+OFF01331,Harita Kata,46,Male,Mysuru,1,Low
+OFF01332,Abhiram Prabhu,19,Male,Shivamogga,12,Low
+OFF01333,Anvi Dugar,52,Female,Shivamogga,14,Low
+OFF01334,Shravya Johal,20,Female,Bengaluru Urban,10,High
+OFF01335,Quincy Gola,20,Female,Bengaluru Rural,6,High
+OFF01336,Wishi Raj,60,Female,Vijayapura,4,High
+OFF01337,Ranbir Bhagat,55,Male,Chikkamagaluru,2,Low
+OFF01338,Eta Apte,65,Male,Shivamogga,0,Medium
+OFF01339,Chaaya Pillay,57,Male,Mangaluru,4,Low
+OFF01340,Kevin Kar,29,Male,Chikkamagaluru,9,Low
+OFF01341,Ira Hora,47,Male,Udupi,2,Low
+OFF01342,Abdul Bhatnagar,25,Female,Ballari,7,Low
+OFF01343,Tanay Kamdar,30,Female,Belagavi,12,Medium
+OFF01344,Sarthak Aurora,25,Male,Belagavi,6,Low
+OFF01345,Guneet Mukherjee,55,Male,Belagavi,2,Low
+OFF01346,Teerth Mane,35,Male,Hassan,13,Low
+OFF01347,Veer Ratti,62,Female,Tumakuru,5,Medium
+OFF01348,Oviya Khare,33,Male,Mysuru,3,High
+OFF01349,Teerth Memon,57,Female,Hassan,5,Low
+OFF01350,Saumya Sankar,49,Male,Bengaluru Urban,0,Low
+OFF01351,Aradhana Pillay,23,Female,Kalaburagi,15,High
+OFF01352,Chandani Doshi,26,Male,Mysuru,8,High
+OFF01353,Meghana Kala,46,Female,Mangaluru,5,High
+OFF01354,Hamsini Sachar,62,Male,Ballari,5,High
+OFF01355,Kala Tak,49,Male,Vijayapura,9,Medium
+OFF01356,Gautami Jani,44,Male,Tumakuru,7,Low
+OFF01357,Vamakshi Konda,25,Male,Ballari,11,High
+OFF01358,Kritika Bumb,50,Male,Shivamogga,6,Medium
+OFF01359,Rehaan Rege,21,Male,Bengaluru Rural,4,High
+OFF01360,Chaitaly Wali,48,Female,Mysuru,5,High
+OFF01361,Mahika Lad,20,Male,Vijayapura,11,Medium
+OFF01362,Bhavani Bassi,31,Female,Hubballi-Dharwad,10,High
+OFF01363,Neha Sane,47,Male,Bengaluru Rural,1,High
+OFF01364,Charan Bera,29,Male,Hassan,0,Medium
+OFF01365,Ucchal Palla,50,Male,Bengaluru Rural,7,High
+OFF01366,Shravya Chaudhary,46,Female,Kalaburagi,6,High
+OFF01367,Abhimanyu Pandey,61,Female,Mangaluru,3,Medium
+OFF01368,Zehaan Trivedi,32,Male,Mangaluru,13,Low
+OFF01369,Yachana Barman,42,Male,Bengaluru Rural,15,High
+OFF01370,Sachi Dasgupta,49,Male,Chikkamagaluru,13,Low
+OFF01371,Wahab Sampath,31,Female,Mysuru,12,Medium
+OFF01372,Agastya De,26,Female,Davanagere,6,High
+OFF01373,Rachita Sane,40,Female,Mangaluru,10,Low
+OFF01374,Jalsa Sheth,20,Male,Hubballi-Dharwad,4,Low
+OFF01375,Nimrat Rege,47,Female,Kalaburagi,5,Medium
+OFF01376,Urmi Ray,32,Female,Ballari,5,High
+OFF01377,Udant Golla,57,Male,Ballari,7,Low
+OFF01378,Indira Thaker,44,Female,Udupi,6,High
+OFF01379,Arya Kurian,48,Female,Hubballi-Dharwad,0,High
+OFF01380,Alka D’Alia,45,Male,Mangaluru,10,Medium
+OFF01381,Aadhya Rattan,55,Male,Chikkamagaluru,4,High
+OFF01382,Gopal Buch,18,Female,Bengaluru Urban,1,Medium
+OFF01383,Nidhi Chaudhari,64,Male,Kalaburagi,12,Medium
+OFF01384,Lekha Agate,62,Male,Shivamogga,15,Low
+OFF01385,Amrita Chakrabarti,23,Male,Davanagere,13,Low
+OFF01386,Yadavi Gala,26,Female,Hubballi-Dharwad,7,High
+OFF01387,Karan Contractor,23,Male,Shivamogga,9,Low
+OFF01388,Azad Shere,63,Female,Udupi,0,Medium
+OFF01389,Utkarsh Khosla,47,Male,Udupi,12,Low
+OFF01390,Ayush Munshi,41,Female,Davanagere,0,High
+OFF01391,Garima Thakur,22,Female,Chikkamagaluru,10,High
+OFF01392,Manthan Raman,20,Female,Kalaburagi,8,High
+OFF01393,Arya Ahluwalia,57,Male,Hassan,2,High
+OFF01394,Anjali Barman,39,Male,Tumakuru,11,Low
+OFF01395,Sarthak Barad,25,Female,Belagavi,14,High
+OFF01396,Oviya Basak,20,Female,Belagavi,5,High
+OFF01397,Ekta Sant,53,Male,Tumakuru,6,Low
+OFF01398,Tristan Ahluwalia,39,Male,Tumakuru,3,High
+OFF01399,Saanvi Kar,48,Male,Hassan,7,Medium
+OFF01400,Ekaraj Misra,40,Female,Tumakuru,13,Medium
+OFF01401,Amruta Pal,21,Male,Belagavi,11,Medium
+OFF01402,Aradhana Rau,49,Male,Shivamogga,9,Medium
+OFF01403,Timothy Grover,57,Female,Hassan,2,Low
+OFF01404,Vedhika Bhat,47,Male,Bengaluru Rural,12,Low
+OFF01405,Ekansh Arora,36,Male,Bengaluru Rural,5,Medium
+OFF01406,Yachana Balakrishnan,25,Male,Shivamogga,4,Low
+OFF01407,Rehaan Ramanathan,51,Male,Hubballi-Dharwad,13,High
+OFF01408,Jyoti Sabharwal,52,Male,Shivamogga,11,Medium
+OFF01409,Oliver Nagi,46,Male,Hubballi-Dharwad,6,Low
+OFF01410,Hritik Kunda,19,Male,Udupi,10,Medium
+OFF01411,Yashica Gupta,55,Female,Vijayapura,10,Medium
+OFF01412,Viraj Aurora,55,Female,Shivamogga,9,High
+OFF01413,Advika Gade,26,Female,Mysuru,8,Low
+OFF01414,Turvi Chadha,48,Female,Hubballi-Dharwad,1,Low
+OFF01415,Mitesh Bhatia,40,Female,Shivamogga,5,High
+OFF01416,Nikita Sandal,28,Female,Mysuru,5,High
+OFF01417,Vritti Mandal,62,Male,Mysuru,7,Low
+OFF01418,Harinakshi Mane,20,Female,Ballari,4,Medium
+OFF01419,Girik Maharaj,34,Female,Mysuru,6,High
+OFF01420,Ishwar Luthra,63,Male,Vijayapura,10,Medium
+OFF01421,Lakshmi Kaur,27,Female,Shivamogga,5,High
+OFF01422,Tristan Gade,37,Male,Chikkamagaluru,0,Medium
+OFF01423,Priya Zachariah,49,Male,Shivamogga,10,Low
+OFF01424,Qarin Nazareth,18,Female,Vijayapura,9,Medium
+OFF01425,Ekanta Dey,36,Male,Hassan,14,Medium
+OFF01426,Lucky Sura,62,Male,Davanagere,15,Low
+OFF01427,Avi Narayanan,26,Male,Hubballi-Dharwad,0,Medium
+OFF01428,Chanchal Agrawal,57,Male,Shivamogga,11,Low
+OFF01429,Parth Choudhary,38,Male,Ballari,6,High
+OFF01430,Udant Sem,51,Male,Hassan,8,Low
+OFF01431,Anika Choudhary,19,Male,Tumakuru,14,High
+OFF01432,Gaurav Brar,60,Male,Tumakuru,12,Low
+OFF01433,Jack Ramaswamy,49,Female,Ballari,1,High
+OFF01434,Yashawini Borde,41,Female,Mysuru,13,Medium
+OFF01435,Jagat Menon,42,Female,Bengaluru Urban,9,Medium
+OFF01436,Udyati Bahl,40,Female,Shivamogga,2,Low
+OFF01437,Wriddhish Desai,64,Female,Davanagere,13,Medium
+OFF01438,Alka Raman,36,Male,Hassan,13,High
+OFF01439,Indira Lad,44,Male,Udupi,2,Low
+OFF01440,Victor Shroff,31,Female,Shivamogga,10,Low
+OFF01441,Maanas Chakraborty,55,Female,Bengaluru Rural,0,Medium
+OFF01442,Azaan Raman,58,Female,Kalaburagi,5,High
+OFF01443,Qabil Contractor,47,Male,Mangaluru,5,Medium
+OFF01444,Gauri Devi,36,Female,Bengaluru Urban,9,High
+OFF01445,Vrishti Pradhan,37,Female,Tumakuru,14,Low
+OFF01446,Gavin Kar,19,Male,Mysuru,8,Medium
+OFF01447,Chanchal Hora,58,Female,Bengaluru Rural,9,Medium
+OFF01448,Eesha Saraf,29,Female,Chikkamagaluru,7,Low
+OFF01449,Manya Batra,25,Female,Shivamogga,2,High
+OFF01450,Teerth Shroff,65,Female,Ballari,15,High
+OFF01451,Ijaya Dugar,45,Female,Vijayapura,15,High
+OFF01452,Aashi Taneja,25,Female,Tumakuru,0,Medium
+OFF01453,Vasudha Bera,28,Male,Mysuru,10,Medium
+OFF01454,Dakshesh Walla,62,Male,Belagavi,5,Low
+OFF01455,Yashoda Dara,35,Female,Kalaburagi,11,Low
+OFF01456,Gayathri Prabhu,36,Female,Tumakuru,2,High
+OFF01457,Nidra Bahri,30,Male,Hassan,3,High
+OFF01458,Brinda Tripathi,28,Female,Udupi,10,High
+OFF01459,Neha Sarin,37,Female,Vijayapura,11,Low
+OFF01460,Harsh Dhingra,52,Female,Udupi,4,Low
+OFF01461,Onveer Shah,26,Female,Belagavi,15,Medium
+OFF01462,Vasudha Kari,39,Male,Bengaluru Rural,6,Low
+OFF01463,Aradhana Karnik,50,Male,Udupi,6,High
+OFF01464,Bhavani Mall,57,Male,Kalaburagi,14,Low
+OFF01465,Krishna Dhawan,25,Male,Chikkamagaluru,0,Medium
+OFF01466,Max Patla,40,Female,Davanagere,11,Low
+OFF01467,Noah Sarraf,46,Female,Mysuru,9,Low
+OFF01468,Pranav Sheth,65,Male,Mangaluru,4,High
+OFF01469,Zayan Narain,27,Male,Hubballi-Dharwad,4,Low
+OFF01470,Mahika Buch,26,Male,Kalaburagi,3,Low
+OFF01471,Girish Sem,19,Female,Hassan,13,Low
+OFF01472,Bachittar Baria,30,Male,Bengaluru Urban,1,Medium
+OFF01473,Jeremiah Devan,25,Female,Bengaluru Urban,2,Medium
+OFF01474,Pranav Shah,60,Male,Hassan,3,Low
+OFF01475,Zaitra Sami,56,Male,Ballari,6,Low
+OFF01476,Nathaniel Vala,60,Female,Bengaluru Urban,2,Low
+OFF01477,Avi Sem,65,Female,Ballari,11,Medium
+OFF01478,Abhimanyu Karan,28,Male,Tumakuru,2,Low
+OFF01479,Frado Saxena,55,Male,Tumakuru,6,High
+OFF01480,Upkaar Nayar,30,Female,Mysuru,0,High
+OFF01481,Azad Bhattacharyya,24,Male,Chikkamagaluru,15,Medium
+OFF01482,Arin Karpe,62,Male,Shivamogga,3,Low
+OFF01483,Yamini Kamdar,40,Female,Kalaburagi,6,High
+OFF01484,Bhavani Chandra,32,Female,Bengaluru Rural,10,Low
+OFF01485,Fiyaz Lala,47,Male,Tumakuru,4,Medium
+OFF01486,Kalpit Sen,41,Female,Tumakuru,1,Low
+OFF01487,Girish Suri,38,Female,Bengaluru Rural,12,Medium
+OFF01488,Nandini Chanda,47,Female,Vijayapura,14,Low
+OFF01489,Kavya Natarajan,53,Female,Hubballi-Dharwad,13,Low
+OFF01490,Ishita Mand,22,Female,Vijayapura,11,Low
+OFF01491,Anika Tripathi,18,Female,Vijayapura,3,Medium
+OFF01492,Ikshita Chander,46,Male,Bengaluru Rural,4,Medium
+OFF01493,Vivaan Madan,43,Male,Davanagere,5,Low
+OFF01494,Chatura Ghose,41,Male,Belagavi,6,High
+OFF01495,Gaurang Prashad,43,Male,Mangaluru,13,High
+OFF01496,Vrishti De,49,Female,Hassan,8,High
+OFF01497,Meera Tella,43,Female,Shivamogga,12,Medium
+OFF01498,Arya More,50,Female,Mysuru,14,Low
+OFF01499,Rajeshri Sane,25,Female,Shivamogga,15,Low
+OFF01500,Gaurika Goyal,58,Male,Bengaluru Urban,3,High
+OFF01501,Amol Sahni,21,Male,Shivamogga,0,Low
+OFF01502,Priya Bali,42,Female,Mysuru,9,High
+OFF01503,Ekaraj Vala,57,Male,Hassan,2,High
+OFF01504,Nicholas Sur,51,Female,Hassan,14,Low
+OFF01505,Mugdha Sekhon,36,Female,Shivamogga,8,High
+OFF01506,Samaksh Tara,39,Male,Hassan,1,Medium
+OFF01507,Nakul Balakrishnan,25,Female,Shivamogga,10,Medium
+OFF01508,Eshana Narang,46,Female,Bengaluru Urban,1,Low
+OFF01509,Saksham Prabhakar,53,Female,Chikkamagaluru,5,Medium
+OFF01510,Omkaar Andra,45,Male,Hubballi-Dharwad,12,Medium
+OFF01511,Lakshmi Vala,25,Female,Vijayapura,15,Medium
+OFF01512,Frederick Srinivasan,53,Male,Tumakuru,1,Medium
+OFF01513,Niharika Nazareth,34,Female,Ballari,12,High
+OFF01514,Hema Pillai,61,Female,Hassan,9,Medium
+OFF01515,Ati Ram,21,Male,Ballari,1,Low
+OFF01516,Aadi Dave,41,Female,Hassan,0,High
+OFF01517,Mitali Uppal,39,Female,Bengaluru Rural,13,Medium
+OFF01518,Qasim Walla,40,Female,Belagavi,1,High
+OFF01519,Qabil Karpe,33,Male,Mangaluru,9,High
+OFF01520,Faris Viswanathan,23,Male,Udupi,9,Low
+OFF01521,Bhavika Padmanabhan,39,Male,Bengaluru Urban,10,Low
+OFF01522,Yoshita Saxena,47,Female,Ballari,13,Medium
+OFF01523,Advay Mand,19,Female,Ballari,0,Medium
+OFF01524,Urishilla Din,42,Female,Belagavi,3,Medium
+OFF01525,Hemangini Badal,24,Male,Belagavi,15,High
+OFF01526,Madhavi Shroff,60,Female,Mysuru,9,Medium
+OFF01527,Balendra Goswami,45,Male,Shivamogga,2,High
+OFF01528,Kabir Srinivasan,31,Female,Hubballi-Dharwad,1,Medium
+OFF01529,Ladli Palla,54,Female,Hassan,7,High
+OFF01530,Advik Nanda,65,Male,Davanagere,3,High
+OFF01531,Wyatt Nadkarni,39,Female,Bengaluru Rural,15,Medium
+OFF01532,Tanmayi Bajaj,31,Female,Hassan,2,High
+OFF01533,Indali Sura,37,Female,Kalaburagi,10,Low
+OFF01534,Sara Sandal,44,Female,Hubballi-Dharwad,14,High
+OFF01535,Owen Mohanty,53,Male,Chikkamagaluru,0,High
+OFF01536,Warhi Uppal,63,Male,Ballari,15,Low
+OFF01537,Yatan Pandey,60,Female,Hubballi-Dharwad,13,High
+OFF01538,Yug Anne,64,Male,Tumakuru,6,Medium
+OFF01539,Deepa Nazareth,47,Male,Mangaluru,4,High
+OFF01540,Wahab Butala,61,Female,Udupi,13,Medium
+OFF01541,Anjali Wable,38,Male,Vijayapura,6,Medium
+OFF01542,Jagrati Choudhury,35,Female,Vijayapura,5,Medium
+OFF01543,Dakshesh Dixit,61,Male,Kalaburagi,7,Low
+OFF01544,Rayaan Kota,27,Male,Bengaluru Urban,7,Medium
+OFF01545,Nidhi Kumar,47,Female,Tumakuru,13,Medium
+OFF01546,Ati Chawla,59,Male,Mangaluru,5,Medium
+OFF01547,Yash Pai,26,Male,Hubballi-Dharwad,8,High
+OFF01548,Lohit Sastry,53,Male,Vijayapura,1,High
+OFF01549,Nimrat Dutt,49,Male,Bengaluru Urban,2,Medium
+OFF01550,Radha Chandra,56,Female,Udupi,2,Medium
+OFF01551,Ekapad Barad,41,Male,Kalaburagi,4,Low
+OFF01552,Advaith Kamdar,25,Male,Tumakuru,8,Medium
+OFF01553,Bakhshi Dar,23,Male,Ballari,3,Medium
+OFF01554,Alka Baria,39,Female,Hassan,7,Medium
+OFF01555,Tamanna Gera,31,Male,Bengaluru Rural,5,Low
+OFF01556,Panini Goyal,35,Female,Kalaburagi,8,High
+OFF01557,Sara Saini,21,Female,Tumakuru,11,High
+OFF01558,Gaurangi Murty,25,Female,Tumakuru,13,Medium
+OFF01559,Vincent Kothari,61,Male,Hubballi-Dharwad,4,Medium
+OFF01560,Chanakya Dewan,48,Female,Udupi,9,Low
+OFF01561,Yochana Ramachandran,59,Male,Udupi,1,High
+OFF01562,Jagrati Dey,60,Male,Hubballi-Dharwad,12,Medium
+OFF01563,Ekapad Koshy,58,Female,Chikkamagaluru,3,High
+OFF01564,Frederick Pathak,33,Female,Kalaburagi,0,Medium
+OFF01565,Qasim Lad,34,Female,Bengaluru Rural,7,Medium
+OFF01566,Saumya Warrior,31,Male,Chikkamagaluru,14,High
+OFF01567,Riya Murty,38,Female,Hassan,1,Medium
+OFF01568,Ryan Mannan,23,Female,Shivamogga,13,Medium
+OFF01569,Manan Dua,63,Female,Chikkamagaluru,3,Low
+OFF01570,Advik Mutti,62,Female,Tumakuru,2,Medium
+OFF01571,Gagan Sidhu,44,Female,Shivamogga,0,Low
+OFF01572,Yadavi Chatterjee,59,Male,Vijayapura,14,High
+OFF01573,Balvan Mukherjee,26,Male,Kalaburagi,6,High
+OFF01574,Nikita Khurana,37,Female,Ballari,2,Low
+OFF01575,Sanya Sen,28,Male,Tumakuru,4,High
+OFF01576,Quincy Kanda,61,Female,Hassan,10,Medium
+OFF01577,Chameli Kala,48,Male,Hubballi-Dharwad,5,High
+OFF01578,Veda Mall,55,Female,Hassan,9,Low
+OFF01579,Vinaya Krishna,23,Female,Belagavi,5,Medium
+OFF01580,Chandresh Lall,42,Male,Bengaluru Urban,0,High
+OFF01581,Barkha Venkataraman,59,Male,Chikkamagaluru,2,Medium
+OFF01582,Odika Puri,30,Female,Davanagere,5,Low
+OFF01583,Yashoda Sunder,43,Female,Ballari,8,Low
+OFF01584,Tanvi Atwal,23,Female,Mysuru,3,Low
+OFF01585,Jai Grover,63,Female,Hassan,14,High
+OFF01586,Jacob Yohannan,49,Male,Mangaluru,6,Low
+OFF01587,Raagini Tella,35,Female,Davanagere,15,Medium
+OFF01588,Ayushman Hans,26,Female,Udupi,6,High
+OFF01589,Advik Pillai,31,Female,Davanagere,6,Medium
+OFF01590,Gauri Keer,29,Female,Hassan,4,Low
+OFF01591,Yasti Swaminathan,36,Female,Mangaluru,14,Low
+OFF01592,Ira Zacharia,41,Female,Bengaluru Rural,0,Medium
+OFF01593,Nandini Narayan,26,Female,Davanagere,12,High
+OFF01594,Chaman Raju,31,Female,Davanagere,13,High
+OFF01595,Rachita Ghose,56,Female,Bengaluru Rural,3,High
+OFF01596,Adweta Bhatnagar,21,Male,Belagavi,7,Medium
+OFF01597,Gautami Sant,40,Male,Bengaluru Urban,8,High
+OFF01598,Oni Joshi,57,Female,Hubballi-Dharwad,12,High
+OFF01599,Madhavi Modi,41,Male,Chikkamagaluru,1,High
+OFF01600,Joshua Behl,29,Female,Mysuru,15,Medium
+OFF01601,Veer Banik,47,Male,Bengaluru Rural,10,High
+OFF01602,Sai Choudhury,51,Female,Mysuru,8,Low
+OFF01603,Damyanti Bansal,38,Male,Mysuru,15,Medium
+OFF01604,William Kapur,65,Female,Chikkamagaluru,13,Medium
+OFF01605,Ranveer Karan,34,Female,Tumakuru,10,Medium
+OFF01606,Zansi Virk,28,Female,Davanagere,15,Low
+OFF01607,Neelima Purohit,53,Female,Bengaluru Urban,6,Low
+OFF01608,Jeevika Grewal,21,Male,Mysuru,1,Medium
+OFF01609,Hamsini Bal,34,Male,Davanagere,14,Medium
+OFF01610,Banjeet Khosla,25,Female,Bengaluru Urban,14,Medium
+OFF01611,Kamala Patel,63,Female,Shivamogga,15,Low
+OFF01612,Ati Zachariah,64,Male,Bengaluru Rural,11,Low
+OFF01613,Baljiwan Dugar,31,Female,Mysuru,5,High
+OFF01614,Raksha Hayre,50,Female,Ballari,6,High
+OFF01615,Aarini Choudhury,18,Male,Kalaburagi,2,Low
+OFF01616,Kabir Shankar,49,Male,Chikkamagaluru,10,Low
+OFF01617,Raagini Varma,36,Male,Kalaburagi,11,High
+OFF01618,Raksha Narayanan,24,Female,Mysuru,0,Low
+OFF01619,Anirudh Saraf,47,Female,Shivamogga,8,High
+OFF01620,Kala Chaudry,60,Male,Belagavi,1,High
+OFF01621,Dayamai Nair,57,Female,Belagavi,4,Low
+OFF01622,Praneel Cherian,21,Female,Belagavi,1,High
+OFF01623,Ikbal Bhasin,22,Female,Bengaluru Rural,12,Medium
+OFF01624,Wakeeta Shroff,29,Male,Hassan,12,Low
+OFF01625,Neha Kota,19,Male,Mysuru,12,Medium
+OFF01626,Ayushman Buch,36,Male,Bengaluru Rural,9,Medium
+OFF01627,Dalbir Madan,45,Female,Chikkamagaluru,4,Medium
+OFF01628,Darpan Kale,60,Male,Udupi,11,High
+OFF01629,Lakshmi Karan,30,Female,Shivamogga,12,Medium
+OFF01630,Chaman Ganesan,35,Female,Bengaluru Rural,13,Medium
+OFF01631,Yuvraj Keer,57,Male,Kalaburagi,13,Low
+OFF01632,Onveer Bahri,20,Female,Shivamogga,7,High
+OFF01633,Bakhshi Batta,61,Male,Chikkamagaluru,15,High
+OFF01634,Ekansh Srinivas,58,Male,Hubballi-Dharwad,14,Medium
+OFF01635,Hiral Lad,23,Female,Hubballi-Dharwad,4,Low
+OFF01636,Oeshi Khare,61,Female,Udupi,7,High
+OFF01637,Ekapad Kothari,45,Female,Ballari,1,High
+OFF01638,Charvi Palla,22,Male,Tumakuru,3,High
+OFF01639,Falan Dyal,45,Female,Bengaluru Rural,14,High
+OFF01640,Hemani Kapoor,64,Female,Belagavi,8,High
+OFF01641,Timothy Mand,23,Male,Bengaluru Rural,14,Low
+OFF01642,Lucky Anand,29,Female,Bengaluru Urban,2,Medium
+OFF01643,Yug Patla,63,Female,Belagavi,14,High
+OFF01644,Yug Datta,46,Female,Belagavi,5,Low
+OFF01645,Girik Dada,29,Male,Davanagere,8,High
+OFF01646,Yashasvi Nadkarni,24,Female,Tumakuru,0,Low
+OFF01647,Bina Viswanathan,43,Male,Bengaluru Urban,5,High
+OFF01648,Widisha Varty,48,Female,Davanagere,12,High
+OFF01649,Quincy Bali,65,Female,Hubballi-Dharwad,11,High
+OFF01650,Lucky De,61,Female,Hassan,9,Low
+OFF01651,Dalaja Amble,26,Male,Bengaluru Urban,6,Low
+OFF01652,Kevin More,19,Male,Udupi,0,Low
+OFF01653,Benjamin Prakash,48,Male,Vijayapura,7,Medium
+OFF01654,Mahika Gopal,58,Male,Bengaluru Rural,9,Medium
+OFF01655,Divya Goyal,27,Female,Kalaburagi,0,Low
+OFF01656,Nidhi Kalita,28,Male,Davanagere,14,Medium
+OFF01657,Hredhaan Das,48,Male,Udupi,14,High
+OFF01658,Nicholas Chana,33,Male,Hubballi-Dharwad,12,Low
+OFF01659,Ekapad Manda,39,Male,Bengaluru Rural,13,Medium
+OFF01660,Zarna Pant,49,Female,Bengaluru Urban,15,Medium
+OFF01661,Meera Agarwal,49,Female,Mangaluru,1,High
+OFF01662,Jeevika Agrawal,19,Female,Ballari,10,High
+OFF01663,Vasana Bhat,22,Female,Chikkamagaluru,13,Medium
+OFF01664,Chandani Gade,25,Female,Ballari,11,Medium
+OFF01665,Kiaan Pandya,62,Female,Bengaluru Urban,5,Medium
+OFF01666,Nilima Bansal,64,Male,Shivamogga,11,Medium
+OFF01667,Falguni Sodhi,32,Male,Ballari,10,High
+OFF01668,Aryan Kapoor,63,Female,Mysuru,9,High
+OFF01669,Lohit Toor,63,Female,Kalaburagi,11,Medium
+OFF01670,Aayush Chad,28,Male,Hubballi-Dharwad,2,High
+OFF01671,Ekbal Kade,48,Male,Mysuru,6,Low
+OFF01672,Shivani Lalla,56,Female,Bengaluru Rural,13,Medium
+OFF01673,Harita Reddy,37,Male,Mangaluru,1,Low
+OFF01674,Yashodhara Hayre,40,Female,Belagavi,5,Low
+OFF01675,Urishilla Gopal,50,Male,Hassan,2,Medium
+OFF01676,Chaman Dewan,45,Male,Ballari,7,Low
+OFF01677,Abeer Nayak,53,Male,Shivamogga,8,Medium
+OFF01678,Chandran Kant,40,Male,Hassan,8,Low
+OFF01679,Ria Jayaraman,62,Male,Davanagere,1,Medium
+OFF01680,Gavin Sha,47,Male,Bengaluru Rural,3,High
+OFF01681,Libni Borra,20,Male,Mysuru,3,Low
+OFF01682,Ekapad Batta,41,Male,Davanagere,9,High
+OFF01683,Maya Mutti,46,Female,Davanagere,3,Low
+OFF01684,Adya Chana,59,Female,Belagavi,4,Low
+OFF01685,Rajeshri Varughese,30,Female,Kalaburagi,0,Low
+OFF01686,Upma Aggarwal,48,Female,Hubballi-Dharwad,5,Low
+OFF01687,Jagdish Aggarwal,35,Female,Davanagere,13,Medium
+OFF01688,Bhavani Shukla,58,Male,Mysuru,13,Low
+OFF01689,Riya Dutta,26,Female,Kalaburagi,13,Medium
+OFF01690,Udarsh Krish,51,Female,Bengaluru Urban,14,Low
+OFF01691,Waida Date,18,Male,Bengaluru Rural,10,Medium
+OFF01692,Ganga Upadhyay,43,Male,Kalaburagi,1,Medium
+OFF01693,Advaith Tiwari,20,Male,Chikkamagaluru,1,High
+OFF01694,Azad Nagar,63,Female,Kalaburagi,12,High
+OFF01695,Yagnesh Venkatesh,62,Female,Davanagere,10,Medium
+OFF01696,Radhika Palla,18,Female,Chikkamagaluru,4,High
+OFF01697,Kalpit Vyas,43,Female,Vijayapura,6,High
+OFF01698,Vansha Bera,57,Female,Davanagere,11,High
+OFF01699,Vedika Sha,43,Male,Chikkamagaluru,9,Low
+OFF01700,Lila Srivastava,20,Female,Kalaburagi,4,High
+OFF01701,Osha Kar,52,Female,Mangaluru,2,High
+OFF01702,Girik Thakkar,53,Female,Tumakuru,10,High
+OFF01703,Rachit Yogi,28,Male,Bengaluru Urban,8,Low
+OFF01704,Dalaja Yadav,37,Female,Tumakuru,3,High
+OFF01705,Ekapad Chaudhari,21,Female,Hubballi-Dharwad,11,Low
+OFF01706,Zayyan Krishnan,21,Male,Shivamogga,9,High
+OFF01707,Chakradev Samra,65,Male,Shivamogga,10,Low
+OFF01708,Logan Setty,65,Male,Belagavi,9,Medium
+OFF01709,Keya Arya,60,Male,Davanagere,12,High
+OFF01710,Sai Ahuja,65,Male,Bengaluru Rural,10,High
+OFF01711,Jhalak Prakash,55,Male,Udupi,11,Medium
+OFF01712,Liam Dalal,24,Male,Davanagere,13,Medium
+OFF01713,Riya Chad,23,Male,Bengaluru Urban,13,Low
+OFF01714,Vasudha Ramachandran,48,Male,Shivamogga,2,Medium
+OFF01715,Reva Swamy,61,Female,Ballari,12,Medium
+OFF01716,Champak Sandal,55,Female,Vijayapura,13,Medium
+OFF01717,Chanakya Andra,62,Female,Davanagere,13,Low
+OFF01718,Kashvi Narula,27,Male,Shivamogga,14,Low
+OFF01719,Timothy Srinivasan,63,Male,Davanagere,6,Medium
+OFF01720,Meera Varma,48,Male,Davanagere,5,High
+OFF01721,Balvan Banik,41,Male,Ballari,13,Low
+OFF01722,Oliver Swamy,25,Female,Ballari,9,Low
+OFF01723,Sudiksha Mukhopadhyay,51,Male,Bengaluru Rural,11,Medium
+OFF01724,Vaishnavi Acharya,41,Female,Hubballi-Dharwad,15,Low
+OFF01725,Reyansh Guha,27,Male,Hassan,13,Low
+OFF01726,Vincent Kade,37,Female,Mangaluru,5,High
+OFF01727,Udyati Krishnan,49,Male,Bengaluru Rural,11,Low
+OFF01728,Wridesh Sampath,20,Female,Shivamogga,9,High
+OFF01729,Vyanjana Anand,46,Female,Hassan,12,Medium
+OFF01730,Falguni Dayal,64,Male,Hassan,4,High
+OFF01731,Balveer Batta,58,Female,Hassan,14,High
+OFF01732,Abeer Barad,46,Male,Udupi,10,Low
+OFF01733,Triya Iyengar,57,Female,Kalaburagi,7,Medium
+OFF01734,Qasim Ray,39,Male,Vijayapura,14,High
+OFF01735,Devika Palan,35,Male,Udupi,5,High
+OFF01736,Bahadurjit Sinha,19,Female,Tumakuru,3,High
+OFF01737,Tejas Khatri,53,Male,Mangaluru,1,High
+OFF01738,Lipika Anne,51,Male,Hassan,15,High
+OFF01739,Yoshita Trivedi,19,Male,Vijayapura,5,Low
+OFF01740,Rudra Subramanian,35,Male,Mangaluru,14,Low
+OFF01741,Yuvraj Saha,52,Female,Kalaburagi,1,Medium
+OFF01742,Rushil Iyengar,19,Female,Kalaburagi,5,Medium
+OFF01743,Yuvraj Bansal,19,Female,Kalaburagi,8,Low
+OFF01744,Tarak Taneja,25,Male,Tumakuru,5,Medium
+OFF01745,Anusha Sarma,27,Male,Hubballi-Dharwad,2,Low
+OFF01746,Samaksh Zacharia,37,Female,Vijayapura,5,Low
+OFF01747,Ishani Pathak,57,Female,Mysuru,0,High
+OFF01748,Vrishti Saha,21,Female,Kalaburagi,3,Medium
+OFF01749,Rudra Mand,27,Female,Chikkamagaluru,10,Medium
+OFF01750,Elijah Thaman,42,Male,Bengaluru Urban,6,Low
+OFF01751,Hemang Mishra,56,Male,Shivamogga,12,Low
+OFF01752,Harsh Dara,35,Male,Belagavi,14,High
+OFF01753,Pavani Luthra,44,Male,Shivamogga,0,Medium
+OFF01754,Indali Dayal,58,Male,Chikkamagaluru,0,Medium
+OFF01755,Ojas Ram,53,Male,Mangaluru,4,Medium
+OFF01756,Omkaar Bali,54,Female,Shivamogga,2,High
+OFF01757,Aadhya Kakar,50,Male,Hassan,4,Medium
+OFF01758,Idika Dutta,52,Male,Hassan,7,High
+OFF01759,Shivansh Modi,45,Female,Bengaluru Urban,0,Medium
+OFF01760,Harish Sani,57,Female,Vijayapura,5,Low
+OFF01761,Leena Mitter,21,Female,Hubballi-Dharwad,8,High
+OFF01762,Hemani Chada,42,Female,Udupi,6,High
+OFF01763,Yashvi Nadkarni,50,Female,Bengaluru Urban,5,High
+OFF01764,Gaurangi Borde,52,Male,Hubballi-Dharwad,2,Medium
+OFF01765,Devansh Dube,62,Male,Udupi,4,High
+OFF01766,Charita Chahal,53,Female,Chikkamagaluru,13,Low
+OFF01767,Gunbir Natarajan,57,Female,Chikkamagaluru,10,High
+OFF01768,Chatresh Kumar,34,Female,Hubballi-Dharwad,7,High
+OFF01769,Finn Chacko,38,Female,Mangaluru,14,High
+OFF01770,Dev Shukla,39,Male,Chikkamagaluru,4,High
+OFF01771,Upasna Gara,18,Female,Bengaluru Urban,0,High
+OFF01772,Bachittar Shere,29,Female,Tumakuru,15,Medium
+OFF01773,Hemani Wason,52,Male,Hassan,2,High
+OFF01774,Anmol Buch,19,Female,Vijayapura,3,Medium
+OFF01775,Jack Gupta,42,Female,Kalaburagi,5,High
+OFF01776,Atharv Mangat,18,Male,Shivamogga,11,Low
+OFF01777,Reyansh Mahajan,46,Male,Mangaluru,0,Medium
+OFF01778,Viraj Krish,61,Female,Mangaluru,2,High
+OFF01779,Bhavya Jayaraman,58,Female,Hassan,7,Low
+OFF01780,Yauvani Sarkar,49,Female,Bengaluru Urban,8,Medium
+OFF01781,Diya Karan,63,Male,Bengaluru Urban,6,High
+OFF01782,Yochana Kuruvilla,43,Male,Udupi,8,High
+OFF01783,Neelima Wason,50,Female,Mysuru,6,High
+OFF01784,Kavya Uppal,65,Male,Bengaluru Rural,4,High
+OFF01785,Rudra Ben,22,Male,Hubballi-Dharwad,7,High
+OFF01786,Ikbal Subramaniam,64,Female,Mangaluru,0,High
+OFF01787,William Dixit,61,Female,Vijayapura,14,Low
+OFF01788,Vyanjana Nath,45,Male,Udupi,10,Medium
+OFF01789,Vasatika Lalla,44,Female,Bengaluru Rural,14,Medium
+OFF01790,Vanya Parmar,41,Male,Chikkamagaluru,7,Low
+OFF01791,Nandini Kuruvilla,35,Female,Tumakuru,14,Medium
+OFF01792,Aditya Iyengar,18,Female,Mangaluru,10,Low
+OFF01793,Raghav Chand,54,Male,Davanagere,7,High
+OFF01794,Faris Venkataraman,45,Male,Chikkamagaluru,7,Low
+OFF01795,Rachit Swamy,28,Female,Hubballi-Dharwad,2,High
+OFF01796,Saumya Srinivasan,58,Male,Bengaluru Urban,15,Medium
+OFF01797,Hemal Kashyap,19,Female,Udupi,8,Low
+OFF01798,Hritik Vasa,24,Female,Mangaluru,10,Low
+OFF01799,Zansi Gopal,39,Male,Bengaluru Rural,14,Low
+OFF01800,Rayaan Atwal,58,Female,Ballari,3,Low
+OFF01801,Pratyush Luthra,21,Male,Kalaburagi,10,High
+OFF01802,Neelima Rattan,22,Male,Bengaluru Urban,14,Low
+OFF01803,Vasatika Warrior,37,Female,Bengaluru Rural,3,High
+OFF01804,Jagrati Nadkarni,21,Male,Hubballi-Dharwad,12,Medium
+OFF01805,Chavvi Lanka,24,Female,Mangaluru,0,Medium
+OFF01806,Nitara Lad,42,Female,Hassan,13,High
+OFF01807,Ekanta Divan,57,Male,Belagavi,0,Medium
+OFF01808,Wahab Wadhwa,51,Female,Ballari,6,Low
+OFF01809,Hemani Manne,24,Male,Ballari,2,High
+OFF01810,Sneha Bajwa,30,Male,Vijayapura,8,Medium
+OFF01811,Yauvani Pall,44,Female,Davanagere,14,Low
+OFF01812,Samarth Gaba,33,Male,Hassan,1,Low
+OFF01813,Abha Saha,26,Female,Ballari,13,High
+OFF01814,Yatin Patil,59,Female,Hubballi-Dharwad,4,Low
+OFF01815,Ishita Grewal,48,Female,Ballari,10,Medium
+OFF01816,Wishi Peri,41,Male,Tumakuru,4,Low
+OFF01817,Aarav Brar,33,Male,Kalaburagi,11,Low
+OFF01818,Priya Vora,30,Male,Hassan,2,Medium
+OFF01819,Gauri Salvi,30,Female,Davanagere,14,High
+OFF01820,Aarini Chanda,62,Female,Udupi,10,High
+OFF01821,Bhanumati Anne,37,Female,Belagavi,5,Low
+OFF01822,Laksh Bassi,47,Male,Shivamogga,7,Low
+OFF01823,Rushil Radhakrishnan,58,Male,Davanagere,7,Medium
+OFF01824,Advaith Tank,57,Male,Mangaluru,15,High
+OFF01825,Faqid Chawla,39,Female,Mangaluru,12,Low
+OFF01826,Alka Bala,18,Female,Bengaluru Urban,2,Medium
+OFF01827,Dayamai Pai,19,Male,Mysuru,9,Medium
+OFF01828,Anthony Gera,30,Female,Bengaluru Urban,0,Low
+OFF01829,Sanaya Bhattacharyya,30,Female,Mysuru,7,Medium
+OFF01830,Indali Karnik,64,Male,Belagavi,7,Low
+OFF01831,Isaiah Bose,30,Male,Mysuru,8,Low
+OFF01832,Gaurika Korpal,19,Male,Kalaburagi,3,Medium
+OFF01833,Omya Kalita,31,Female,Shivamogga,7,Medium
+OFF01834,Parth Murty,41,Male,Tumakuru,13,High
+OFF01835,Eiravati Choudhry,22,Male,Mysuru,4,Low
+OFF01836,Nicholas Thakkar,30,Female,Davanagere,11,Medium
+OFF01837,Mitali Hora,56,Female,Vijayapura,7,Low
+OFF01838,Chakradhar Kurian,57,Male,Udupi,9,Low
+OFF01839,Tarak Rajan,38,Male,Bengaluru Urban,8,Low
+OFF01840,Kalpit Pathak,50,Female,Mangaluru,2,Medium
+OFF01841,Gagan Naidu,60,Male,Mysuru,12,High
+OFF01842,Jeet Ben,50,Female,Shivamogga,14,Low
+OFF01843,Praneel Kata,38,Female,Tumakuru,15,High
+OFF01844,Sudiksha Kuruvilla,49,Female,Hubballi-Dharwad,12,High
+OFF01845,Ikbal Prasad,55,Male,Mangaluru,7,Low
+OFF01846,Yamini Swaminathan,46,Male,Kalaburagi,6,Medium
+OFF01847,Ayush Krishna,45,Female,Ballari,5,Medium
+OFF01848,Yashasvi Minhas,34,Male,Mysuru,2,Medium
+OFF01849,Wazir Nigam,46,Female,Mangaluru,1,Medium
+OFF01850,Qasim Konda,50,Female,Kalaburagi,14,Medium
+OFF01851,Rachita More,45,Female,Belagavi,15,Medium
+OFF01852,Riya Kaur,35,Female,Bengaluru Urban,5,Medium
+OFF01853,Rishi Anand,32,Female,Vijayapura,2,Medium
+OFF01854,Tara Deshpande,23,Female,Udupi,2,Medium
+OFF01855,Falguni Prabhu,32,Male,Bengaluru Rural,2,Medium
+OFF01856,Avi Patel,20,Male,Belagavi,6,High
+OFF01857,Laksh Bir,39,Female,Hubballi-Dharwad,8,Low
+OFF01858,Zilmil Sunder,63,Male,Udupi,8,Low
+OFF01859,Priya Chaudry,37,Female,Udupi,11,Medium
+OFF01860,Tanmayi Puri,43,Male,Shivamogga,4,Medium
+OFF01861,Tejas Dhar,32,Male,Davanagere,6,Medium
+OFF01862,Jagat Bhasin,32,Female,Davanagere,14,Medium
+OFF01863,Sathvik Boase,23,Female,Udupi,6,Medium
+OFF01864,Benjamin Krish,62,Female,Mangaluru,14,Medium
+OFF01865,Jairaj Rastogi,53,Male,Belagavi,4,High
+OFF01866,Mitesh Sharaf,26,Female,Davanagere,0,Medium
+OFF01867,Chandran Seshadri,60,Female,Belagavi,7,Medium
+OFF01868,Onveer Chandran,45,Female,Hassan,9,Medium
+OFF01869,Gauri Virk,55,Male,Ballari,1,Low
+OFF01870,Omaja Hayer,27,Female,Ballari,12,Medium
+OFF01871,Qabil Doctor,31,Female,Bengaluru Rural,12,Low
+OFF01872,Zayyan Chowdhury,48,Male,Belagavi,14,High
+OFF01873,Anjali Gola,37,Male,Mysuru,3,High
+OFF01874,Vedhika Suresh,53,Male,Bengaluru Urban,15,Low
+OFF01875,Sanaya Palla,29,Male,Bengaluru Rural,12,Medium
+OFF01876,Gaurang Kar,31,Male,Hubballi-Dharwad,2,Medium
+OFF01877,Aadhya Palla,21,Female,Tumakuru,0,Low
+OFF01878,Pratyush Bhalla,38,Female,Kalaburagi,5,Low
+OFF01879,Meghana Vig,26,Female,Shivamogga,2,Medium
+OFF01880,Devansh Apte,31,Male,Udupi,6,Medium
+OFF01881,Darika Swamy,45,Female,Mysuru,9,High
+OFF01882,Faraj Raman,30,Female,Hubballi-Dharwad,6,Low
+OFF01883,Garima Bhardwaj,27,Female,Bengaluru Rural,12,High
+OFF01884,Avni Bail,33,Female,Chikkamagaluru,15,Medium
+OFF01885,Ikshita Kade,47,Male,Davanagere,2,Medium
+OFF01886,Diya Mittal,59,Female,Belagavi,9,Medium
+OFF01887,Aadhya Singhal,57,Male,Kalaburagi,7,Low
+OFF01888,Dhruv Bala,57,Female,Shivamogga,12,High
+OFF01889,Yash Sane,29,Male,Kalaburagi,1,Low
+OFF01890,Hema Varkey,28,Female,Chikkamagaluru,9,High
+OFF01891,Lekha Sundaram,22,Male,Chikkamagaluru,15,Medium
+OFF01892,Devika Som,53,Male,Belagavi,2,Low
+OFF01893,Aayush Varty,50,Female,Kalaburagi,14,Low
+OFF01894,Ira Buch,34,Male,Tumakuru,1,Medium
+OFF01895,Sneha Chokshi,19,Male,Vijayapura,14,Medium
+OFF01896,Leena Merchant,39,Female,Udupi,6,Medium
+OFF01897,Dayamai Narang,20,Male,Hubballi-Dharwad,3,High
+OFF01898,Abhimanyu Iyer,26,Female,Vijayapura,14,Medium
+OFF01899,Vamakshi Konda,47,Male,Bengaluru Rural,7,High
+OFF01900,Ati Mody,46,Male,Shivamogga,8,Low
+OFF01901,Wazir Patla,28,Male,Ballari,3,Low
+OFF01902,Charles Rao,36,Male,Tumakuru,12,Low
+OFF01903,Harini Doctor,22,Male,Vijayapura,8,Low
+OFF01904,Dominic Tak,46,Female,Mysuru,6,High
+OFF01905,Ishwar Agarwal,20,Male,Shivamogga,1,High
+OFF01906,Jhalak Choudhry,51,Male,Kalaburagi,9,Medium
+OFF01907,Mugdha Grover,21,Male,Bengaluru Urban,12,Low
+OFF01908,Qushi Varughese,33,Female,Chikkamagaluru,7,Low
+OFF01909,Nitara Ramanathan,23,Male,Kalaburagi,0,Low
+OFF01910,Avi Garde,39,Male,Vijayapura,2,Low
+OFF01911,Wakeeta Tara,24,Male,Davanagere,5,Low
+OFF01912,Balendra Parmar,44,Male,Udupi,10,Medium
+OFF01913,Ekaja Swaminathan,53,Male,Ballari,6,High
+OFF01914,Udyati Nayak,43,Female,Bengaluru Rural,7,Low
+OFF01915,Viraj Karnik,24,Female,Belagavi,5,Low
+OFF01916,Kevin Gour,43,Female,Bengaluru Urban,12,Low
+OFF01917,Yauvani Keer,47,Male,Bengaluru Rural,8,High
+OFF01918,Anthony Parmer,57,Female,Bengaluru Urban,2,Low
+OFF01919,George Ganguly,44,Female,Hassan,15,Low
+OFF01920,Unnati Chadha,63,Male,Hubballi-Dharwad,3,High
+OFF01921,Parth Bera,38,Female,Vijayapura,4,Medium
+OFF01922,Ekantika Doctor,29,Female,Udupi,15,Low
+OFF01923,Niharika Dada,39,Male,Ballari,14,Medium
+OFF01924,Vritti Nath,50,Male,Tumakuru,0,Low
+OFF01925,Rachana Dhaliwal,19,Male,Hubballi-Dharwad,7,High
+OFF01926,Chasmum Gara,45,Male,Ballari,2,Low
+OFF01927,Gopal Bose,26,Female,Shivamogga,9,Low
+OFF01928,Isaiah Shukla,27,Female,Mangaluru,1,Low
+OFF01929,Zehaan Khare,64,Female,Davanagere,10,Low
+OFF01930,Isha Issac,35,Female,Vijayapura,1,High
+OFF01931,Hema Kothari,44,Female,Hassan,0,Low
+OFF01932,Tristan Chaudhari,64,Female,Belagavi,7,Low
+OFF01933,Sathvik Sangha,52,Male,Chikkamagaluru,7,High
+OFF01934,Bahadurjit Yadav,62,Male,Ballari,12,High
+OFF01935,Manthan Goel,38,Male,Shivamogga,0,Low
+OFF01936,Rachita Issac,49,Male,Mangaluru,1,High
+OFF01937,Anay Varkey,27,Male,Mysuru,2,Low
+OFF01938,Nidhi Kant,55,Male,Mangaluru,2,Medium
+OFF01939,Nirja Chand,64,Female,Hubballi-Dharwad,5,High
+OFF01940,Yashodhara Mannan,30,Male,Kalaburagi,5,High
+OFF01941,Lajita Zachariah,33,Female,Hubballi-Dharwad,14,High
+OFF01942,Veer Rege,30,Female,Udupi,15,Low
+OFF01943,Anika Tandon,41,Female,Kalaburagi,5,Medium
+OFF01944,Hamsini Choudhury,46,Female,Tumakuru,13,Low
+OFF01945,Lohit Badami,48,Male,Hassan,12,Medium
+OFF01946,Isha Hans,23,Female,Ballari,4,High
+OFF01947,Reva Pandey,64,Male,Hubballi-Dharwad,12,Medium
+OFF01948,Varenya Chatterjee,37,Female,Hubballi-Dharwad,12,High
+OFF01949,Frado Keer,56,Female,Bengaluru Rural,10,Low
+OFF01950,Harsh Gola,63,Female,Mangaluru,4,Low
+OFF01951,Chaitanya Nair,18,Male,Udupi,11,Medium
+OFF01952,Agastya Saraf,43,Female,Kalaburagi,11,Medium
+OFF01953,Anita Gara,49,Female,Vijayapura,2,Medium
+OFF01954,Nisha Bala,20,Male,Kalaburagi,5,Low
+OFF01955,Ekavir Gala,45,Female,Hassan,11,High
+OFF01956,Qadim Luthra,63,Female,Vijayapura,11,High
+OFF01957,Reyansh Master,21,Female,Chikkamagaluru,13,High
+OFF01958,Gavin Bir,33,Male,Shivamogga,1,Medium
+OFF01959,Yamini Sharaf,58,Male,Davanagere,4,Medium
+OFF01960,Nikita Gade,56,Female,Vijayapura,4,Medium
+OFF01961,Tanish Mall,33,Male,Bengaluru Urban,3,Low
+OFF01962,Jackson Kanda,59,Female,Kalaburagi,2,High
+OFF01963,Gaurika Pradhan,30,Female,Mysuru,13,Medium
+OFF01964,Saumya Hayre,62,Female,Tumakuru,12,High
+OFF01965,Owen Iyengar,37,Female,Hassan,2,Low
+OFF01966,Rachita Mitra,58,Female,Udupi,4,Medium
+OFF01967,Orinder Vaidya,65,Male,Chikkamagaluru,12,High
+OFF01968,Hemang Chokshi,37,Male,Mysuru,15,Low
+OFF01969,Vritti Pandit,24,Male,Hassan,13,High
+OFF01970,Jairaj Bajaj,44,Female,Davanagere,13,Low
+OFF01971,Vanya Srivastava,29,Female,Mysuru,4,Low
+OFF01972,Zayyan Ahuja,49,Male,Tumakuru,3,Medium
+OFF01973,Vasudha Yohannan,54,Male,Mysuru,6,Low
+OFF01974,Devika Muni,65,Male,Hassan,6,Medium
+OFF01975,Devansh Sanghvi,44,Female,Vijayapura,3,High
+OFF01976,Nimrat Naidu,28,Male,Hubballi-Dharwad,2,Medium
+OFF01977,Abeer Magar,25,Female,Bengaluru Rural,10,Low
+OFF01978,Ayaan Verma,55,Male,Shivamogga,15,High
+OFF01979,Wazir Yohannan,24,Male,Bengaluru Urban,8,Low
+OFF01980,Aarini Sood,60,Male,Bengaluru Rural,6,High
+OFF01981,Chandran Saha,18,Female,Ballari,8,Medium
+OFF01982,Nitesh Puri,48,Female,Ballari,13,Medium
+OFF01983,Karan Rajagopalan,41,Female,Belagavi,7,Medium
+OFF01984,Teerth Dara,60,Female,Kalaburagi,1,Medium
+OFF01985,Raagini Batra,39,Male,Bengaluru Urban,14,High
+OFF01986,Amara Muni,43,Male,Bengaluru Urban,3,High
+OFF01987,Yagnesh Sur,35,Male,Belagavi,14,High
+OFF01988,Balvan Tata,61,Female,Tumakuru,13,High
+OFF01989,Shaurya Suresh,30,Male,Vijayapura,10,Low
+OFF01990,Yahvi Halder,58,Female,Udupi,1,High
+OFF01991,Chameli Dada,38,Female,Mangaluru,15,Medium
+OFF01992,Kavya Apte,65,Male,Belagavi,13,Medium
+OFF01993,Falan Bhatnagar,60,Male,Davanagere,12,Medium
+OFF01994,Caleb Kunda,56,Male,Davanagere,4,High
+OFF01995,Janani Char,54,Male,Mysuru,15,Low
+OFF01996,Amara Grewal,37,Female,Mysuru,14,Low
+OFF01997,Umang Bora,48,Male,Mangaluru,6,Low
+OFF01998,Yashasvi Wason,60,Male,Bengaluru Rural,13,High
+OFF01999,Bhavini Balakrishnan,19,Male,Chikkamagaluru,10,Medium
+OFF02000,Zaid Jani,35,Male,Davanagere,8,High

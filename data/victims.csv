@@ -1,0 +1,3001 @@
+Victim_ID,Name,Age,Gender,District
+VIC00001,Mekhala Nadig,48,Male,Vijayapura
+VIC00002,Nicholas Savant,26,Female,Bengaluru Rural
+VIC00003,Imaran Rao,68,Female,Udupi
+VIC00004,Ekapad Bhattacharyya,32,Male,Vijayapura
+VIC00005,Yash Ram,39,Female,Chikkamagaluru
+VIC00006,Bhavya Rattan,63,Female,Vijayapura
+VIC00007,Yutika Sodhi,59,Female,Hassan
+VIC00008,Hritik Patla,32,Male,Hubballi-Dharwad
+VIC00009,Keya Pillay,25,Female,Bengaluru Rural
+VIC00010,Aadi Bhat,25,Male,Belagavi
+VIC00011,Karan Dutta,65,Male,Davanagere
+VIC00012,Warhi Divan,25,Female,Mysuru
+VIC00013,Dakshesh Sur,72,Female,Kalaburagi
+VIC00014,Chatura Johal,54,Male,Hubballi-Dharwad
+VIC00015,Hema Bahl,21,Male,Udupi
+VIC00016,Yagnesh Jaggi,42,Female,Belagavi
+VIC00017,Yagnesh Behl,67,Female,Hassan
+VIC00018,Ganga Bansal,61,Male,Tumakuru
+VIC00019,Faris Sen,60,Male,Bengaluru Rural
+VIC00020,Amaira Krishnamurthy,43,Male,Tumakuru
+VIC00021,Vaishnavi Rattan,72,Female,Belagavi
+VIC00022,Chaman Devan,27,Female,Udupi
+VIC00023,Triveni Rajagopalan,32,Female,Vijayapura
+VIC00024,Brijesh Sharma,47,Male,Ballari
+VIC00025,Rohan Menon,36,Male,Davanagere
+VIC00026,Yashasvi Viswanathan,60,Male,Ballari
+VIC00027,Girish Ben,38,Female,Tumakuru
+VIC00028,Azaan Toor,62,Male,Hubballi-Dharwad
+VIC00029,Riya Sekhon,72,Female,Vijayapura
+VIC00030,Pallavi Yogi,71,Male,Shivamogga
+VIC00031,Chatresh Swaminathan,36,Female,Bengaluru Urban
+VIC00032,Gunbir Agrawal,69,Female,Mysuru
+VIC00033,Janya Sandal,70,Male,Udupi
+VIC00034,Odika Kurian,64,Male,Davanagere
+VIC00035,Laksh Krishna,65,Male,Chikkamagaluru
+VIC00036,Ishaan Kurian,73,Male,Udupi
+VIC00037,Kavya Sangha,49,Female,Hubballi-Dharwad
+VIC00038,Jeet Srinivasan,70,Male,Bengaluru Urban
+VIC00039,Nirja Srivastava,53,Female,Belagavi
+VIC00040,Gauri Chaudhari,45,Female,Belagavi
+VIC00041,Yahvi Ben,66,Female,Kalaburagi
+VIC00042,Raagini Halder,22,Female,Hubballi-Dharwad
+VIC00043,Charles Chakrabarti,62,Male,Davanagere
+VIC00044,Frado Goyal,72,Female,Bengaluru Rural
+VIC00045,Jagvi Thaker,26,Female,Hassan
+VIC00046,Gautami Tata,68,Male,Udupi
+VIC00047,Tristan Uppal,63,Female,Shivamogga
+VIC00048,Wridesh Baria,59,Male,Ballari
+VIC00049,Raksha Deshpande,26,Female,Davanagere
+VIC00050,Irya Soni,48,Female,Chikkamagaluru
+VIC00051,Hamsini Mann,27,Male,Mangaluru
+VIC00052,Kamya Patla,69,Male,Davanagere
+VIC00053,Wazir Dhar,59,Male,Belagavi
+VIC00054,Pooja Kota,64,Male,Vijayapura
+VIC00055,Theodore Pingle,68,Male,Kalaburagi
+VIC00056,Ikshita Raman,45,Male,Chikkamagaluru
+VIC00057,Aashi Narang,21,Male,Belagavi
+VIC00058,Max Bajaj,48,Male,Bengaluru Urban
+VIC00059,Anvi Sankaran,25,Female,Ballari
+VIC00060,Mason Dada,45,Male,Vijayapura
+VIC00061,Arya Raman,64,Female,Mangaluru
+VIC00062,Unnati Swamy,20,Male,Mangaluru
+VIC00063,Janani Palan,43,Female,Hubballi-Dharwad
+VIC00064,Harrison Yogi,62,Male,Vijayapura
+VIC00065,Faraj Bora,65,Female,Hassan
+VIC00066,Manan Badal,62,Male,Hassan
+VIC00067,Darika Jani,47,Female,Hubballi-Dharwad
+VIC00068,Rushil Murty,58,Female,Belagavi
+VIC00069,Anirudh Swaminathan,18,Male,Bengaluru Rural
+VIC00070,Frederick Khosla,23,Male,Shivamogga
+VIC00071,Bachittar Rajagopal,59,Male,Bengaluru Urban
+VIC00072,Siddharth Singh,55,Female,Hubballi-Dharwad
+VIC00073,Warinder Nadkarni,62,Male,Hassan
+VIC00074,Bhanumati Mangat,55,Male,Kalaburagi
+VIC00075,Chandran Raghavan,48,Female,Hubballi-Dharwad
+VIC00076,Wazir Choudhry,54,Male,Bengaluru Rural
+VIC00077,Daksha Nayak,38,Male,Davanagere
+VIC00078,Suhani Chowdhury,73,Male,Kalaburagi
+VIC00079,Kavya Mannan,70,Male,Kalaburagi
+VIC00080,Dhruv Purohit,53,Female,Bengaluru Rural
+VIC00081,Faqid Rege,51,Male,Hassan
+VIC00082,Akshay Soman,66,Male,Vijayapura
+VIC00083,Gautam Baria,75,Male,Mysuru
+VIC00084,Urvashi Balasubramanian,73,Male,Bengaluru Urban
+VIC00085,Rachit Pingle,53,Female,Hassan
+VIC00086,Tanveer Misra,38,Male,Bengaluru Urban
+VIC00087,Frederick Sampath,26,Male,Vijayapura
+VIC00088,Xalak Sachdev,28,Male,Tumakuru
+VIC00089,Pooja Karpe,34,Male,Bengaluru Rural
+VIC00090,Fitan Naidu,25,Female,Belagavi
+VIC00091,Jatin Chaudhry,52,Male,Kalaburagi
+VIC00092,Vedhika Lalla,60,Male,Mangaluru
+VIC00093,Zashil Cheema,37,Male,Tumakuru
+VIC00094,Chasmum Ray,75,Female,Vijayapura
+VIC00095,Gautami Pingle,52,Female,Mysuru
+VIC00096,Baljiwan Ray,54,Female,Davanagere
+VIC00097,Gabriel Memon,38,Female,Ballari
+VIC00098,Upasna Shenoy,52,Male,Davanagere
+VIC00099,Pooja Arora,24,Male,Mangaluru
+VIC00100,Finn Madan,20,Male,Mysuru
+VIC00101,Azaan Mutti,37,Male,Mysuru
+VIC00102,Yashvi Hayre,56,Male,Ballari
+VIC00103,Janaki Aurora,40,Female,Mysuru
+VIC00104,Onveer Deep,64,Female,Bengaluru Rural
+VIC00105,Yashoda Bajaj,53,Female,Hubballi-Dharwad
+VIC00106,Hemal Vora,42,Male,Kalaburagi
+VIC00107,Dayita Nadkarni,47,Male,Hubballi-Dharwad
+VIC00108,Benjamin Chandra,61,Female,Davanagere
+VIC00109,Aishani Sarraf,27,Male,Bengaluru Rural
+VIC00110,Krisha Badami,58,Female,Vijayapura
+VIC00111,Jairaj Ravel,62,Male,Davanagere
+VIC00112,Ira Om,41,Male,Kalaburagi
+VIC00113,Rajata Kumar,70,Male,Belagavi
+VIC00114,Raksha Buch,68,Female,Kalaburagi
+VIC00115,Lavanya Chandran,19,Male,Bengaluru Rural
+VIC00116,Lipika Batra,35,Male,Tumakuru
+VIC00117,Hitesh Krish,25,Female,Bengaluru Rural
+VIC00118,Harini Khatri,39,Male,Belagavi
+VIC00119,Banjeet Bhargava,39,Female,Mysuru
+VIC00120,Harita Khosla,73,Male,Hubballi-Dharwad
+VIC00121,Panini Khatri,18,Male,Kalaburagi
+VIC00122,Vidhi Chatterjee,32,Female,Bengaluru Rural
+VIC00123,Anika Zacharia,68,Male,Mysuru
+VIC00124,Gaurav Prabhakar,51,Female,Ballari
+VIC00125,Ikbal Saraf,70,Female,Bengaluru Rural
+VIC00126,Zilmil Dash,51,Female,Davanagere
+VIC00127,Amrita Master,54,Female,Tumakuru
+VIC00128,Inaya Khosla,35,Male,Chikkamagaluru
+VIC00129,Netra Sule,21,Male,Belagavi
+VIC00130,Sanaya Atwal,66,Female,Mysuru
+VIC00131,Robert Bir,40,Female,Shivamogga
+VIC00132,Aryan Garde,55,Male,Hubballi-Dharwad
+VIC00133,Gagan Sandal,18,Male,Vijayapura
+VIC00134,Yauvani Tata,26,Male,Kalaburagi
+VIC00135,Yuvraj Mall,54,Female,Bengaluru Urban
+VIC00136,Atharv Seshadri,64,Female,Davanagere
+VIC00137,Irya Pandya,67,Male,Vijayapura
+VIC00138,Lopa Dugar,56,Female,Davanagere
+VIC00139,Bhavya Bajaj,47,Male,Shivamogga
+VIC00140,Mitali Sura,40,Female,Tumakuru
+VIC00141,Ekalinga Verma,36,Female,Kalaburagi
+VIC00142,Ayush Kade,51,Male,Hubballi-Dharwad
+VIC00143,Avi Wagle,58,Male,Hubballi-Dharwad
+VIC00144,Bhavna Warrior,44,Female,Udupi
+VIC00145,Bhavini Tata,23,Male,Bengaluru Rural
+VIC00146,Amara Swaminathan,64,Male,Bengaluru Rural
+VIC00147,Balhaar Sandal,28,Male,Bengaluru Rural
+VIC00148,Kiaan Varma,65,Female,Tumakuru
+VIC00149,Ridhi Venkataraman,49,Male,Kalaburagi
+VIC00150,Vansha Viswanathan,61,Male,Shivamogga
+VIC00151,Maanav Shanker,49,Male,Kalaburagi
+VIC00152,Hema Jha,18,Male,Chikkamagaluru
+VIC00153,Gopal Mandal,71,Male,Davanagere
+VIC00154,Girik Doctor,45,Female,Mangaluru
+VIC00155,Pranit Dewan,65,Male,Ballari
+VIC00156,Nisha Sharma,46,Male,Vijayapura
+VIC00157,Alka Lall,74,Male,Mysuru
+VIC00158,Hritik Barman,22,Female,Udupi
+VIC00159,Ira Taneja,26,Female,Bengaluru Urban
+VIC00160,Yasti Dara,45,Female,Kalaburagi
+VIC00161,Kabir Shukla,28,Female,Bengaluru Rural
+VIC00162,Sathvik Dhingra,39,Male,Udupi
+VIC00163,Vyanjana Parikh,52,Male,Hubballi-Dharwad
+VIC00164,Nitara Srivastava,37,Female,Hubballi-Dharwad
+VIC00165,Manbir Shukla,34,Male,Bengaluru Urban
+VIC00166,Faraj Nagar,65,Female,Mangaluru
+VIC00167,Chaaya Randhawa,37,Male,Chikkamagaluru
+VIC00168,Lucky Gade,47,Female,Bengaluru Urban
+VIC00169,Watika Merchant,40,Male,Ballari
+VIC00170,Ikbal Thaman,47,Female,Hubballi-Dharwad
+VIC00171,Aryan Hari,40,Male,Bengaluru Urban
+VIC00172,Rehaan Tara,40,Male,Kalaburagi
+VIC00173,Rachita Barman,40,Male,Bengaluru Rural
+VIC00174,Arya Pandya,45,Female,Mangaluru
+VIC00175,Sai Borah,23,Male,Kalaburagi
+VIC00176,Nidhi Bhatia,25,Female,Bengaluru Urban
+VIC00177,Qushi Kara,27,Female,Mangaluru
+VIC00178,Oscar Dayal,48,Female,Belagavi
+VIC00179,Ojasvi Kant,37,Female,Kalaburagi
+VIC00180,Bhanumati Sahni,75,Male,Tumakuru
+VIC00181,Jatin Mammen,69,Female,Bengaluru Rural
+VIC00182,Rohan Batta,46,Female,Mysuru
+VIC00183,Nitara Ravel,26,Female,Davanagere
+VIC00184,Hemani Sarin,45,Male,Belagavi
+VIC00185,Ishani Doshi,74,Male,Bengaluru Rural
+VIC00186,Lila Kala,30,Female,Bengaluru Urban
+VIC00187,Zansi Goel,26,Female,Kalaburagi
+VIC00188,Isaiah Kashyap,65,Female,Chikkamagaluru
+VIC00189,Girish Sastry,20,Male,Vijayapura
+VIC00190,Azaan Nigam,30,Female,Vijayapura
+VIC00191,Gopal Madan,35,Male,Kalaburagi
+VIC00192,Chatresh Panchal,49,Female,Hassan
+VIC00193,Laban Shere,61,Male,Belagavi
+VIC00194,Jonathan Naidu,66,Female,Tumakuru
+VIC00195,Yachana Manda,64,Female,Mysuru
+VIC00196,Gaurangi Padmanabhan,25,Male,Hassan
+VIC00197,Chaitanya Dara,19,Male,Mysuru
+VIC00198,Kashvi Ramaswamy,40,Male,Hassan
+VIC00199,Urmi Seshadri,61,Male,Bengaluru Urban
+VIC00200,Quincy Hari,61,Female,Kalaburagi
+VIC00201,Ojas Bedi,56,Male,Kalaburagi
+VIC00202,Reva Raj,48,Female,Hubballi-Dharwad
+VIC00203,Dayita Seshadri,49,Male,Hassan
+VIC00204,Simon Balasubramanian,45,Male,Ballari
+VIC00205,Ekaja Pandya,27,Male,Mangaluru
+VIC00206,Gautam Lala,35,Male,Udupi
+VIC00207,Fiyaz Varughese,34,Male,Vijayapura
+VIC00208,Aarav Date,70,Female,Mangaluru
+VIC00209,Eshana Raj,48,Male,Davanagere
+VIC00210,Tripti Chaudry,64,Male,Mangaluru
+VIC00211,Kai Ram,72,Male,Mangaluru
+VIC00212,Neha Ahuja,25,Male,Kalaburagi
+VIC00213,Ayushman Doctor,20,Female,Mangaluru
+VIC00214,Veer Dugal,27,Female,Bengaluru Urban
+VIC00215,Xavier Kala,57,Male,Bengaluru Rural
+VIC00216,Libni Tara,73,Male,Kalaburagi
+VIC00217,Victor Varghese,44,Female,Davanagere
+VIC00218,Pranit Bora,58,Male,Mangaluru
+VIC00219,Hardik Sangha,39,Female,Shivamogga
+VIC00220,Siddharth Gulati,21,Female,Vijayapura
+VIC00221,Samuel Sinha,21,Female,Bengaluru Rural
+VIC00222,Frederick Nayar,35,Female,Hubballi-Dharwad
+VIC00223,Isaac Pall,40,Female,Mangaluru
+VIC00224,Krishna Rout,38,Male,Mysuru
+VIC00225,Waida Mand,20,Male,Bengaluru Urban
+VIC00226,Indrajit Yohannan,60,Female,Mangaluru
+VIC00227,Yachana Murthy,36,Female,Hubballi-Dharwad
+VIC00228,Liam Ramachandran,56,Male,Kalaburagi
+VIC00229,Gautami Kapoor,29,Female,Shivamogga
+VIC00230,Lakshit De,41,Female,Hubballi-Dharwad
+VIC00231,Unnati Shankar,25,Male,Vijayapura
+VIC00232,Rayaan Dar,18,Male,Belagavi
+VIC00233,Nisha Kuruvilla,41,Female,Davanagere
+VIC00234,Tanmayi Zacharia,67,Female,Mangaluru
+VIC00235,Manan Koshy,59,Female,Mangaluru
+VIC00236,Ridhi Hayre,55,Female,Bengaluru Rural
+VIC00237,Pahal Borah,74,Male,Mysuru
+VIC00238,Garima Gade,58,Male,Bengaluru Urban
+VIC00239,Mitesh Kumer,55,Male,Mangaluru
+VIC00240,Tara Prabhakar,63,Female,Chikkamagaluru
+VIC00241,Waida Bath,24,Male,Tumakuru
+VIC00242,Radhika Ramesh,57,Female,Hubballi-Dharwad
+VIC00243,Eiravati Amble,64,Female,Hassan
+VIC00244,Christopher Majumdar,30,Male,Bengaluru Urban
+VIC00245,Matthew Nayak,26,Male,Kalaburagi
+VIC00246,Jeevika Tandon,53,Female,Chikkamagaluru
+VIC00247,Ekbal Kalla,74,Female,Chikkamagaluru
+VIC00248,Raksha Chakrabarti,41,Female,Vijayapura
+VIC00249,Watika Lal,63,Male,Chikkamagaluru
+VIC00250,Lila Kaur,45,Male,Shivamogga
+VIC00251,Henry Rao,44,Male,Mysuru
+VIC00252,Manya More,56,Female,Davanagere
+VIC00253,Tanveer Yogi,26,Female,Bengaluru Urban
+VIC00254,Reva Tata,54,Male,Hassan
+VIC00255,Vidhi Walia,62,Male,Davanagere
+VIC00256,Vaishnavi Dyal,70,Female,Shivamogga
+VIC00257,Harish Karpe,61,Male,Mysuru
+VIC00258,Ryan Anne,46,Female,Tumakuru
+VIC00259,Unnati Kalla,67,Female,Kalaburagi
+VIC00260,Meera Sanghvi,56,Female,Mangaluru
+VIC00261,Vasatika Lala,29,Male,Mysuru
+VIC00262,Balveer Bhagat,54,Male,Ballari
+VIC00263,Ansh Dubey,62,Male,Chikkamagaluru
+VIC00264,Yashawini Vala,68,Female,Tumakuru
+VIC00265,Nachiket Murty,63,Female,Hubballi-Dharwad
+VIC00266,Libni Kari,72,Male,Hubballi-Dharwad
+VIC00267,Samesh Deol,63,Female,Tumakuru
+VIC00268,Zilmil Contractor,25,Male,Mangaluru
+VIC00269,Thomas Wable,20,Male,Hubballi-Dharwad
+VIC00270,Mitesh Pandey,20,Male,Chikkamagaluru
+VIC00271,Amol Pillai,35,Male,Hubballi-Dharwad
+VIC00272,Yahvi Mammen,73,Male,Vijayapura
+VIC00273,Mohini Banerjee,33,Male,Tumakuru
+VIC00274,Qarin Cherian,25,Male,Vijayapura
+VIC00275,Mohini Dora,40,Female,Belagavi
+VIC00276,Thomas Halder,23,Female,Davanagere
+VIC00277,Rudra Rama,26,Female,Chikkamagaluru
+VIC00278,Brijesh Dhawan,57,Female,Belagavi
+VIC00279,Jagvi Khanna,21,Male,Udupi
+VIC00280,Sanya Parmar,40,Male,Davanagere
+VIC00281,Siya Walia,35,Male,Hubballi-Dharwad
+VIC00282,Mason Bava,19,Male,Davanagere
+VIC00283,Champak Mital,65,Female,Vijayapura
+VIC00284,Baghyawati Bhatti,34,Male,Udupi
+VIC00285,Garima Chakraborty,46,Male,Belagavi
+VIC00286,Aradhana Iyer,35,Male,Ballari
+VIC00287,Alexander Kohli,58,Female,Mysuru
+VIC00288,Shivani Ganesh,46,Male,Davanagere
+VIC00289,Liam Prabhu,64,Female,Belagavi
+VIC00290,Lakshit Parikh,27,Female,Bengaluru Rural
+VIC00291,Ranbir Gola,49,Male,Shivamogga
+VIC00292,Upadhriti Swamy,29,Male,Mangaluru
+VIC00293,Shravya Malhotra,54,Female,Davanagere
+VIC00294,Bachittar Dutta,29,Female,Bengaluru Urban
+VIC00295,Sai Upadhyay,37,Male,Chikkamagaluru
+VIC00296,Prisha Ganesh,29,Female,Vijayapura
+VIC00297,Urmi Raj,56,Male,Bengaluru Rural
+VIC00298,Ayush Chaudhry,27,Male,Kalaburagi
+VIC00299,Aachal Jhaveri,33,Female,Chikkamagaluru
+VIC00300,Warinder Warrior,59,Female,Bengaluru Rural
+VIC00301,Yachana Om,64,Male,Davanagere
+VIC00302,Banjeet Magar,66,Male,Ballari
+VIC00303,Fitan Kunda,24,Female,Kalaburagi
+VIC00304,Manbir Gupta,19,Male,Udupi
+VIC00305,Ayaan Kapoor,18,Male,Mysuru
+VIC00306,Benjamin Nanda,33,Male,Hubballi-Dharwad
+VIC00307,Nakul Dewan,27,Male,Hassan
+VIC00308,Oliver Thakur,18,Male,Tumakuru
+VIC00309,Aashi Keer,65,Female,Udupi
+VIC00310,Ekbal Hayer,63,Male,Mangaluru
+VIC00311,Dev Kuruvilla,26,Female,Hassan
+VIC00312,Fitan Sarraf,54,Female,Udupi
+VIC00313,Daksh Dua,28,Female,Belagavi
+VIC00314,Lucky Thaker,48,Male,Mangaluru
+VIC00315,Ekapad Dash,21,Female,Vijayapura
+VIC00316,Bachittar Bail,52,Male,Bengaluru Urban
+VIC00317,Vasatika Murthy,70,Male,Bengaluru Rural
+VIC00318,Isha Raghavan,52,Female,Bengaluru Rural
+VIC00319,Zashil Barman,50,Female,Mysuru
+VIC00320,Netra Anne,18,Male,Bengaluru Urban
+VIC00321,Chanakya Prabhakar,32,Female,Kalaburagi
+VIC00322,Sai Nath,27,Female,Vijayapura
+VIC00323,Harini Jain,36,Male,Chikkamagaluru
+VIC00324,Suhani Zacharia,74,Female,Vijayapura
+VIC00325,Harshil Tripathi,74,Male,Shivamogga
+VIC00326,Aadhya Patil,28,Male,Mangaluru
+VIC00327,Omisha Shetty,24,Female,Belagavi
+VIC00328,Ladli Mitter,22,Female,Bengaluru Rural
+VIC00329,Yashica Tiwari,41,Male,Chikkamagaluru
+VIC00330,Panini Salvi,20,Male,Mysuru
+VIC00331,Nachiket Arora,45,Female,Ballari
+VIC00332,Yachana Varughese,29,Female,Mysuru
+VIC00333,Tanmayi Garg,75,Female,Ballari
+VIC00334,Alexander Grewal,70,Female,Belagavi
+VIC00335,Omkaar Grewal,74,Male,Hubballi-Dharwad
+VIC00336,Yamini Savant,49,Female,Chikkamagaluru
+VIC00337,Nitesh Narula,34,Male,Hassan
+VIC00338,Anusha Kumar,18,Male,Hassan
+VIC00339,Chakradev Saran,59,Male,Belagavi
+VIC00340,Henry Gala,27,Female,Shivamogga
+VIC00341,Pushti Suresh,64,Female,Udupi
+VIC00342,Arya Patla,22,Male,Ballari
+VIC00343,Teerth Singhal,45,Female,Mysuru
+VIC00344,Gautam Ramaswamy,23,Female,Mysuru
+VIC00345,Wazir Tailor,29,Female,Belagavi
+VIC00346,Manbir Dua,38,Female,Kalaburagi
+VIC00347,Ladli Dhar,48,Female,Ballari
+VIC00348,Isaac Chadha,68,Female,Mysuru
+VIC00349,Chandran Din,69,Male,Kalaburagi
+VIC00350,Ekiya Wagle,44,Female,Tumakuru
+VIC00351,Harsh Divan,52,Female,Tumakuru
+VIC00352,Gavin Bhandari,52,Male,Kalaburagi
+VIC00353,Ekavir Munshi,23,Female,Tumakuru
+VIC00354,Zansi Solanki,54,Male,Davanagere
+VIC00355,Noah Ghose,23,Male,Belagavi
+VIC00356,Aishani Singh,18,Male,Udupi
+VIC00357,Ishwar Pathak,19,Female,Tumakuru
+VIC00358,Ronith Mitra,48,Male,Chikkamagaluru
+VIC00359,Jagrati Tripathi,25,Male,Chikkamagaluru
+VIC00360,Ayush Bala,40,Female,Udupi
+VIC00361,George Garde,72,Male,Hubballi-Dharwad
+VIC00362,Aarnav Minhas,47,Male,Udupi
+VIC00363,Tripti Deol,72,Female,Mangaluru
+VIC00364,Odika Sunder,31,Male,Bengaluru Urban
+VIC00365,Dayita Mane,65,Male,Bengaluru Rural
+VIC00366,Bhavini Tella,62,Male,Kalaburagi
+VIC00367,Rajeshri Madan,64,Male,Davanagere
+VIC00368,Vasatika Mukhopadhyay,45,Female,Bengaluru Urban
+VIC00369,Xiti Walia,62,Male,Vijayapura
+VIC00370,Qasim Acharya,55,Male,Shivamogga
+VIC00371,Ekapad Sarna,71,Male,Bengaluru Urban
+VIC00372,Yasti Rai,27,Female,Mysuru
+VIC00373,Praneel Kar,23,Male,Bengaluru Rural
+VIC00374,Riya Bir,18,Female,Mysuru
+VIC00375,Forum Chowdhury,66,Male,Shivamogga
+VIC00376,Suhani Chadha,65,Male,Davanagere
+VIC00377,Harita Golla,51,Female,Shivamogga
+VIC00378,Sachi Parekh,44,Female,Shivamogga
+VIC00379,Darsh Bahl,68,Male,Hubballi-Dharwad
+VIC00380,Alka Bala,25,Male,Bengaluru Urban
+VIC00381,Dev Kar,74,Male,Ballari
+VIC00382,Deepa Om,66,Male,Tumakuru
+VIC00383,Chaaya Dhillon,28,Male,Kalaburagi
+VIC00384,Robert Parmar,71,Female,Vijayapura
+VIC00385,Vasana Sankaran,74,Female,Tumakuru
+VIC00386,Nandini Mitra,63,Female,Chikkamagaluru
+VIC00387,Rajeshri Patla,54,Female,Davanagere
+VIC00388,Maanas Balan,32,Female,Chikkamagaluru
+VIC00389,Anay Chand,28,Female,Bengaluru Rural
+VIC00390,Tarak Ghosh,51,Female,Mysuru
+VIC00391,Ikshita Sarkar,65,Male,Kalaburagi
+VIC00392,Harsh Balasubramanian,57,Male,Mangaluru
+VIC00393,Tristan Shukla,43,Male,Udupi
+VIC00394,Garima Suri,65,Male,Udupi
+VIC00395,Jackson Ganguly,62,Female,Shivamogga
+VIC00396,Divya Virk,38,Female,Udupi
+VIC00397,Yauvani Sheth,42,Male,Bengaluru Urban
+VIC00398,Yuvraj Varma,69,Female,Vijayapura
+VIC00399,Dayamai Sura,45,Male,Hubballi-Dharwad
+VIC00400,Chaaya Brahmbhatt,24,Male,Bengaluru Rural
+VIC00401,Alexander Khurana,41,Female,Bengaluru Urban
+VIC00402,Kamala Sathe,33,Female,Mysuru
+VIC00403,Banjeet Tandon,52,Male,Bengaluru Rural
+VIC00404,Ikbal Deep,31,Male,Hassan
+VIC00405,Imaran Prabhu,37,Male,Tumakuru
+VIC00406,Shravya Sur,30,Male,Mangaluru
+VIC00407,Laban Majumdar,35,Male,Ballari
+VIC00408,Dhruv Bhatti,54,Male,Ballari
+VIC00409,Utkarsh Kohli,68,Female,Bengaluru Urban
+VIC00410,Wridesh Zachariah,21,Female,Bengaluru Rural
+VIC00411,Ishita Malhotra,37,Male,Belagavi
+VIC00412,Christopher Mishra,66,Female,Kalaburagi
+VIC00413,Chandani Pradhan,50,Male,Belagavi
+VIC00414,Aarav Raghavan,66,Female,Davanagere
+VIC00415,Vasatika Bassi,40,Male,Davanagere
+VIC00416,Amol Shenoy,61,Male,Belagavi
+VIC00417,Vanya Batra,44,Male,Tumakuru
+VIC00418,Aarush Peri,69,Male,Bengaluru Urban
+VIC00419,Saksham Gokhale,55,Female,Shivamogga
+VIC00420,Elijah Sangha,55,Male,Hubballi-Dharwad
+VIC00421,Pranav Kunda,28,Male,Vijayapura
+VIC00422,Rudra Ram,47,Male,Chikkamagaluru
+VIC00423,Chameli Rajagopalan,58,Male,Davanagere
+VIC00424,Advaith Narula,32,Male,Hassan
+VIC00425,Nikita Mitter,61,Male,Hassan
+VIC00426,Dhriti Shah,63,Male,Tumakuru
+VIC00427,Chaman Badami,51,Female,Shivamogga
+VIC00428,Lohit Sane,68,Male,Belagavi
+VIC00429,Samarth Dhar,36,Female,Ballari
+VIC00430,Anika Mukhopadhyay,72,Female,Bengaluru Urban
+VIC00431,Zilmil Dani,75,Female,Mangaluru
+VIC00432,Dakshesh Bhakta,31,Male,Mysuru
+VIC00433,Hitesh Deshmukh,54,Female,Bengaluru Rural
+VIC00434,Chakradhar Sandhu,69,Male,Mysuru
+VIC00435,Leela Devan,67,Female,Tumakuru
+VIC00436,Manthan Agate,73,Male,Shivamogga
+VIC00437,Tristan Kibe,24,Female,Belagavi
+VIC00438,Rehaan Narayanan,28,Female,Mysuru
+VIC00439,Gaurika Reddy,22,Female,Ballari
+VIC00440,Avni Agate,41,Female,Bengaluru Rural
+VIC00441,Anthony Anne,22,Male,Davanagere
+VIC00442,Anjali Natarajan,67,Female,Hubballi-Dharwad
+VIC00443,Ishaan Om,48,Female,Hassan
+VIC00444,Oscar Nagi,74,Female,Vijayapura
+VIC00445,Mitali Dutt,26,Male,Ballari
+VIC00446,Yashawini Dutta,49,Male,Belagavi
+VIC00447,Barkha Johal,72,Female,Kalaburagi
+VIC00448,Sudiksha Parmer,44,Male,Shivamogga
+VIC00449,Mohammed Soman,41,Female,Belagavi
+VIC00450,Devika Khosla,23,Female,Tumakuru
+VIC00451,Xavier Maharaj,46,Female,Chikkamagaluru
+VIC00452,Neelima Balan,74,Male,Ballari
+VIC00453,Omisha Saxena,59,Male,Davanagere
+VIC00454,Ubika Kothari,68,Male,Davanagere
+VIC00455,Rudra Varkey,70,Male,Mysuru
+VIC00456,Sachi Manda,72,Male,Hubballi-Dharwad
+VIC00457,Chatura Tripathi,42,Male,Ballari
+VIC00458,Lakshit Lad,43,Male,Mangaluru
+VIC00459,Meera Sarraf,42,Female,Vijayapura
+VIC00460,Leela Warrior,23,Female,Shivamogga
+VIC00461,Sathvik Krishnan,47,Female,Bengaluru Rural
+VIC00462,Gaurangi Goda,23,Male,Davanagere
+VIC00463,Dayamai Mand,24,Female,Hassan
+VIC00464,Abhiram Swaminathan,45,Male,Kalaburagi
+VIC00465,Ekapad Rajagopal,39,Male,Belagavi
+VIC00466,Nirja Bera,39,Female,Mangaluru
+VIC00467,Gabriel Mahal,62,Female,Bengaluru Rural
+VIC00468,Jack Handa,35,Female,Bengaluru Urban
+VIC00469,Peter Basak,52,Male,Shivamogga
+VIC00470,Jeevika Ramachandran,27,Male,Belagavi
+VIC00471,Yadavi Sethi,54,Male,Ballari
+VIC00472,Charan De,67,Female,Bengaluru Urban
+VIC00473,Rachit Viswanathan,69,Female,Hassan
+VIC00474,Om Bir,45,Female,Mangaluru
+VIC00475,Wazir Rajagopal,21,Male,Udupi
+VIC00476,Damyanti Gala,19,Female,Hubballi-Dharwad
+VIC00477,Rehaan Garde,34,Male,Bengaluru Rural
+VIC00478,Aadi Sahota,27,Male,Hubballi-Dharwad
+VIC00479,Fariq Chauhan,43,Male,Hubballi-Dharwad
+VIC00480,Isaiah Kakar,73,Female,Udupi
+VIC00481,Ekalinga Dada,44,Male,Vijayapura
+VIC00482,Waida Vala,75,Female,Mysuru
+VIC00483,Vivaan Rege,71,Male,Bengaluru Rural
+VIC00484,Devika Aurora,75,Female,Belagavi
+VIC00485,Balendra Narasimhan,66,Female,Mysuru
+VIC00486,Hardik Pradhan,30,Female,Kalaburagi
+VIC00487,Urmi Hans,48,Female,Tumakuru
+VIC00488,Keya Mitter,62,Male,Davanagere
+VIC00489,Jairaj Goel,45,Female,Chikkamagaluru
+VIC00490,Karan Parmar,62,Female,Udupi
+VIC00491,Siddharth Natarajan,18,Male,Bengaluru Rural
+VIC00492,Vedika Vig,64,Male,Belagavi
+VIC00493,Andrew Khare,60,Female,Bengaluru Urban
+VIC00494,Tara Patla,27,Female,Chikkamagaluru
+VIC00495,Janani Zacharia,27,Female,Udupi
+VIC00496,Arjun Sami,38,Male,Hassan
+VIC00497,Warhi Badal,61,Female,Hubballi-Dharwad
+VIC00498,Zinal Nadkarni,51,Male,Shivamogga
+VIC00499,Daksh Tandon,71,Male,Vijayapura
+VIC00500,Chandani Jayaraman,46,Male,Bengaluru Urban
+VIC00501,Jhalak Raja,31,Male,Kalaburagi
+VIC00502,Luke Verma,62,Male,Ballari
+VIC00503,Nathaniel Shukla,42,Male,Belagavi
+VIC00504,Jackson Modi,31,Male,Vijayapura
+VIC00505,Orinder Virk,54,Male,Belagavi
+VIC00506,Ishwar Aggarwal,70,Female,Bengaluru Urban
+VIC00507,Shaurya Subramanian,37,Female,Tumakuru
+VIC00508,Warda Varma,70,Male,Davanagere
+VIC00509,Gagan Saran,49,Female,Kalaburagi
+VIC00510,Gautam Sandhu,44,Female,Belagavi
+VIC00511,Meera Dua,71,Female,Tumakuru
+VIC00512,Deepa Mitter,66,Female,Bengaluru Rural
+VIC00513,Shivansh Agrawal,29,Female,Kalaburagi
+VIC00514,Bishakha Ramanathan,41,Male,Tumakuru
+VIC00515,Bimala Nayak,56,Male,Tumakuru
+VIC00516,Ryan Ramesh,45,Female,Hubballi-Dharwad
+VIC00517,Ekanta Tank,72,Female,Vijayapura
+VIC00518,Wyatt Dua,36,Male,Bengaluru Rural
+VIC00519,Upadhriti Keer,69,Male,Bengaluru Rural
+VIC00520,Rachit Rana,59,Male,Ballari
+VIC00521,Thomas Buch,44,Male,Shivamogga
+VIC00522,Falan Venkataraman,65,Male,Vijayapura
+VIC00523,Jagdish Bora,46,Male,Vijayapura
+VIC00524,Nidhi Loyal,36,Female,Mangaluru
+VIC00525,Wazir Tailor,32,Female,Tumakuru
+VIC00526,Advay Bhatt,42,Male,Mangaluru
+VIC00527,Veer Gokhale,72,Female,Bengaluru Rural
+VIC00528,Dipta Sarraf,40,Female,Kalaburagi
+VIC00529,Aryan Bajwa,70,Female,Bengaluru Urban
+VIC00530,Siddharth Chakrabarti,41,Male,Tumakuru
+VIC00531,Siya Seth,36,Female,Chikkamagaluru
+VIC00532,Devansh Shankar,60,Female,Hubballi-Dharwad
+VIC00533,Radha Nadkarni,71,Female,Vijayapura
+VIC00534,Januja Mitter,33,Male,Chikkamagaluru
+VIC00535,Pushti Mody,44,Male,Bengaluru Urban
+VIC00536,Ikbal Karan,19,Male,Hassan
+VIC00537,Praneel Sane,41,Female,Belagavi
+VIC00538,Bina Sandal,28,Female,Mangaluru
+VIC00539,Gagan Mahal,53,Female,Mangaluru
+VIC00540,Kashvi Choudhary,57,Female,Udupi
+VIC00541,Jack Das,21,Female,Mysuru
+VIC00542,Wriddhish Saraf,58,Female,Davanagere
+VIC00543,Watika Pau,29,Female,Chikkamagaluru
+VIC00544,Advaith Bobal,38,Male,Kalaburagi
+VIC00545,Sneha Ganguly,32,Male,Davanagere
+VIC00546,Anmol Desai,69,Male,Tumakuru
+VIC00547,Isaiah Rout,25,Female,Udupi
+VIC00548,Krishna Wali,66,Female,Udupi
+VIC00549,Vasatika Barad,53,Male,Belagavi
+VIC00550,Damini Nagar,31,Male,Bengaluru Rural
+VIC00551,Yoshita Jha,19,Female,Bengaluru Urban
+VIC00552,Harish Gopal,58,Male,Bengaluru Urban
+VIC00553,Advik Ramanathan,57,Male,Ballari
+VIC00554,Ati Rajan,42,Male,Davanagere
+VIC00555,Dhruv Kara,64,Male,Shivamogga
+VIC00556,Ishita Singhal,58,Female,Mysuru
+VIC00557,Chandresh Lad,33,Male,Hubballi-Dharwad
+VIC00558,Ishaan Dhingra,30,Male,Davanagere
+VIC00559,Chaaya Jani,67,Female,Hassan
+VIC00560,Theodore Trivedi,34,Male,Hubballi-Dharwad
+VIC00561,Chavvi Balay,23,Male,Vijayapura
+VIC00562,Balhaar Borde,19,Male,Bengaluru Rural
+VIC00563,Chandani Kara,47,Male,Bengaluru Rural
+VIC00564,Oviya Dara,27,Female,Hubballi-Dharwad
+VIC00565,Xalak Dey,75,Male,Bengaluru Rural
+VIC00566,Zayyan Kanda,22,Female,Udupi
+VIC00567,Xiti Shanker,41,Male,Kalaburagi
+VIC00568,Inaya Krish,24,Female,Hassan
+VIC00569,Vedika Pingle,19,Female,Bengaluru Rural
+VIC00570,Janaki Lal,49,Male,Mangaluru
+VIC00571,Jackson Sachdeva,61,Female,Kalaburagi
+VIC00572,Bhavani Om,74,Female,Vijayapura
+VIC00573,Bhavika Ghose,46,Male,Mysuru
+VIC00574,Aadhya Balakrishnan,37,Male,Chikkamagaluru
+VIC00575,Harrison Sur,29,Male,Bengaluru Rural
+VIC00576,Jeevika Basu,39,Female,Shivamogga
+VIC00577,Zaitra Basak,57,Male,Mysuru
+VIC00578,Peter Chaudry,51,Female,Chikkamagaluru
+VIC00579,Vincent Ahuja,25,Male,Ballari
+VIC00580,Aarav Chatterjee,19,Male,Tumakuru
+VIC00581,Anamika Tank,50,Male,Mangaluru
+VIC00582,Dhriti Kadakia,73,Female,Bengaluru Rural
+VIC00583,Theodore Dara,75,Male,Bengaluru Urban
+VIC00584,Anthony Sunder,38,Male,Mangaluru
+VIC00585,Gagan Nori,23,Male,Hubballi-Dharwad
+VIC00586,Kai Dutta,35,Female,Mangaluru
+VIC00587,Wridesh Viswanathan,23,Female,Davanagere
+VIC00588,Warda Prasad,53,Female,Shivamogga
+VIC00589,Balvan Prabhu,65,Female,Kalaburagi
+VIC00590,Harita Prakash,50,Female,Chikkamagaluru
+VIC00591,Rehaan Chokshi,30,Female,Mysuru
+VIC00592,Kamya Magar,30,Female,Kalaburagi
+VIC00593,Sachi Chad,24,Female,Mysuru
+VIC00594,Yachana Kata,68,Male,Davanagere
+VIC00595,Warhi Nazareth,49,Female,Chikkamagaluru
+VIC00596,Waida Mann,46,Female,Ballari
+VIC00597,Pahal Mutti,65,Female,Udupi
+VIC00598,Lohit Sood,38,Male,Ballari
+VIC00599,Warinder Dave,42,Female,Mangaluru
+VIC00600,Veer Tailor,54,Female,Belagavi
+VIC00601,Shivani Comar,75,Male,Shivamogga
+VIC00602,Isaiah Ranganathan,28,Male,Tumakuru
+VIC00603,Rudra Patla,34,Female,Hubballi-Dharwad
+VIC00604,Aarini Ratti,56,Female,Kalaburagi
+VIC00605,Wishi Ghose,19,Male,Mysuru
+VIC00606,Nidra Mall,69,Female,Kalaburagi
+VIC00607,Sai Mani,68,Male,Belagavi
+VIC00608,Jackson Sangha,33,Male,Mangaluru
+VIC00609,Eesha Hayre,60,Female,Belagavi
+VIC00610,Yashvi Karnik,27,Female,Bengaluru Rural
+VIC00611,Ikbal Sawhney,18,Female,Davanagere
+VIC00612,Fiyaz Mohan,18,Female,Mangaluru
+VIC00613,Matthew Yadav,47,Female,Chikkamagaluru
+VIC00614,Nisha Saha,32,Male,Kalaburagi
+VIC00615,Hitesh Mistry,36,Male,Tumakuru
+VIC00616,Barkha Sachar,31,Male,Tumakuru
+VIC00617,Vasudha Trivedi,35,Male,Ballari
+VIC00618,Jagat More,75,Female,Vijayapura
+VIC00619,Triya Batra,66,Female,Belagavi
+VIC00620,Omkaar Bahri,70,Female,Mangaluru
+VIC00621,Chandresh Korpal,30,Male,Hassan
+VIC00622,Jackson Nayar,49,Female,Bengaluru Urban
+VIC00623,Akshay Kari,35,Female,Bengaluru Rural
+VIC00624,Sanya Thaker,25,Female,Mysuru
+VIC00625,Xavier Mann,56,Female,Ballari
+VIC00626,Panini Shankar,42,Male,Ballari
+VIC00627,Mekhala Kanda,19,Female,Bengaluru Urban
+VIC00628,Kevin Nigam,59,Male,Chikkamagaluru
+VIC00629,Arya Batra,47,Female,Mysuru
+VIC00630,Udyati Rao,71,Female,Bengaluru Urban
+VIC00631,Falguni Contractor,75,Male,Belagavi
+VIC00632,Mason Naidu,59,Male,Bengaluru Rural
+VIC00633,Yochana Master,48,Male,Udupi
+VIC00634,Vamakshi Khare,69,Female,Davanagere
+VIC00635,Gavin Murthy,37,Female,Belagavi
+VIC00636,Shravya Wable,66,Female,Kalaburagi
+VIC00637,Gauri Kaul,23,Female,Shivamogga
+VIC00638,Oscar Sankar,57,Male,Kalaburagi
+VIC00639,Jacob Wali,37,Female,Shivamogga
+VIC00640,Jatin Choudhry,72,Male,Udupi
+VIC00641,Shaurya Babu,41,Male,Bengaluru Urban
+VIC00642,Champak Tak,32,Male,Udupi
+VIC00643,Daksh Chhabra,18,Male,Bengaluru Rural
+VIC00644,Advay Sekhon,38,Female,Mangaluru
+VIC00645,Wakeeta Ratta,28,Male,Mangaluru
+VIC00646,Odika Sarraf,64,Female,Udupi
+VIC00647,Oviya Kulkarni,75,Male,Chikkamagaluru
+VIC00648,Tamanna Kapoor,62,Male,Hubballi-Dharwad
+VIC00649,Advika Shroff,74,Male,Bengaluru Rural
+VIC00650,Radha Bera,21,Female,Bengaluru Rural
+VIC00651,Bishakha Chaudry,34,Female,Davanagere
+VIC00652,Andrew Kade,57,Female,Hubballi-Dharwad
+VIC00653,Ojasvi Mannan,62,Male,Chikkamagaluru
+VIC00654,Nidhi Khatri,26,Female,Bengaluru Rural
+VIC00655,Sudiksha Dash,26,Female,Udupi
+VIC00656,Nilima Venkatesh,27,Female,Vijayapura
+VIC00657,Rajata Lad,46,Male,Tumakuru
+VIC00658,Pranav Kapoor,51,Male,Ballari
+VIC00659,Yashvi Chacko,48,Female,Hubballi-Dharwad
+VIC00660,Lekha Contractor,38,Female,Mangaluru
+VIC00661,Harinakshi Mitter,23,Female,Hassan
+VIC00662,Indali Bhargava,36,Male,Belagavi
+VIC00663,Nisha Andra,53,Male,Vijayapura
+VIC00664,Janani Bhasin,59,Male,Davanagere
+VIC00665,Zansi Pal,22,Male,Shivamogga
+VIC00666,Oscar Prabhu,21,Male,Bengaluru Urban
+VIC00667,Akshay Dada,60,Male,Shivamogga
+VIC00668,Jason Deshpande,70,Female,Mangaluru
+VIC00669,Qasim Raman,49,Male,Belagavi
+VIC00670,Ethan Yogi,31,Female,Hassan
+VIC00671,Geetika Mallick,37,Female,Vijayapura
+VIC00672,Darpan Cheema,27,Male,Chikkamagaluru
+VIC00673,Yash Bhatia,26,Male,Chikkamagaluru
+VIC00674,Dalaja Bath,41,Female,Shivamogga
+VIC00675,Radhika Comar,73,Male,Hassan
+VIC00676,Lavanya Purohit,43,Male,Bengaluru Rural
+VIC00677,Pushti Kari,35,Female,Mysuru
+VIC00678,Wishi Konda,61,Female,Udupi
+VIC00679,Kabir Gokhale,54,Male,Mysuru
+VIC00680,Rajeshri Mane,47,Male,Davanagere
+VIC00681,Parth Kota,25,Male,Bengaluru Urban
+VIC00682,Nitesh Loke,75,Female,Mysuru
+VIC00683,Lajita Chowdhury,35,Male,Shivamogga
+VIC00684,Rachana Goswami,60,Female,Belagavi
+VIC00685,Victor Sharaf,34,Male,Chikkamagaluru
+VIC00686,Deepa Pandey,53,Male,Belagavi
+VIC00687,Bhavna Mani,45,Male,Mysuru
+VIC00688,Neel Datta,43,Female,Tumakuru
+VIC00689,Vidhi Bhatt,39,Male,Shivamogga
+VIC00690,Bakhshi Minhas,35,Female,Bengaluru Rural
+VIC00691,Upma Vasa,21,Female,Davanagere
+VIC00692,Janaki Parmer,45,Male,Hubballi-Dharwad
+VIC00693,Anamika Thaker,30,Female,Mysuru
+VIC00694,Jonathan Oak,56,Female,Tumakuru
+VIC00695,Vincent Sahota,56,Female,Tumakuru
+VIC00696,Chatura Peri,45,Male,Vijayapura
+VIC00697,Omkaar Behl,21,Male,Bengaluru Rural
+VIC00698,David Rajagopal,32,Male,Bengaluru Urban
+VIC00699,Balendra Chaudhary,75,Male,Ballari
+VIC00700,Xavier Seshadri,35,Male,Bengaluru Rural
+VIC00701,Aarini Sarma,52,Male,Hubballi-Dharwad
+VIC00702,Panini Bala,32,Female,Kalaburagi
+VIC00703,Andrew Sama,43,Male,Mangaluru
+VIC00704,Pranit Comar,64,Female,Shivamogga
+VIC00705,Ganga Sarin,31,Male,Hassan
+VIC00706,Frederick Karpe,31,Female,Vijayapura
+VIC00707,Dayamai Joshi,36,Female,Davanagere
+VIC00708,Chatresh Rai,18,Male,Mysuru
+VIC00709,Tanveer Prabhu,50,Female,Davanagere
+VIC00710,Falak Srinivas,37,Male,Mysuru
+VIC00711,Krishna Suri,38,Male,Mysuru
+VIC00712,Rohan Raghavan,29,Female,Chikkamagaluru
+VIC00713,Nathan Chhabra,47,Male,Bengaluru Urban
+VIC00714,Anirudh Ratta,60,Female,Kalaburagi
+VIC00715,Aarav Lad,39,Male,Mysuru
+VIC00716,Daniel Sood,34,Male,Mysuru
+VIC00717,Aradhana Panchal,61,Male,Ballari
+VIC00718,Chasmum Shah,40,Female,Ballari
+VIC00719,Idika Wadhwa,18,Female,Udupi
+VIC00720,Xiti Bose,33,Female,Bengaluru Rural
+VIC00721,Dominic Ghose,20,Male,Ballari
+VIC00722,Anvi Ravel,61,Female,Udupi
+VIC00723,Dalbir Date,32,Male,Hassan
+VIC00724,Anya Chopra,27,Male,Bengaluru Rural
+VIC00725,Rohan Bhat,37,Female,Shivamogga
+VIC00726,Ekaraj Contractor,49,Female,Tumakuru
+VIC00727,Ira Saxena,34,Female,Hubballi-Dharwad
+VIC00728,Krishna Shroff,41,Female,Bengaluru Urban
+VIC00729,Udyati Madan,70,Female,Hubballi-Dharwad
+VIC00730,Ladli Bhandari,63,Female,Chikkamagaluru
+VIC00731,Ira Ranganathan,51,Female,Bengaluru Rural
+VIC00732,Vrishti Choudhry,35,Male,Mysuru
+VIC00733,Veda Gokhale,44,Male,Vijayapura
+VIC00734,Maya Dubey,27,Female,Shivamogga
+VIC00735,Vamakshi Dey,19,Male,Ballari
+VIC00736,Amara Kuruvilla,65,Female,Belagavi
+VIC00737,Oni Ramakrishnan,31,Male,Mangaluru
+VIC00738,Raghav Halder,42,Male,Hubballi-Dharwad
+VIC00739,Nirja Sodhi,74,Female,Chikkamagaluru
+VIC00740,Turvi Munshi,51,Male,Hubballi-Dharwad
+VIC00741,Chameli Varma,61,Female,Chikkamagaluru
+VIC00742,Eta Bassi,39,Female,Ballari
+VIC00743,Lila Chad,44,Female,Hubballi-Dharwad
+VIC00744,Rachana Kala,30,Male,Ballari
+VIC00745,Pavani Kulkarni,51,Female,Udupi
+VIC00746,Sai Badal,57,Male,Kalaburagi
+VIC00747,Chaitaly Sandhu,68,Female,Ballari
+VIC00748,Keya Shenoy,68,Female,Hubballi-Dharwad
+VIC00749,Aradhana Chokshi,25,Male,Shivamogga
+VIC00750,Pooja Dass,61,Male,Shivamogga
+VIC00751,Yutika Agarwal,61,Male,Tumakuru
+VIC00752,Zayyan Iyengar,36,Male,Hubballi-Dharwad
+VIC00753,Yachana Divan,49,Female,Bengaluru Rural
+VIC00754,Ekaraj Patil,69,Female,Bengaluru Urban
+VIC00755,Falguni Kala,47,Male,Mangaluru
+VIC00756,Maanav Som,36,Male,Bengaluru Urban
+VIC00757,Yashawini Panchal,49,Female,Bengaluru Urban
+VIC00758,Aditya Barman,45,Female,Vijayapura
+VIC00759,Lekha Bhandari,71,Male,Bengaluru Urban
+VIC00760,Kabir Agate,34,Male,Belagavi
+VIC00761,Anya Vig,74,Female,Hassan
+VIC00762,Chasmum Issac,72,Male,Bengaluru Rural
+VIC00763,Banjeet Menon,63,Female,Mysuru
+VIC00764,Chakrika Bumb,64,Male,Kalaburagi
+VIC00765,Pratyush Tank,55,Male,Hubballi-Dharwad
+VIC00766,Vamakshi Goswami,32,Male,Shivamogga
+VIC00767,Keya Saha,40,Male,Hassan
+VIC00768,Quincy Kar,61,Female,Kalaburagi
+VIC00769,Krishna Raval,43,Male,Chikkamagaluru
+VIC00770,Pahal Palla,34,Female,Ballari
+VIC00771,Charles Saxena,37,Male,Ballari
+VIC00772,Viraj Ratti,45,Female,Hassan
+VIC00773,Jacob Grover,55,Male,Vijayapura
+VIC00774,Jatin Sarkar,67,Male,Hubballi-Dharwad
+VIC00775,Yuvraj Savant,26,Female,Tumakuru
+VIC00776,Bakhshi Mane,30,Female,Hubballi-Dharwad
+VIC00777,Reva Randhawa,23,Female,Ballari
+VIC00778,Dipta Atwal,58,Female,Tumakuru
+VIC00779,Adya Kunda,29,Female,Hassan
+VIC00780,Saksham Nagi,74,Female,Bengaluru Rural
+VIC00781,Unnati Wable,26,Female,Davanagere
+VIC00782,Isaac Savant,38,Female,Shivamogga
+VIC00783,Wriddhish Ramesh,40,Female,Shivamogga
+VIC00784,Samarth Babu,44,Female,Shivamogga
+VIC00785,Kashvi Mittal,19,Male,Hassan
+VIC00786,Yug Vyas,44,Male,Hassan
+VIC00787,Lucky Karnik,26,Female,Hassan
+VIC00788,Aryan Chacko,33,Female,Mysuru
+VIC00789,Dominic Prashad,57,Female,Bengaluru Urban
+VIC00790,Siddharth Deol,66,Female,Mysuru
+VIC00791,Zaitra Bir,43,Male,Shivamogga
+VIC00792,Chatura Solanki,69,Female,Udupi
+VIC00793,Anthony Chatterjee,21,Male,Bengaluru Urban
+VIC00794,Rushil Bains,35,Male,Belagavi
+VIC00795,Amara Sarkar,56,Male,Udupi
+VIC00796,Darpan Dua,36,Female,Davanagere
+VIC00797,Peter Wadhwa,39,Male,Bengaluru Rural
+VIC00798,Gabriel Bhalla,65,Male,Davanagere
+VIC00799,Oviya Bhalla,31,Male,Tumakuru
+VIC00800,Raagini Sani,65,Female,Mysuru
+VIC00801,Azad Ganesh,32,Male,Hubballi-Dharwad
+VIC00802,Harsh Desai,58,Female,Davanagere
+VIC00803,Balveer Dhar,18,Female,Ballari
+VIC00804,Irya Joshi,62,Male,Bengaluru Rural
+VIC00805,Bhavini Gandhi,22,Male,Mysuru
+VIC00806,Osha Krishna,56,Male,Tumakuru
+VIC00807,Rajeshri Raghavan,24,Male,Mangaluru
+VIC00808,Zilmil Bora,24,Female,Bengaluru Urban
+VIC00809,Aarna Kara,71,Female,Kalaburagi
+VIC00810,Bakhshi Ghosh,21,Male,Hubballi-Dharwad
+VIC00811,Laban Sen,43,Female,Mysuru
+VIC00812,Arjun Seth,70,Male,Udupi
+VIC00813,Harini Chandran,72,Female,Udupi
+VIC00814,Daksha Virk,57,Female,Udupi
+VIC00815,Logan Dhar,60,Male,Kalaburagi
+VIC00816,Avi Amble,27,Male,Mysuru
+VIC00817,Ijaya Solanki,27,Male,Mysuru
+VIC00818,Yash Mangat,50,Male,Shivamogga
+VIC00819,Victor Sabharwal,48,Female,Hubballi-Dharwad
+VIC00820,Matthew Mammen,60,Male,Ballari
+VIC00821,Bhavani Parsa,49,Female,Vijayapura
+VIC00822,Adya Talwar,35,Female,Kalaburagi
+VIC00823,Viraj Suresh,62,Male,Shivamogga
+VIC00824,Parth Deol,44,Female,Mysuru
+VIC00825,Ekiya Modi,19,Female,Shivamogga
+VIC00826,Tarak Om,25,Female,Bengaluru Urban
+VIC00827,Samarth Merchant,55,Female,Bengaluru Urban
+VIC00828,Pushti Bhavsar,59,Female,Bengaluru Urban
+VIC00829,Umang Hayer,40,Male,Shivamogga
+VIC00830,Omya Rama,74,Female,Hubballi-Dharwad
+VIC00831,Veer Mani,18,Male,Belagavi
+VIC00832,Divya Pall,50,Male,Belagavi
+VIC00833,Advik Sibal,75,Female,Tumakuru
+VIC00834,Frado Bhatt,22,Male,Vijayapura
+VIC00835,Advaith Dewan,27,Female,Vijayapura
+VIC00836,Nachiket Mitra,64,Female,Shivamogga
+VIC00837,Dhriti Desai,63,Male,Hubballi-Dharwad
+VIC00838,Saumya Mohan,68,Female,Chikkamagaluru
+VIC00839,Netra Kala,43,Male,Chikkamagaluru
+VIC00840,Rushil Lanka,71,Female,Kalaburagi
+VIC00841,Daksh Johal,48,Male,Ballari
+VIC00842,Nathan Cherian,63,Female,Mysuru
+VIC00843,Girindra Gandhi,62,Female,Ballari
+VIC00844,Aarnav Buch,55,Female,Ballari
+VIC00845,Praneel Tripathi,57,Female,Bengaluru Rural
+VIC00846,Devansh Nanda,20,Male,Udupi
+VIC00847,Hiral Saha,64,Male,Mangaluru
+VIC00848,Jason Keer,24,Male,Shivamogga
+VIC00849,Daksha Chaudhary,61,Female,Belagavi
+VIC00850,Bishakha Sama,66,Male,Hassan
+VIC00851,Nidra Om,69,Male,Bengaluru Rural
+VIC00852,Hemang Tank,75,Male,Davanagere
+VIC00853,Inaya Choudhury,75,Female,Hassan
+VIC00854,Saumya Chaudhari,44,Male,Bengaluru Urban
+VIC00855,Harish Barad,57,Female,Bengaluru Rural
+VIC00856,Ojasvi Radhakrishnan,20,Male,Shivamogga
+VIC00857,Edhitha Varughese,66,Female,Ballari
+VIC00858,Anita Bhatia,58,Male,Chikkamagaluru
+VIC00859,Gayathri Narang,29,Female,Bengaluru Rural
+VIC00860,Mugdha Saran,62,Female,Kalaburagi
+VIC00861,Jai Muni,26,Male,Mangaluru
+VIC00862,Ridhi Raman,34,Female,Shivamogga
+VIC00863,Hritik Buch,61,Female,Mangaluru
+VIC00864,Irya Lata,30,Male,Kalaburagi
+VIC00865,Triya Parmar,70,Male,Bengaluru Rural
+VIC00866,Akshay Pall,55,Male,Vijayapura
+VIC00867,Bhanumati Muni,60,Male,Mangaluru
+VIC00868,Reva Baria,20,Male,Chikkamagaluru
+VIC00869,Mekhala Gera,18,Female,Hassan
+VIC00870,Dayita Som,44,Male,Belagavi
+VIC00871,Janaki Babu,29,Female,Mangaluru
+VIC00872,Janaki Menon,71,Male,Ballari
+VIC00873,Advaith Taneja,70,Female,Tumakuru
+VIC00874,Vinaya Prabhu,40,Female,Ballari
+VIC00875,Ayushman Deshpande,75,Male,Hassan
+VIC00876,Qadim Dhaliwal,22,Female,Kalaburagi
+VIC00877,Warjas Gera,58,Female,Udupi
+VIC00878,Peter Oak,22,Male,Mysuru
+VIC00879,Rachana Sandal,68,Female,Bengaluru Rural
+VIC00880,Fitan Shankar,25,Female,Mangaluru
+VIC00881,Benjamin Rout,21,Female,Bengaluru Urban
+VIC00882,Jonathan Mitter,32,Female,Chikkamagaluru
+VIC00883,Imaran Dara,71,Female,Kalaburagi
+VIC00884,Udyati Rai,63,Female,Bengaluru Rural
+VIC00885,Tarak Bhat,73,Male,Hubballi-Dharwad
+VIC00886,Manya Bhakta,22,Male,Udupi
+VIC00887,Adya Ratti,51,Female,Kalaburagi
+VIC00888,Jackson Savant,57,Male,Tumakuru
+VIC00889,Vansha Mann,62,Male,Ballari
+VIC00890,Ekansh Lad,48,Female,Vijayapura
+VIC00891,Liam Narayan,19,Male,Belagavi
+VIC00892,Deepa Tella,44,Female,Mangaluru
+VIC00893,Kiaan Bajaj,39,Male,Mysuru
+VIC00894,Anya Manne,31,Female,Chikkamagaluru
+VIC00895,Benjamin Mallick,66,Male,Mangaluru
+VIC00896,Agastya Mohanty,49,Male,Hassan
+VIC00897,Gayathri Chakrabarti,54,Male,Belagavi
+VIC00898,Tanveer Raj,22,Female,Ballari
+VIC00899,Logan Manda,65,Male,Chikkamagaluru
+VIC00900,Tristan Kumer,53,Female,Mysuru
+VIC00901,Aadi Ganesh,35,Male,Bengaluru Rural
+VIC00902,Aryan Nair,20,Female,Tumakuru
+VIC00903,Adweta Rana,32,Female,Kalaburagi
+VIC00904,Gaurav Deep,48,Female,Hassan
+VIC00905,Kritika Yogi,72,Male,Bengaluru Urban
+VIC00906,Anamika Sachdev,21,Male,Hassan
+VIC00907,Jhalak Korpal,68,Male,Tumakuru
+VIC00908,Noah Dutt,56,Female,Vijayapura
+VIC00909,Warda Palla,61,Male,Tumakuru
+VIC00910,Nidra Lal,48,Male,Kalaburagi
+VIC00911,Isaac Issac,67,Female,Davanagere
+VIC00912,Ubika Hari,26,Female,Davanagere
+VIC00913,Hredhaan Krish,45,Male,Bengaluru Rural
+VIC00914,Urishilla Natarajan,46,Male,Chikkamagaluru
+VIC00915,Ishita Sekhon,57,Female,Belagavi
+VIC00916,Zayyan Sandal,30,Female,Kalaburagi
+VIC00917,Gagan Peri,21,Male,Mangaluru
+VIC00918,Veda Naidu,23,Male,Mangaluru
+VIC00919,Darpan Khosla,44,Male,Hassan
+VIC00920,Qasim Dara,18,Male,Udupi
+VIC00921,Banjeet Sanghvi,21,Male,Bengaluru Urban
+VIC00922,Chaitaly Grover,26,Female,Mysuru
+VIC00923,Alka Buch,36,Male,Belagavi
+VIC00924,Sachi Shroff,40,Male,Hubballi-Dharwad
+VIC00925,Anmol Hayer,26,Female,Shivamogga
+VIC00926,Yashoda Shankar,60,Male,Vijayapura
+VIC00927,Noah Desai,22,Male,Hubballi-Dharwad
+VIC00928,Reva Chaudry,52,Male,Shivamogga
+VIC00929,Mahika Ghosh,63,Female,Chikkamagaluru
+VIC00930,Amol More,72,Male,Shivamogga
+VIC00931,Radhika Arora,63,Female,Belagavi
+VIC00932,Vrishti Raval,67,Female,Udupi
+VIC00933,Vedant Dhar,59,Male,Tumakuru
+VIC00934,Pranit Swaminathan,75,Female,Belagavi
+VIC00935,Charvi Rao,62,Male,Bengaluru Urban
+VIC00936,Vidhi Ahluwalia,40,Female,Davanagere
+VIC00937,Girish Patil,57,Female,Hubballi-Dharwad
+VIC00938,Idika Parsa,23,Male,Chikkamagaluru
+VIC00939,Aradhana Yohannan,26,Male,Hubballi-Dharwad
+VIC00940,Liam Dewan,65,Male,Bengaluru Rural
+VIC00941,Avni Loke,41,Male,Bengaluru Urban
+VIC00942,David Anne,33,Female,Vijayapura
+VIC00943,Nicholas Kara,66,Female,Bengaluru Rural
+VIC00944,Gautami Kala,19,Female,Udupi
+VIC00945,Ishanvi Kade,20,Female,Hubballi-Dharwad
+VIC00946,Rudra Borde,55,Female,Hubballi-Dharwad
+VIC00947,Xalak Rajan,70,Male,Bengaluru Urban
+VIC00948,Urmi Naik,35,Female,Shivamogga
+VIC00949,Aarnav Nayak,19,Female,Kalaburagi
+VIC00950,Quincy Konda,46,Male,Mangaluru
+VIC00951,Manya Sekhon,31,Female,Mysuru
+VIC00952,Harish Srinivasan,60,Female,Tumakuru
+VIC00953,Shravya Bumb,21,Female,Bengaluru Urban
+VIC00954,Sneha Bumb,52,Female,Chikkamagaluru
+VIC00955,Shivansh Bhattacharyya,19,Female,Chikkamagaluru
+VIC00956,Ekapad Babu,71,Female,Hassan
+VIC00957,Bakhshi Mitter,66,Male,Hassan
+VIC00958,Krish Kari,19,Female,Davanagere
+VIC00959,Hamsini Mangat,71,Female,Udupi
+VIC00960,Upadhriti Lal,45,Male,Hassan
+VIC00961,Thomas Babu,24,Female,Davanagere
+VIC00962,Hritik Dixit,61,Female,Udupi
+VIC00963,Vaishnavi Sangha,52,Female,Kalaburagi
+VIC00964,Ojas Chowdhury,54,Female,Mysuru
+VIC00965,Prisha Gola,42,Female,Davanagere
+VIC00966,Faras Mukhopadhyay,33,Male,Chikkamagaluru
+VIC00967,Ikshita Modi,18,Female,Hassan
+VIC00968,Viraj Bose,61,Female,Bengaluru Rural
+VIC00969,Hritik Dixit,33,Female,Belagavi
+VIC00970,Jason Sule,54,Female,Bengaluru Urban
+VIC00971,Lohit Bakshi,57,Female,Belagavi
+VIC00972,Mahika Sura,35,Female,Hassan
+VIC00973,Champak Jaggi,59,Male,Bengaluru Rural
+VIC00974,Anamika Bhattacharyya,37,Female,Udupi
+VIC00975,Kashish Jani,34,Male,Shivamogga
+VIC00976,Isaac Hegde,47,Male,Shivamogga
+VIC00977,Manya Lal,18,Female,Bengaluru Urban
+VIC00978,Ekantika Nagarajan,40,Female,Vijayapura
+VIC00979,Chatura Swaminathan,72,Male,Kalaburagi
+VIC00980,Jalsa Yogi,21,Male,Hubballi-Dharwad
+VIC00981,Elijah Khurana,75,Female,Bengaluru Rural
+VIC00982,Sara Brar,46,Male,Hubballi-Dharwad
+VIC00983,Inaya Bajwa,67,Female,Hubballi-Dharwad
+VIC00984,Netra Bhardwaj,73,Female,Mysuru
+VIC00985,Gautami Sehgal,32,Male,Mysuru
+VIC00986,Praneel Sant,73,Male,Mangaluru
+VIC00987,Ekaraj Agate,25,Male,Mysuru
+VIC00988,Robert Mohan,61,Female,Ballari
+VIC00989,Veer Dewan,38,Male,Tumakuru
+VIC00990,Parth Sangha,63,Male,Bengaluru Urban
+VIC00991,Nimrat Nanda,63,Female,Hubballi-Dharwad
+VIC00992,Ishaan Soni,19,Female,Tumakuru
+VIC00993,Manan Tripathi,63,Male,Ballari
+VIC00994,Forum Dugar,33,Female,Bengaluru Rural
+VIC00995,Neha Shan,22,Female,Bengaluru Rural
+VIC00996,Alexander Chad,50,Male,Mangaluru
+VIC00997,Arunima Mangat,31,Female,Ballari
+VIC00998,Tanvi Sarna,41,Female,Bengaluru Rural
+VIC00999,Jeet Morar,59,Female,Chikkamagaluru
+VIC01000,Alexander Deshmukh,36,Male,Bengaluru Urban
+VIC01001,Meera Boase,38,Female,Belagavi
+VIC01002,Samarth Dyal,44,Female,Shivamogga
+VIC01003,Sudiksha Anne,36,Male,Mysuru
+VIC01004,Nimrat Dhaliwal,41,Male,Hubballi-Dharwad
+VIC01005,Aashi Sane,27,Male,Bengaluru Rural
+VIC01006,Zehaan Mani,56,Male,Hassan
+VIC01007,Vasatika Choudhary,38,Female,Mangaluru
+VIC01008,Mohammed Kant,42,Male,Vijayapura
+VIC01009,Brinda Tandon,64,Male,Kalaburagi
+VIC01010,Advika Deshmukh,66,Male,Bengaluru Rural
+VIC01011,Rachit Jha,32,Female,Tumakuru
+VIC01012,Manthan Rajan,64,Male,Udupi
+VIC01013,Gautam Minhas,74,Male,Ballari
+VIC01014,Janaki Hans,48,Female,Belagavi
+VIC01015,Qasim Khare,35,Male,Udupi
+VIC01016,Jagvi Bhandari,54,Female,Chikkamagaluru
+VIC01017,Isaiah Butala,33,Female,Mangaluru
+VIC01018,Omkaar Thakkar,69,Female,Mangaluru
+VIC01019,Damini Nigam,47,Female,Davanagere
+VIC01020,Kamya Kala,25,Male,Shivamogga
+VIC01021,Unnati Contractor,64,Female,Belagavi
+VIC01022,Pavani Chander,23,Female,Tumakuru
+VIC01023,Bimala Sundaram,50,Male,Chikkamagaluru
+VIC01024,Daksh Sidhu,41,Female,Ballari
+VIC01025,Oeshi Pillai,32,Female,Hassan
+VIC01026,Vedhika Buch,44,Male,Ballari
+VIC01027,Bhavini Sachar,70,Male,Chikkamagaluru
+VIC01028,Chandani Behl,52,Male,Hassan
+VIC01029,Utkarsh Sood,44,Male,Ballari
+VIC01030,Dipta Malhotra,34,Female,Belagavi
+VIC01031,Panini Kapur,38,Male,Bengaluru Rural
+VIC01032,Orinder Pai,44,Female,Tumakuru
+VIC01033,Omisha Ramakrishnan,27,Female,Vijayapura
+VIC01034,Chandresh Dalal,74,Male,Chikkamagaluru
+VIC01035,Abha Comar,29,Female,Bengaluru Urban
+VIC01036,Kabir Prabhakar,28,Male,Kalaburagi
+VIC01037,Finn Mall,34,Female,Davanagere
+VIC01038,Jackson Pal,24,Male,Udupi
+VIC01039,Patrick Lad,20,Female,Bengaluru Urban
+VIC01040,Gagan Kothari,62,Male,Bengaluru Rural
+VIC01041,Barkha Acharya,26,Female,Chikkamagaluru
+VIC01042,Banjeet Chatterjee,45,Female,Mysuru
+VIC01043,Ati Sagar,43,Male,Davanagere
+VIC01044,Onkar Boase,36,Male,Belagavi
+VIC01045,Jeet Lala,75,Female,Ballari
+VIC01046,Wazir Sood,56,Male,Davanagere
+VIC01047,Advay Vaidya,20,Male,Davanagere
+VIC01048,Ira Kapoor,40,Female,Chikkamagaluru
+VIC01049,Atharv Prabhu,44,Female,Davanagere
+VIC01050,Xalak Saini,71,Female,Hubballi-Dharwad
+VIC01051,Ekaraj Kade,66,Female,Davanagere
+VIC01052,Raagini Dubey,26,Male,Davanagere
+VIC01053,Tamanna Oak,67,Male,Mysuru
+VIC01054,Prisha Goyal,75,Male,Ballari
+VIC01055,Neel Prasad,55,Female,Vijayapura
+VIC01056,Neel Gandhi,59,Female,Kalaburagi
+VIC01057,Lajita Cheema,38,Female,Mysuru
+VIC01058,Kritika Master,50,Female,Hassan
+VIC01059,Joshua Grewal,24,Male,Hubballi-Dharwad
+VIC01060,Dev Lal,49,Female,Bengaluru Urban
+VIC01061,Leela Sehgal,54,Female,Hubballi-Dharwad
+VIC01062,Yash Sangha,38,Female,Belagavi
+VIC01063,William Butala,66,Male,Mysuru
+VIC01064,Abhiram Bumb,20,Male,Kalaburagi
+VIC01065,Pranit Dubey,51,Female,Ballari
+VIC01066,Barkha Savant,74,Female,Bengaluru Rural
+VIC01067,Nidhi Narang,40,Female,Mysuru
+VIC01068,Girik Raja,25,Female,Hubballi-Dharwad
+VIC01069,Nicholas Kalla,49,Female,Mangaluru
+VIC01070,Qushi Iyengar,74,Male,Hubballi-Dharwad
+VIC01071,Xavier Tata,34,Male,Chikkamagaluru
+VIC01072,Anika Misra,32,Female,Mysuru
+VIC01073,Rehaan Raja,24,Male,Tumakuru
+VIC01074,Warhi Mall,71,Male,Bengaluru Urban
+VIC01075,Advaith Dua,56,Male,Chikkamagaluru
+VIC01076,Bakhshi Grover,52,Male,Bengaluru Urban
+VIC01077,Vrishti Sem,49,Male,Belagavi
+VIC01078,Chaitaly Brahmbhatt,31,Female,Ballari
+VIC01079,Ijaya Shukla,45,Female,Tumakuru
+VIC01080,Dominic Khalsa,26,Female,Hubballi-Dharwad
+VIC01081,Aishani Tandon,25,Male,Shivamogga
+VIC01082,Amol Dhaliwal,74,Female,Shivamogga
+VIC01083,Mugdha Dara,34,Male,Udupi
+VIC01084,Siddharth Rama,26,Female,Davanagere
+VIC01085,Yug Ravel,60,Male,Belagavi
+VIC01086,Nathaniel Khalsa,69,Male,Davanagere
+VIC01087,Liam Sood,68,Male,Davanagere
+VIC01088,Idika Mukhopadhyay,22,Female,Mysuru
+VIC01089,Manya Hari,50,Female,Hubballi-Dharwad
+VIC01090,Kashvi Johal,47,Male,Davanagere
+VIC01091,Kai Mandal,62,Female,Chikkamagaluru
+VIC01092,Bhanumati Ganesh,20,Female,Bengaluru Rural
+VIC01093,Harrison Saxena,63,Female,Mangaluru
+VIC01094,Maanav Kaul,71,Male,Vijayapura
+VIC01095,Jagdish Doshi,58,Male,Mangaluru
+VIC01096,Indira Tella,26,Female,Udupi
+VIC01097,Qarin Mani,32,Male,Hubballi-Dharwad
+VIC01098,Zilmil Tella,48,Male,Shivamogga
+VIC01099,Bhavna Lala,70,Male,Davanagere
+VIC01100,Akshay Mody,49,Female,Mysuru
+VIC01101,Brinda Loyal,30,Male,Tumakuru
+VIC01102,Watika Nadig,72,Male,Bengaluru Urban
+VIC01103,Anthony Sheth,45,Male,Shivamogga
+VIC01104,Upasna Ram,53,Male,Davanagere
+VIC01105,Vivaan Rastogi,29,Male,Kalaburagi
+VIC01106,Ekapad Chatterjee,62,Female,Ballari
+VIC01107,Michael Char,42,Male,Vijayapura
+VIC01108,Girik Saran,40,Female,Tumakuru
+VIC01109,Aishani Andra,60,Male,Chikkamagaluru
+VIC01110,Rajeshri Nagy,37,Male,Chikkamagaluru
+VIC01111,Onkar Saini,36,Female,Shivamogga
+VIC01112,Irya Chandra,68,Female,Ballari
+VIC01113,Isaac Chaudry,40,Female,Hubballi-Dharwad
+VIC01114,Victor Shere,24,Male,Bengaluru Rural
+VIC01115,Ishwar Kalita,74,Female,Kalaburagi
+VIC01116,Neelima Goda,46,Female,Mangaluru
+VIC01117,Alka Randhawa,60,Female,Bengaluru Rural
+VIC01118,Samarth Sunder,29,Female,Belagavi
+VIC01119,Tanveer Mittal,60,Male,Belagavi
+VIC01120,Lohit Parmar,62,Female,Davanagere
+VIC01121,Vasana Thaker,26,Female,Udupi
+VIC01122,Eta Manda,69,Female,Ballari
+VIC01123,Mahika Dubey,44,Male,Bengaluru Urban
+VIC01124,Ekiya Varkey,36,Female,Tumakuru
+VIC01125,Sathvik Bhatnagar,31,Female,Bengaluru Urban
+VIC01126,Manthan Sahni,53,Female,Hubballi-Dharwad
+VIC01127,Dev Bora,61,Female,Kalaburagi
+VIC01128,Eshana Sridhar,43,Female,Kalaburagi
+VIC01129,Faraj Soman,43,Female,Chikkamagaluru
+VIC01130,Nitara Dara,21,Female,Shivamogga
+VIC01131,Tanish Khanna,64,Male,Belagavi
+VIC01132,Unni Handa,58,Male,Hubballi-Dharwad
+VIC01133,Balvan Mitter,46,Female,Mangaluru
+VIC01134,Azaan Sibal,54,Male,Tumakuru
+VIC01135,Madhav Tella,31,Male,Ballari
+VIC01136,Oscar Sachdeva,57,Female,Mysuru
+VIC01137,Krish Soman,56,Male,Davanagere
+VIC01138,Benjamin Mohanty,19,Female,Bengaluru Rural
+VIC01139,Gauri Pillay,67,Female,Chikkamagaluru
+VIC01140,Priya Sawhney,40,Male,Vijayapura
+VIC01141,Chasmum Subramanian,21,Male,Belagavi
+VIC01142,Vrinda Natt,52,Male,Mysuru
+VIC01143,Faras Kade,71,Female,Udupi
+VIC01144,Maanav Sarma,63,Male,Hubballi-Dharwad
+VIC01145,Osha Bajaj,69,Male,Chikkamagaluru
+VIC01146,Anika Choudhry,41,Female,Kalaburagi
+VIC01147,Theodore Ahuja,31,Male,Bengaluru Urban
+VIC01148,Ganga Hegde,20,Male,Hassan
+VIC01149,Wyatt Parekh,51,Male,Tumakuru
+VIC01150,Simon Basak,43,Female,Bengaluru Urban
+VIC01151,Brinda Sanghvi,28,Female,Hubballi-Dharwad
+VIC01152,Pahal Nigam,19,Male,Vijayapura
+VIC01153,Chanchal Pillai,67,Male,Bengaluru Urban
+VIC01154,Jalsa Nayak,35,Male,Udupi
+VIC01155,Rudra Rau,68,Female,Vijayapura
+VIC01156,Gaurang Gara,43,Male,Udupi
+VIC01157,Thomas Kuruvilla,65,Female,Udupi
+VIC01158,Henry Palla,23,Male,Bengaluru Rural
+VIC01159,Naveen Bains,50,Female,Bengaluru Urban
+VIC01160,Bishakha Agrawal,18,Male,Bengaluru Rural
+VIC01161,Kalpit Varkey,65,Female,Mangaluru
+VIC01162,Kavya Handa,71,Female,Hassan
+VIC01163,Gavin Buch,38,Female,Tumakuru
+VIC01164,Warda Nath,65,Male,Hubballi-Dharwad
+VIC01165,Dev Maharaj,35,Female,Mangaluru
+VIC01166,Kavya Loke,24,Female,Vijayapura
+VIC01167,Eshana Barman,54,Female,Kalaburagi
+VIC01168,Bahadurjit Bakshi,36,Female,Bengaluru Rural
+VIC01169,Nakul Lal,32,Female,Tumakuru
+VIC01170,Manthan Bajwa,35,Female,Hubballi-Dharwad
+VIC01171,Gaurav Lad,62,Male,Kalaburagi
+VIC01172,Madhav Bhasin,19,Female,Davanagere
+VIC01173,Bhavika Dhillon,43,Female,Hassan
+VIC01174,Naksh Master,52,Male,Shivamogga
+VIC01175,Nihal Gera,32,Male,Kalaburagi
+VIC01176,Hemang Das,67,Male,Shivamogga
+VIC01177,Gautam Misra,41,Female,Ballari
+VIC01178,Ganga Suri,24,Female,Belagavi
+VIC01179,Kai Dhingra,27,Male,Bengaluru Rural
+VIC01180,Ikbal Narain,53,Male,Mangaluru
+VIC01181,Tara Hora,73,Female,Ballari
+VIC01182,Saumya Sami,33,Male,Mysuru
+VIC01183,Vrishti Rastogi,43,Female,Tumakuru
+VIC01184,Vamakshi Basak,64,Male,Bengaluru Urban
+VIC01185,Aarnav Pai,67,Female,Hubballi-Dharwad
+VIC01186,Unnati Krishnamurthy,44,Female,Davanagere
+VIC01187,Ranbir Misra,39,Male,Bengaluru Urban
+VIC01188,Ekavir Narula,38,Female,Udupi
+VIC01189,Om Tandon,18,Female,Davanagere
+VIC01190,Ayushman Ganguly,31,Female,Tumakuru
+VIC01191,Osha Rajagopal,49,Female,Vijayapura
+VIC01192,Girik Mutti,33,Female,Shivamogga
+VIC01193,Onveer Lalla,63,Female,Tumakuru
+VIC01194,Vasatika Sarna,53,Male,Chikkamagaluru
+VIC01195,Balvan Mittal,24,Female,Davanagere
+VIC01196,Jagdish Basu,22,Female,Mysuru
+VIC01197,Oni Nagar,66,Male,Mysuru
+VIC01198,Maya Palla,51,Male,Mysuru
+VIC01199,Warhi Manda,30,Female,Udupi
+VIC01200,Devansh Zacharia,25,Male,Chikkamagaluru
+VIC01201,Widisha Shan,45,Female,Mysuru
+VIC01202,Quincy Chanda,58,Female,Mysuru
+VIC01203,Lekha Shere,65,Female,Kalaburagi
+VIC01204,Daniel Mahal,18,Female,Bengaluru Rural
+VIC01205,Tripti Krishnamurthy,45,Female,Davanagere
+VIC01206,Simon Prabhakar,74,Female,Tumakuru
+VIC01207,Qadim Rama,38,Female,Ballari
+VIC01208,Krishna Pathak,59,Male,Mysuru
+VIC01209,Jeremiah Mishra,36,Male,Hassan
+VIC01210,Unnati Dara,57,Female,Tumakuru
+VIC01211,Lipika Bhattacharyya,56,Female,Shivamogga
+VIC01212,Naveen Kaur,47,Male,Chikkamagaluru
+VIC01213,Veer Halder,39,Male,Mysuru
+VIC01214,Jairaj Madan,51,Female,Bengaluru Urban
+VIC01215,Krishna Joshi,38,Female,Mysuru
+VIC01216,Jason Babu,27,Female,Bengaluru Rural
+VIC01217,Harita Rajagopalan,18,Female,Davanagere
+VIC01218,Ekaraj Bose,30,Male,Davanagere
+VIC01219,Veer Pai,24,Female,Belagavi
+VIC01220,Netra Bains,24,Male,Ballari
+VIC01221,Hemang Koshy,47,Male,Bengaluru Rural
+VIC01222,Krishna Radhakrishnan,40,Male,Belagavi
+VIC01223,Chakradhar Majumdar,58,Male,Chikkamagaluru
+VIC01224,Naveen Handa,30,Female,Hubballi-Dharwad
+VIC01225,Vamakshi Thaker,70,Female,Ballari
+VIC01226,Ekbal Sibal,64,Female,Belagavi
+VIC01227,Vedant Wason,57,Female,Chikkamagaluru
+VIC01228,Ladli Hayer,34,Male,Bengaluru Rural
+VIC01229,Sanaya Bora,55,Male,Bengaluru Rural
+VIC01230,Sathvik Singh,64,Male,Hubballi-Dharwad
+VIC01231,Dakshesh Johal,29,Female,Ballari
+VIC01232,Nitesh Srivastava,24,Male,Hassan
+VIC01233,Bishakha Chaudhari,51,Female,Belagavi
+VIC01234,Leena Mohan,54,Female,Hassan
+VIC01235,Praneel Mangal,65,Female,Mangaluru
+VIC01236,Rudra Rao,28,Male,Hassan
+VIC01237,Urvi Salvi,32,Male,Bengaluru Rural
+VIC01238,Upasna D’Alia,69,Male,Mysuru
+VIC01239,Patrick Brar,28,Female,Udupi
+VIC01240,Zayan Rastogi,18,Female,Bengaluru Rural
+VIC01241,Anita Khare,75,Male,Mysuru
+VIC01242,Ridhi Kaur,50,Female,Kalaburagi
+VIC01243,Sanaya Konda,60,Female,Belagavi
+VIC01244,Anusha Doctor,37,Male,Mangaluru
+VIC01245,Baljiwan Dalal,53,Female,Kalaburagi
+VIC01246,Libni Bahl,67,Female,Davanagere
+VIC01247,Daksh Prabhakar,48,Female,Hubballi-Dharwad
+VIC01248,Harish Pall,71,Female,Tumakuru
+VIC01249,Reyansh Pandit,23,Male,Mysuru
+VIC01250,Bhanumati Shan,58,Female,Davanagere
+VIC01251,Gagan Virk,27,Female,Tumakuru
+VIC01252,Zansi Grewal,46,Female,Davanagere
+VIC01253,Nandini Thakur,68,Female,Vijayapura
+VIC01254,Bishakha Nagarajan,25,Female,Vijayapura
+VIC01255,Bahadurjit Narayanan,40,Male,Bengaluru Urban
+VIC01256,Mohini Bajaj,73,Female,Udupi
+VIC01257,Idika Barad,47,Female,Davanagere
+VIC01258,Zehaan Mital,45,Male,Ballari
+VIC01259,Saanvi Chakraborty,53,Male,Kalaburagi
+VIC01260,Hemangini Dara,41,Male,Chikkamagaluru
+VIC01261,Jagvi Wadhwa,65,Male,Mangaluru
+VIC01262,Anvi Pillay,46,Female,Tumakuru
+VIC01263,Bimala Mannan,30,Male,Ballari
+VIC01264,Wakeeta Narasimhan,37,Female,Bengaluru Rural
+VIC01265,Maanav Gola,41,Female,Tumakuru
+VIC01266,Zayyan Borra,18,Female,Bengaluru Urban
+VIC01267,Idika Devan,59,Female,Vijayapura
+VIC01268,Pranit Ranganathan,48,Female,Bengaluru Urban
+VIC01269,Matthew Sane,62,Female,Hubballi-Dharwad
+VIC01270,Amaira Grover,58,Male,Ballari
+VIC01271,Nachiket Bahl,70,Male,Udupi
+VIC01272,Jason Mital,63,Female,Ballari
+VIC01273,Bhavya Sarin,58,Female,Shivamogga
+VIC01274,Vihaan Dube,29,Female,Davanagere
+VIC01275,Tanmayi Jaggi,73,Male,Bengaluru Urban
+VIC01276,Kiaan Batra,41,Male,Ballari
+VIC01277,Yamini Rege,75,Male,Davanagere
+VIC01278,Aarini Khatri,65,Male,Udupi
+VIC01279,Vanya Shere,72,Male,Bengaluru Rural
+VIC01280,Harish Bala,44,Male,Bengaluru Urban
+VIC01281,Anmol Chhabra,46,Male,Belagavi
+VIC01282,Yug Trivedi,24,Female,Udupi
+VIC01283,Shivani Gala,30,Male,Belagavi
+VIC01284,Isaiah Boase,71,Female,Chikkamagaluru
+VIC01285,Shaurya Zacharia,63,Male,Chikkamagaluru
+VIC01286,Udyati Mani,55,Female,Tumakuru
+VIC01287,Kamya Sangha,18,Female,Kalaburagi
+VIC01288,Charvi Desai,71,Male,Bengaluru Rural
+VIC01289,Jagvi Reddy,30,Male,Davanagere
+VIC01290,Parth Halder,35,Male,Mysuru
+VIC01291,Theodore Parikh,46,Male,Hubballi-Dharwad
+VIC01292,Zarna Gara,56,Male,Davanagere
+VIC01293,Bhavna Bobal,50,Female,Mysuru
+VIC01294,Chakradhar Bassi,58,Male,Hubballi-Dharwad
+VIC01295,Lajita Iyengar,35,Female,Bengaluru Rural
+VIC01296,Wyatt Palla,39,Female,Ballari
+VIC01297,Isaiah Parekh,71,Male,Ballari
+VIC01298,Peter Rama,47,Male,Bengaluru Rural
+VIC01299,Megha Natt,23,Male,Davanagere
+VIC01300,Rachita Ganesan,23,Male,Belagavi
+VIC01301,Atharv Karan,55,Male,Hassan
+VIC01302,Aradhana Gour,28,Male,Mangaluru
+VIC01303,Oeshi Oak,58,Female,Shivamogga
+VIC01304,Vincent Tiwari,23,Male,Hubballi-Dharwad
+VIC01305,Reyansh Sandhu,71,Male,Davanagere
+VIC01306,Saksham Acharya,66,Male,Hubballi-Dharwad
+VIC01307,Logan Iyer,21,Female,Davanagere
+VIC01308,Umang Devi,36,Male,Hubballi-Dharwad
+VIC01309,Yashasvi Ramesh,26,Female,Kalaburagi
+VIC01310,Zayyan Sankaran,32,Male,Hubballi-Dharwad
+VIC01311,Aayush Palan,74,Male,Mysuru
+VIC01312,Jatin Thakur,36,Female,Davanagere
+VIC01313,Henry Gokhale,46,Female,Bengaluru Rural
+VIC01314,Teerth Tata,49,Female,Ballari
+VIC01315,Pallavi Dass,41,Female,Hassan
+VIC01316,Kashvi Kala,59,Female,Udupi
+VIC01317,Faris Dhillon,58,Male,Bengaluru Urban
+VIC01318,Hardik Sehgal,71,Female,Mysuru
+VIC01319,Janani Shukla,52,Male,Davanagere
+VIC01320,Amaira Swaminathan,45,Female,Vijayapura
+VIC01321,Fiyaz Malhotra,69,Female,Mangaluru
+VIC01322,Chaitanya Dash,39,Female,Bengaluru Rural
+VIC01323,George Hora,50,Male,Hubballi-Dharwad
+VIC01324,Kashvi Dixit,31,Female,Hubballi-Dharwad
+VIC01325,Chasmum Cheema,20,Male,Tumakuru
+VIC01326,Daksh Gour,60,Male,Shivamogga
+VIC01327,Kabir Chatterjee,26,Female,Ballari
+VIC01328,Sneha Goyal,38,Female,Ballari
+VIC01329,Nathan Bhat,42,Male,Belagavi
+VIC01330,Vasana Dasgupta,62,Male,Vijayapura
+VIC01331,Avni Shan,40,Male,Mysuru
+VIC01332,Indrajit Ramesh,44,Female,Belagavi
+VIC01333,Lavanya D’Alia,39,Male,Mysuru
+VIC01334,Saanvi Ramaswamy,40,Female,Mysuru
+VIC01335,Hemang Dutta,47,Male,Hassan
+VIC01336,Bhanumati Srivastava,19,Female,Hassan
+VIC01337,Udarsh Shroff,57,Female,Ballari
+VIC01338,Shravya Joshi,54,Female,Davanagere
+VIC01339,David Narula,43,Female,Udupi
+VIC01340,Darpan Kalla,33,Female,Davanagere
+VIC01341,Vaishnavi Raja,41,Female,Shivamogga
+VIC01342,Samar Dixit,61,Female,Hubballi-Dharwad
+VIC01343,Samarth Bhasin,20,Male,Hassan
+VIC01344,Daksha Sankar,75,Male,Kalaburagi
+VIC01345,Urvi Bhakta,45,Female,Ballari
+VIC01346,Janani Bir,43,Male,Mysuru
+VIC01347,Nandini Raman,50,Male,Chikkamagaluru
+VIC01348,Ganga Shan,37,Male,Ballari
+VIC01349,Raghav Borde,66,Male,Mysuru
+VIC01350,Manthan Arora,60,Female,Hassan
+VIC01351,Sathvik Vig,21,Male,Hubballi-Dharwad
+VIC01352,Gaurang Amble,68,Male,Hassan
+VIC01353,Yuvraj Thakkar,40,Female,Kalaburagi
+VIC01354,Aarna Naidu,28,Female,Bengaluru Urban
+VIC01355,Shivansh Trivedi,60,Male,Mangaluru
+VIC01356,Vidhi Prashad,74,Male,Hubballi-Dharwad
+VIC01357,Kavya Balay,37,Male,Mysuru
+VIC01358,Triveni Choudhury,33,Male,Kalaburagi
+VIC01359,Janya Nanda,23,Male,Mysuru
+VIC01360,Udarsh Menon,61,Female,Bengaluru Urban
+VIC01361,Sudiksha Tailor,48,Male,Belagavi
+VIC01362,Brinda Nigam,24,Female,Tumakuru
+VIC01363,Dalbir Jani,61,Female,Davanagere
+VIC01364,Falan Uppal,31,Female,Vijayapura
+VIC01365,Yashawini Krish,42,Female,Davanagere
+VIC01366,Kavya Venkatesh,33,Male,Kalaburagi
+VIC01367,Qabil Buch,26,Female,Hassan
+VIC01368,Chaitaly Devan,26,Female,Hassan
+VIC01369,Osha Bava,38,Female,Udupi
+VIC01370,Aadhya Ramanathan,61,Female,Ballari
+VIC01371,Harsh Garde,43,Male,Belagavi
+VIC01372,Meghana Mangal,49,Male,Mangaluru
+VIC01373,Chakradhar Kuruvilla,74,Male,Hassan
+VIC01374,Abha Saini,33,Female,Belagavi
+VIC01375,Gagan Arya,39,Male,Ballari
+VIC01376,Samuel Dutta,56,Female,Chikkamagaluru
+VIC01377,Vinaya Saha,22,Male,Mysuru
+VIC01378,Ojasvi Aggarwal,49,Male,Bengaluru Urban
+VIC01379,Pahal Jain,31,Female,Kalaburagi
+VIC01380,Indali De,23,Female,Kalaburagi
+VIC01381,Sai Bose,59,Male,Kalaburagi
+VIC01382,Tara Sampath,27,Female,Hubballi-Dharwad
+VIC01383,Inaya Keer,42,Female,Bengaluru Urban
+VIC01384,Dhruv Malhotra,34,Female,Mysuru
+VIC01385,Vedant Manne,28,Female,Vijayapura
+VIC01386,Lakshit Pai,51,Male,Shivamogga
+VIC01387,Vritti Contractor,69,Male,Belagavi
+VIC01388,Harini Yadav,61,Male,Vijayapura
+VIC01389,Ubika Bose,73,Female,Hassan
+VIC01390,Bimala Yohannan,69,Male,Mysuru
+VIC01391,Bhavna Bahl,38,Male,Ballari
+VIC01392,Christopher Palla,50,Female,Vijayapura
+VIC01393,Falan Som,47,Male,Shivamogga
+VIC01394,Hemangini Sachdeva,59,Female,Kalaburagi
+VIC01395,Siddharth Gera,67,Male,Hubballi-Dharwad
+VIC01396,Leena Bassi,45,Female,Davanagere
+VIC01397,Ansh Wali,58,Male,Ballari
+VIC01398,Om Balakrishnan,69,Female,Tumakuru
+VIC01399,Xiti Ramaswamy,41,Female,Davanagere
+VIC01400,Lopa Kumer,39,Female,Bengaluru Rural
+VIC01401,Watika Kari,68,Male,Kalaburagi
+VIC01402,Max Kamdar,52,Female,Udupi
+VIC01403,Bimala Yadav,61,Male,Mysuru
+VIC01404,Yutika Yogi,18,Female,Chikkamagaluru
+VIC01405,Madhav Naik,63,Female,Mangaluru
+VIC01406,Anika Bhattacharyya,50,Female,Kalaburagi
+VIC01407,Udarsh Dora,21,Female,Hubballi-Dharwad
+VIC01408,Anay Vora,20,Male,Udupi
+VIC01409,Abhiram Palan,49,Female,Belagavi
+VIC01410,Avni Sengupta,21,Female,Hubballi-Dharwad
+VIC01411,Jhalak Nazareth,45,Female,Vijayapura
+VIC01412,Manya Gandhi,36,Male,Tumakuru
+VIC01413,Faqid Walla,35,Male,Hubballi-Dharwad
+VIC01414,Yuvraj Choudhary,40,Female,Bengaluru Urban
+VIC01415,Krishna Chaudhry,46,Female,Hubballi-Dharwad
+VIC01416,Darika Majumdar,58,Male,Ballari
+VIC01417,Bachittar Bal,25,Female,Davanagere
+VIC01418,Omaja Iyengar,20,Female,Mangaluru
+VIC01419,Warinder Raval,29,Male,Tumakuru
+VIC01420,Manya Vig,24,Male,Davanagere
+VIC01421,Idika Krishna,27,Female,Kalaburagi
+VIC01422,Mohammed Chadha,75,Female,Belagavi
+VIC01423,Sai Choudhry,47,Male,Chikkamagaluru
+VIC01424,Oscar Majumdar,70,Female,Bengaluru Urban
+VIC01425,Aachal Dhaliwal,22,Female,Belagavi
+VIC01426,Lipika Yohannan,20,Male,Ballari
+VIC01427,Radha Brar,64,Male,Kalaburagi
+VIC01428,Wahab Tak,50,Male,Belagavi
+VIC01429,Farhan Devi,58,Female,Kalaburagi
+VIC01430,Raghav Patla,43,Male,Mysuru
+VIC01431,Gaurangi Chauhan,65,Female,Davanagere
+VIC01432,Sara Prakash,59,Male,Udupi
+VIC01433,Naksh Magar,45,Male,Hassan
+VIC01434,Balhaar Barad,30,Female,Hubballi-Dharwad
+VIC01435,Jason Bhakta,57,Male,Davanagere
+VIC01436,Unnati Dara,69,Male,Belagavi
+VIC01437,Lucky Ben,54,Female,Mangaluru
+VIC01438,Ucchal Savant,66,Female,Hubballi-Dharwad
+VIC01439,Brijesh Kapur,65,Male,Hubballi-Dharwad
+VIC01440,Dhruv Saha,50,Male,Ballari
+VIC01441,Raagini Ramesh,43,Male,Vijayapura
+VIC01442,Jasmit Nagy,36,Female,Bengaluru Urban
+VIC01443,Frado Sunder,44,Male,Bengaluru Urban
+VIC01444,Charita Sarraf,68,Female,Vijayapura
+VIC01445,Ayaan Kala,26,Female,Hubballi-Dharwad
+VIC01446,Saanvi Datta,47,Female,Bengaluru Rural
+VIC01447,Anjali Badal,32,Male,Bengaluru Urban
+VIC01448,Nicholas Uppal,63,Female,Mangaluru
+VIC01449,Daksha Naidu,22,Female,Davanagere
+VIC01450,Hemal Dhingra,63,Female,Ballari
+VIC01451,Aahana Edwin,44,Female,Tumakuru
+VIC01452,Qasim Chander,42,Female,Chikkamagaluru
+VIC01453,Ryan Verma,53,Male,Belagavi
+VIC01454,Jagvi Ravel,39,Female,Belagavi
+VIC01455,Waida Raj,70,Female,Mysuru
+VIC01456,Bimala Tara,47,Female,Mangaluru
+VIC01457,Reva Sampath,52,Male,Vijayapura
+VIC01458,Lohit Kant,42,Female,Kalaburagi
+VIC01459,Hitesh Koshy,20,Male,Vijayapura
+VIC01460,Avi Dhingra,49,Female,Bengaluru Rural
+VIC01461,Krishna Seshadri,31,Female,Hubballi-Dharwad
+VIC01462,Tejas Manda,36,Female,Shivamogga
+VIC01463,Netra Khanna,61,Female,Bengaluru Urban
+VIC01464,Mekhala Sabharwal,27,Male,Ballari
+VIC01465,Nandini Kala,40,Female,Kalaburagi
+VIC01466,Yuvraj Gole,66,Male,Hassan
+VIC01467,Isaac Ramanathan,36,Female,Mangaluru
+VIC01468,Mugdha Chopra,42,Male,Kalaburagi
+VIC01469,Tanish Boase,56,Male,Bengaluru Rural
+VIC01470,Isaiah Chander,43,Male,Mangaluru
+VIC01471,Finn Borra,25,Female,Mysuru
+VIC01472,Jeremiah Sandal,73,Male,Hassan
+VIC01473,Sai Deshpande,67,Female,Tumakuru
+VIC01474,Chaitaly Bhatia,44,Female,Hassan
+VIC01475,Chasmum Khanna,31,Female,Chikkamagaluru
+VIC01476,Deepa Bala,56,Female,Belagavi
+VIC01477,Riya Dani,67,Female,Vijayapura
+VIC01478,Champak Pandey,24,Female,Tumakuru
+VIC01479,Neha Subramaniam,52,Female,Mangaluru
+VIC01480,Aahana Trivedi,72,Female,Shivamogga
+VIC01481,Vrishti Mody,66,Female,Hubballi-Dharwad
+VIC01482,Praneel Atwal,70,Female,Mysuru
+VIC01483,Omkaar Saxena,73,Male,Kalaburagi
+VIC01484,Gautam Konda,36,Male,Tumakuru
+VIC01485,Divya Dua,71,Female,Hassan
+VIC01486,Dhruv Kant,47,Male,Vijayapura
+VIC01487,Ganga Kanda,24,Female,Ballari
+VIC01488,Radha Mutti,59,Female,Kalaburagi
+VIC01489,Advik Anne,44,Male,Vijayapura
+VIC01490,Dalaja Dutt,19,Male,Mysuru
+VIC01491,Anthony Kota,57,Male,Ballari
+VIC01492,Falan Varkey,54,Female,Bengaluru Urban
+VIC01493,Jack Varma,38,Male,Mysuru
+VIC01494,Pallavi Dhillon,54,Female,Vijayapura
+VIC01495,Gopal Murty,23,Female,Bengaluru Urban
+VIC01496,Charan Chaudhary,65,Female,Tumakuru
+VIC01497,Gunbir Dhaliwal,50,Male,Udupi
+VIC01498,Gaurangi Rastogi,28,Female,Belagavi
+VIC01499,Mitesh Nanda,64,Male,Mysuru
+VIC01500,Widisha Bumb,48,Male,Belagavi
+VIC01501,Anjali Kadakia,26,Female,Bengaluru Rural
+VIC01502,Charles Acharya,75,Male,Mangaluru
+VIC01503,Vivaan Kanda,54,Female,Shivamogga
+VIC01504,Mitali Chaudry,33,Female,Mangaluru
+VIC01505,Upasna Zachariah,68,Male,Shivamogga
+VIC01506,Vamakshi Toor,50,Male,Hassan
+VIC01507,Harish Tandon,56,Female,Udupi
+VIC01508,Nidhi Kata,28,Male,Shivamogga
+VIC01509,Maya Krishnamurthy,64,Male,Bengaluru Urban
+VIC01510,Aarna Sehgal,65,Male,Vijayapura
+VIC01511,Upasna Nagarajan,61,Female,Udupi
+VIC01512,Chasmum Patel,51,Female,Udupi
+VIC01513,Yatin Zachariah,42,Male,Hassan
+VIC01514,Tanay Shetty,44,Female,Chikkamagaluru
+VIC01515,Charles Parekh,63,Male,Davanagere
+VIC01516,Inaya Pathak,67,Male,Shivamogga
+VIC01517,Neelima Raghavan,48,Male,Hubballi-Dharwad
+VIC01518,Azaan Sagar,69,Female,Udupi
+VIC01519,Ekanta Lall,70,Male,Belagavi
+VIC01520,Nilima Kashyap,43,Female,Kalaburagi
+VIC01521,Anvi Deo,68,Male,Bengaluru Rural
+VIC01522,Garima Sankar,27,Female,Hassan
+VIC01523,Madhavi Rege,70,Male,Davanagere
+VIC01524,Varsha Chaudry,28,Female,Kalaburagi
+VIC01525,Yadavi Sawhney,60,Female,Mysuru
+VIC01526,Hredhaan Som,33,Female,Mangaluru
+VIC01527,Avi Sahota,34,Male,Belagavi
+VIC01528,Nisha Devan,59,Male,Shivamogga
+VIC01529,Krishna Khare,75,Female,Hassan
+VIC01530,Aishani Shetty,33,Female,Belagavi
+VIC01531,Jagat Yogi,36,Female,Belagavi
+VIC01532,Saksham Muni,68,Female,Davanagere
+VIC01533,Wakeeta Panchal,34,Female,Ballari
+VIC01534,Vrinda Madan,20,Male,Mysuru
+VIC01535,Xavier Sahota,51,Female,Bengaluru Urban
+VIC01536,Harshil Samra,32,Female,Ballari
+VIC01537,Bishakha Panchal,41,Female,Hubballi-Dharwad
+VIC01538,Pratyush Venkatesh,63,Male,Ballari
+VIC01539,Upma Tara,58,Female,Shivamogga
+VIC01540,Tejas Tella,63,Female,Vijayapura
+VIC01541,Neelima Rau,36,Male,Davanagere
+VIC01542,Champak Sridhar,69,Male,Mysuru
+VIC01543,Laban Yohannan,56,Female,Udupi
+VIC01544,Azad Nath,42,Female,Vijayapura
+VIC01545,Suhani Iyer,32,Male,Udupi
+VIC01546,Ekansh Misra,31,Female,Mysuru
+VIC01547,Nakul Kala,55,Male,Hubballi-Dharwad
+VIC01548,Chaitanya Boase,41,Female,Shivamogga
+VIC01549,Shaurya Shanker,57,Male,Belagavi
+VIC01550,Saanvi Kamdar,59,Male,Ballari
+VIC01551,Triya Pandya,72,Female,Tumakuru
+VIC01552,Pooja Raja,41,Female,Udupi
+VIC01553,Jyoti Bava,49,Male,Udupi
+VIC01554,Faris Desai,51,Female,Mysuru
+VIC01555,Damini Wable,48,Female,Bengaluru Urban
+VIC01556,Lucky Edwin,60,Male,Belagavi
+VIC01557,Ira Bhatnagar,32,Female,Mangaluru
+VIC01558,Vivaan Sidhu,32,Male,Hubballi-Dharwad
+VIC01559,Devika Vala,56,Male,Vijayapura
+VIC01560,Kamya Batra,30,Female,Shivamogga
+VIC01561,Patrick Comar,47,Male,Udupi
+VIC01562,Suhani Nagy,65,Male,Davanagere
+VIC01563,Robert Sandhu,30,Female,Vijayapura
+VIC01564,Isha Seth,20,Female,Vijayapura
+VIC01565,Ethan Sane,24,Female,Tumakuru
+VIC01566,Manya Pandit,22,Female,Tumakuru
+VIC01567,Daksha Keer,52,Male,Hassan
+VIC01568,Shivansh Mandal,21,Female,Ballari
+VIC01569,Aadhya Sharma,51,Male,Mangaluru
+VIC01570,Utkarsh Rau,34,Male,Davanagere
+VIC01571,Riya Shankar,59,Male,Mangaluru
+VIC01572,Zaid Shankar,62,Female,Mysuru
+VIC01573,Ryan Kannan,20,Female,Tumakuru
+VIC01574,Bachittar Bains,35,Male,Davanagere
+VIC01575,Falak Guha,30,Male,Chikkamagaluru
+VIC01576,Amaira Contractor,75,Male,Tumakuru
+VIC01577,Sai Rajagopal,37,Male,Mangaluru
+VIC01578,Eta Panchal,32,Male,Ballari
+VIC01579,Kiaan Khatri,66,Female,Shivamogga
+VIC01580,Jason Padmanabhan,24,Male,Belagavi
+VIC01581,Vritti Vohra,68,Male,Mangaluru
+VIC01582,Veda Dave,48,Male,Shivamogga
+VIC01583,Wridesh Menon,23,Female,Mangaluru
+VIC01584,Charita Palla,24,Male,Ballari
+VIC01585,Janaki Tella,49,Female,Ballari
+VIC01586,Benjamin Merchant,18,Female,Udupi
+VIC01587,Faqid Halder,75,Male,Davanagere
+VIC01588,Lajita Kadakia,74,Female,Hassan
+VIC01589,Fiyaz Koshy,59,Male,Ballari
+VIC01590,Damini Rout,69,Female,Bengaluru Urban
+VIC01591,Samesh Shukla,34,Female,Ballari
+VIC01592,Pranav Edwin,35,Female,Vijayapura
+VIC01593,Adya Mody,29,Female,Tumakuru
+VIC01594,Onkar Shenoy,48,Female,Vijayapura
+VIC01595,Chaaya Chaudhari,37,Female,Udupi
+VIC01596,Sarthak Hayer,52,Male,Belagavi
+VIC01597,Kalpit Samra,35,Female,Vijayapura
+VIC01598,Anamika Gokhale,46,Male,Hassan
+VIC01599,Warinder Panchal,29,Female,Bengaluru Urban
+VIC01600,Arunima Mandal,38,Female,Shivamogga
+VIC01601,Aditya Rama,28,Male,Bengaluru Rural
+VIC01602,Chavvi Bahri,66,Female,Vijayapura
+VIC01603,Janani Thaman,37,Male,Chikkamagaluru
+VIC01604,Thomas Jain,73,Female,Belagavi
+VIC01605,Gaurav Bassi,58,Male,Mangaluru
+VIC01606,Meghana Cheema,67,Male,Hassan
+VIC01607,Gautami Chawla,32,Male,Hubballi-Dharwad
+VIC01608,Arin Dewan,50,Female,Belagavi
+VIC01609,Yahvi Loyal,67,Female,Bengaluru Rural
+VIC01610,Aishani Suresh,61,Female,Chikkamagaluru
+VIC01611,Samar Pradhan,57,Male,Ballari
+VIC01612,Panini Halder,61,Male,Belagavi
+VIC01613,Joshua Dey,28,Male,Hassan
+VIC01614,Chanakya Subramaniam,43,Male,Udupi
+VIC01615,Bakhshi Barman,28,Male,Belagavi
+VIC01616,Riya Anne,51,Female,Vijayapura
+VIC01617,Manan Ben,56,Female,Hassan
+VIC01618,Mohammed Chauhan,64,Female,Mangaluru
+VIC01619,David Bhattacharyya,34,Female,Chikkamagaluru
+VIC01620,Jason Sethi,72,Female,Belagavi
+VIC01621,Anay Padmanabhan,27,Female,Belagavi
+VIC01622,Rajata Bal,64,Female,Udupi
+VIC01623,Urvi Koshy,65,Female,Shivamogga
+VIC01624,Geetika Vohra,37,Female,Ballari
+VIC01625,Zaitra Khare,43,Female,Bengaluru Urban
+VIC01626,Urvashi Sangha,66,Female,Bengaluru Urban
+VIC01627,Kamya Sankaran,44,Female,Vijayapura
+VIC01628,Chaitanya Arya,69,Male,Shivamogga
+VIC01629,Omaja Loyal,67,Female,Bengaluru Urban
+VIC01630,Dominic Balan,70,Male,Mangaluru
+VIC01631,Unnati Hayer,60,Female,Hubballi-Dharwad
+VIC01632,Yuvraj Deshmukh,71,Female,Bengaluru Urban
+VIC01633,Yashodhara Dutt,38,Female,Hassan
+VIC01634,Nakul Narula,42,Female,Tumakuru
+VIC01635,Kamala Ramanathan,53,Male,Hassan
+VIC01636,Hitesh Vala,31,Female,Udupi
+VIC01637,Wakeeta Bumb,35,Male,Bengaluru Rural
+VIC01638,Rudra Tella,33,Male,Belagavi
+VIC01639,Aarush Jani,64,Female,Davanagere
+VIC01640,Anamika Rajagopalan,55,Female,Bengaluru Urban
+VIC01641,Amruta Dhar,67,Female,Davanagere
+VIC01642,Max Sant,63,Female,Mangaluru
+VIC01643,Chandani Bajwa,35,Female,Bengaluru Urban
+VIC01644,Vedika Bir,24,Male,Vijayapura
+VIC01645,Guneet Korpal,39,Female,Tumakuru
+VIC01646,Vedhika Tank,41,Female,Chikkamagaluru
+VIC01647,Yauvani Bawa,36,Male,Shivamogga
+VIC01648,Ishanvi Ratti,26,Male,Belagavi
+VIC01649,Kamya Mittal,67,Female,Udupi
+VIC01650,Frederick Munshi,27,Male,Ballari
+VIC01651,Falan Chanda,37,Male,Tumakuru
+VIC01652,Chameli Muni,23,Female,Mangaluru
+VIC01653,Mohammed Gara,38,Female,Tumakuru
+VIC01654,Onveer Bansal,51,Female,Davanagere
+VIC01655,Urvashi Saraf,19,Male,Hassan
+VIC01656,Qabil Buch,67,Male,Udupi
+VIC01657,Upma Gaba,68,Female,Udupi
+VIC01658,Jeremiah Lal,41,Female,Davanagere
+VIC01659,Anmol Bajaj,74,Male,Mysuru
+VIC01660,Upma Jhaveri,38,Female,Mangaluru
+VIC01661,Yuvraj Nagy,47,Female,Belagavi
+VIC01662,Dominic Salvi,30,Female,Hubballi-Dharwad
+VIC01663,Geetika Dalal,56,Male,Mysuru
+VIC01664,Zansi Bali,25,Female,Kalaburagi
+VIC01665,Advay Prabhakar,43,Female,Hassan
+VIC01666,Triveni Garg,21,Male,Chikkamagaluru
+VIC01667,Yug Pall,50,Female,Bengaluru Urban
+VIC01668,Abhiram Narasimhan,54,Female,Bengaluru Urban
+VIC01669,Vedika Batra,50,Female,Hassan
+VIC01670,Anirudh Pathak,52,Female,Hubballi-Dharwad
+VIC01671,Prisha Pai,54,Female,Vijayapura
+VIC01672,Abeer Vohra,22,Male,Ballari
+VIC01673,Abeer Nayak,23,Male,Tumakuru
+VIC01674,Hemal Sarraf,28,Male,Ballari
+VIC01675,Samesh Dash,47,Male,Hassan
+VIC01676,Aarush Sangha,22,Female,Udupi
+VIC01677,Wishi Gola,35,Female,Shivamogga
+VIC01678,Maya Bir,74,Male,Vijayapura
+VIC01679,Lopa D’Alia,39,Male,Mysuru
+VIC01680,Krish Hora,59,Female,Shivamogga
+VIC01681,Raagini Khurana,51,Female,Chikkamagaluru
+VIC01682,Rishi Sampath,19,Female,Ballari
+VIC01683,Advay Babu,36,Male,Ballari
+VIC01684,Zaitra Krishnamurthy,71,Female,Bengaluru Urban
+VIC01685,Tanish Bhasin,18,Male,Belagavi
+VIC01686,Advik Dani,45,Male,Hubballi-Dharwad
+VIC01687,Aishani Devi,72,Male,Ballari
+VIC01688,Veda Acharya,61,Female,Tumakuru
+VIC01689,Pooja Bhatt,47,Male,Hassan
+VIC01690,Ojas Magar,70,Female,Chikkamagaluru
+VIC01691,Balvan Yohannan,74,Male,Mangaluru
+VIC01692,Odika Sachdeva,67,Male,Mangaluru
+VIC01693,Teerth Patla,37,Male,Bengaluru Rural
+VIC01694,Nandini Lanka,19,Male,Hassan
+VIC01695,Joshua Edwin,26,Female,Bengaluru Rural
+VIC01696,Yug Sarma,38,Female,Chikkamagaluru
+VIC01697,Karan Thakur,32,Male,Mangaluru
+VIC01698,Jhalak Deol,37,Male,Kalaburagi
+VIC01699,Daksha Chandran,35,Male,Chikkamagaluru
+VIC01700,Urishilla Sahota,31,Female,Bengaluru Urban
+VIC01701,Advika Bath,26,Female,Bengaluru Rural
+VIC01702,Tanveer Kulkarni,71,Female,Bengaluru Urban
+VIC01703,Samuel Bhatti,46,Male,Kalaburagi
+VIC01704,Nimrat Srinivas,21,Female,Shivamogga
+VIC01705,Rudra Viswanathan,43,Male,Mangaluru
+VIC01706,Tanmayi Jhaveri,67,Female,Ballari
+VIC01707,Guneet Mangal,70,Male,Bengaluru Rural
+VIC01708,Aditya Suri,29,Male,Mysuru
+VIC01709,Patrick Mitra,66,Male,Bengaluru Rural
+VIC01710,Ekta Toor,49,Female,Davanagere
+VIC01711,Keya Sant,38,Female,Mangaluru
+VIC01712,Banjeet Bains,31,Male,Hassan
+VIC01713,Ryan Vala,50,Female,Shivamogga
+VIC01714,Krishna Rout,34,Male,Shivamogga
+VIC01715,David Bahl,19,Male,Kalaburagi
+VIC01716,Adweta Bal,69,Female,Kalaburagi
+VIC01717,Mitesh Nagarajan,72,Male,Belagavi
+VIC01718,Viraj Gandhi,41,Female,Udupi
+VIC01719,Ridhi Kade,22,Female,Udupi
+VIC01720,Noah Handa,59,Female,Mangaluru
+VIC01721,Noah Wagle,62,Male,Vijayapura
+VIC01722,Om Dhar,59,Female,Chikkamagaluru
+VIC01723,Balvan Reddy,48,Male,Hubballi-Dharwad
+VIC01724,Quincy Raghavan,64,Female,Bengaluru Urban
+VIC01725,Veda Bhargava,27,Male,Mysuru
+VIC01726,Max Oommen,54,Male,Mysuru
+VIC01727,Tanveer Toor,51,Male,Mysuru
+VIC01728,Hitesh Kanda,62,Female,Hassan
+VIC01729,Madhav Borra,20,Male,Ballari
+VIC01730,Sanaya Viswanathan,69,Male,Udupi
+VIC01731,Ira Nayak,65,Female,Belagavi
+VIC01732,Laban Garde,57,Female,Udupi
+VIC01733,Sarthak Pant,28,Female,Mysuru
+VIC01734,Hritik Deep,29,Male,Davanagere
+VIC01735,Sudiksha Mand,69,Male,Belagavi
+VIC01736,Rachita Singhal,74,Male,Hassan
+VIC01737,Shivani Venkataraman,28,Male,Shivamogga
+VIC01738,Unnati Mander,31,Female,Kalaburagi
+VIC01739,Lakshit Gulati,58,Female,Chikkamagaluru
+VIC01740,Yashvi Mannan,71,Female,Ballari
+VIC01741,Indira Prasad,38,Male,Hassan
+VIC01742,Michael Chokshi,19,Female,Bengaluru Urban
+VIC01743,Gagan Varma,74,Female,Bengaluru Urban
+VIC01744,Timothy Oza,65,Male,Chikkamagaluru
+VIC01745,Nimrat Hans,44,Male,Tumakuru
+VIC01746,Laban Nazareth,42,Male,Mysuru
+VIC01747,Umang Nanda,24,Male,Belagavi
+VIC01748,Gaurang Pandit,75,Male,Bengaluru Rural
+VIC01749,Ijaya Nanda,44,Male,Bengaluru Rural
+VIC01750,Alka Bala,48,Female,Kalaburagi
+VIC01751,Rachita Vora,72,Female,Mysuru
+VIC01752,Ekavir Mody,72,Male,Hubballi-Dharwad
+VIC01753,Sai Misra,48,Female,Chikkamagaluru
+VIC01754,Ira Swaminathan,75,Female,Mysuru
+VIC01755,Chaitaly Purohit,38,Female,Ballari
+VIC01756,Yuvraj Gokhale,60,Male,Shivamogga
+VIC01757,Rushil Shenoy,49,Male,Mysuru
+VIC01758,Owen Gopal,32,Male,Hassan
+VIC01759,Gautami Ben,27,Male,Vijayapura
+VIC01760,Fariq Swamy,23,Male,Davanagere
+VIC01761,Max Gola,43,Female,Chikkamagaluru
+VIC01762,Zilmil Kaur,57,Male,Mangaluru
+VIC01763,Dipta Patla,32,Female,Mysuru
+VIC01764,Falguni Khalsa,64,Female,Belagavi
+VIC01765,Saksham Dalal,63,Female,Vijayapura
+VIC01766,Yashawini Thaker,55,Female,Hassan
+VIC01767,Varenya Buch,75,Male,Belagavi
+VIC01768,Vasana Kala,45,Female,Vijayapura
+VIC01769,Upkaar Sha,27,Male,Davanagere
+VIC01770,Anika Dhaliwal,75,Female,Vijayapura
+VIC01771,Yashodhara Yohannan,21,Male,Mysuru
+VIC01772,Yashasvi Bera,18,Male,Vijayapura
+VIC01773,Jhalak Sangha,20,Male,Mysuru
+VIC01774,Warinder Pandya,43,Female,Bengaluru Urban
+VIC01775,Pallavi Nori,54,Female,Shivamogga
+VIC01776,Harrison Narain,72,Female,Mangaluru
+VIC01777,Chakradhar Mahajan,58,Female,Shivamogga
+VIC01778,Gaurang Chandra,31,Female,Ballari
+VIC01779,Baljiwan Baral,34,Female,Bengaluru Rural
+VIC01780,Rayaan Subramaniam,65,Female,Vijayapura
+VIC01781,Radha Sankaran,67,Female,Belagavi
+VIC01782,Advik Shetty,75,Male,Hubballi-Dharwad
+VIC01783,Triya Balakrishnan,39,Female,Hassan
+VIC01784,Chatura Sachdev,53,Female,Vijayapura
+VIC01785,Yasti Lala,24,Female,Hassan
+VIC01786,Xavier Muni,51,Female,Bengaluru Rural
+VIC01787,Yashvi Bhatt,68,Female,Kalaburagi
+VIC01788,Udyati Mahajan,59,Male,Tumakuru
+VIC01789,Kashvi Tiwari,26,Male,Mangaluru
+VIC01790,Mason Dixit,47,Male,Bengaluru Rural
+VIC01791,Anika Barad,53,Female,Mysuru
+VIC01792,Ekanta Sehgal,73,Female,Hubballi-Dharwad
+VIC01793,Maanav Dube,46,Female,Tumakuru
+VIC01794,Kavya Sant,23,Male,Kalaburagi
+VIC01795,Nakul Sengupta,70,Male,Mysuru
+VIC01796,Gavin Sharaf,71,Male,Hassan
+VIC01797,Sathvik Nagy,19,Male,Davanagere
+VIC01798,Dalaja Ramakrishnan,65,Female,Tumakuru
+VIC01799,Tarak Narayan,56,Male,Ballari
+VIC01800,Yashasvi Venkatesh,73,Male,Hassan
+VIC01801,Tripti Pau,52,Female,Tumakuru
+VIC01802,Amruta Kulkarni,32,Male,Belagavi
+VIC01803,Jacob Yogi,28,Male,Vijayapura
+VIC01804,Chaman Vyas,28,Male,Udupi
+VIC01805,Arjun Kota,66,Male,Tumakuru
+VIC01806,Laksh Padmanabhan,57,Female,Udupi
+VIC01807,Zilmil Tara,30,Female,Bengaluru Urban
+VIC01808,Azad Mani,43,Female,Kalaburagi
+VIC01809,Dalaja Shenoy,75,Female,Chikkamagaluru
+VIC01810,Pavani Kar,48,Female,Belagavi
+VIC01811,Hritik Kanda,26,Female,Bengaluru Urban
+VIC01812,Aarna Halder,22,Female,Davanagere
+VIC01813,Sai Bhatt,53,Female,Mangaluru
+VIC01814,Anya Hayre,64,Male,Bengaluru Urban
+VIC01815,Waida Apte,66,Female,Mysuru
+VIC01816,Chanchal Mody,27,Female,Udupi
+VIC01817,Vasana Narain,28,Male,Kalaburagi
+VIC01818,Christopher Palla,68,Male,Vijayapura
+VIC01819,Wyatt Natarajan,44,Female,Ballari
+VIC01820,Fiyaz Dara,30,Male,Udupi
+VIC01821,Upma Mammen,40,Male,Mangaluru
+VIC01822,Balvan Soni,35,Male,Chikkamagaluru
+VIC01823,Oviya Goyal,43,Male,Davanagere
+VIC01824,Alexander Kalita,65,Male,Mangaluru
+VIC01825,Vedant Mitra,46,Male,Vijayapura
+VIC01826,Parth Uppal,35,Female,Bengaluru Urban
+VIC01827,Irya Chakraborty,58,Male,Tumakuru
+VIC01828,Nihal Prabhu,37,Male,Hassan
+VIC01829,Bahadurjit Muni,58,Female,Mangaluru
+VIC01830,Aradhana Kurian,60,Female,Hubballi-Dharwad
+VIC01831,Luke Dyal,70,Male,Tumakuru
+VIC01832,Nidra Vasa,65,Female,Mysuru
+VIC01833,Daksha Bava,22,Female,Chikkamagaluru
+VIC01834,Maanas Radhakrishnan,35,Male,Kalaburagi
+VIC01835,Falan Ramesh,71,Female,Bengaluru Rural
+VIC01836,Oscar Kamdar,58,Female,Kalaburagi
+VIC01837,Priya Kadakia,55,Male,Chikkamagaluru
+VIC01838,Yash Seth,63,Female,Hassan
+VIC01839,Vivaan Sidhu,36,Male,Tumakuru
+VIC01840,Ekantika Wadhwa,24,Male,Davanagere
+VIC01841,Nicholas Nair,56,Female,Mangaluru
+VIC01842,Diya Srinivasan,73,Female,Udupi
+VIC01843,Christopher Dara,62,Female,Kalaburagi
+VIC01844,Andrew Nagi,21,Male,Udupi
+VIC01845,Saumya Varty,67,Female,Udupi
+VIC01846,Ojasvi Ranganathan,64,Female,Chikkamagaluru
+VIC01847,Veda Pai,34,Female,Kalaburagi
+VIC01848,Jason Subramanian,60,Female,Belagavi
+VIC01849,Parth Kunda,23,Male,Bengaluru Rural
+VIC01850,Indali Sodhi,63,Female,Mangaluru
+VIC01851,Amrita Taneja,55,Female,Mangaluru
+VIC01852,Samar Morar,55,Female,Vijayapura
+VIC01853,Rayaan Kakar,35,Male,Hassan
+VIC01854,Varsha Krish,70,Female,Tumakuru
+VIC01855,Janaki Oak,56,Female,Ballari
+VIC01856,Ekalinga Sanghvi,51,Female,Bengaluru Urban
+VIC01857,Pavani Saraf,56,Male,Ballari
+VIC01858,Girindra Bora,71,Male,Ballari
+VIC01859,Chatura Gour,24,Male,Hassan
+VIC01860,Aayush Contractor,33,Female,Ballari
+VIC01861,Wriddhish Parsa,61,Female,Udupi
+VIC01862,Damini Kala,43,Male,Belagavi
+VIC01863,Hemal Kant,59,Female,Udupi
+VIC01864,Nihal Pandey,47,Male,Kalaburagi
+VIC01865,Amaira Chana,70,Female,Vijayapura
+VIC01866,Jagat Kunda,19,Male,Ballari
+VIC01867,Patrick Bains,29,Male,Vijayapura
+VIC01868,Laban Tara,39,Male,Hubballi-Dharwad
+VIC01869,Bimala Gara,44,Male,Davanagere
+VIC01870,Isaiah Singh,47,Female,Belagavi
+VIC01871,Ati Nayar,70,Female,Belagavi
+VIC01872,Karan Mutti,33,Female,Shivamogga
+VIC01873,Abhiram Minhas,68,Male,Belagavi
+VIC01874,Irya Narayan,47,Female,Hassan
+VIC01875,Maya Tandon,68,Male,Mangaluru
+VIC01876,Bakhshi Hari,53,Female,Davanagere
+VIC01877,Hemang Chandran,43,Female,Hassan
+VIC01878,Ira Rout,70,Male,Udupi
+VIC01879,Daniel Date,49,Male,Belagavi
+VIC01880,Daksha Date,40,Male,Belagavi
+VIC01881,Megha Anne,71,Female,Bengaluru Rural
+VIC01882,Harish Parekh,64,Male,Vijayapura
+VIC01883,Avi Sandhu,43,Female,Ballari
+VIC01884,Chandani Kade,49,Male,Hassan
+VIC01885,Thomas Tak,42,Male,Hubballi-Dharwad
+VIC01886,Tanvi Natt,72,Female,Belagavi
+VIC01887,Neelima Roy,39,Female,Chikkamagaluru
+VIC01888,Suhani Krishna,41,Male,Mysuru
+VIC01889,Kamya Kale,38,Male,Bengaluru Rural
+VIC01890,Varsha Ben,30,Female,Chikkamagaluru
+VIC01891,Wridesh Grewal,50,Female,Hassan
+VIC01892,Harshil Dhingra,53,Male,Kalaburagi
+VIC01893,Avni Dugar,57,Male,Mangaluru
+VIC01894,Shivani Khalsa,23,Male,Davanagere
+VIC01895,Anusha Handa,56,Female,Udupi
+VIC01896,Samar Chacko,34,Male,Davanagere
+VIC01897,Vihaan Patil,39,Female,Kalaburagi
+VIC01898,Keya Venkatesh,26,Female,Bengaluru Rural
+VIC01899,Raksha Gera,72,Female,Ballari
+VIC01900,Hritik Krish,54,Male,Belagavi
+VIC01901,Naksh Kapoor,32,Female,Udupi
+VIC01902,Simon Reddy,20,Male,Tumakuru
+VIC01903,Onveer Kapur,27,Female,Bengaluru Urban
+VIC01904,Jeremiah Soman,49,Male,Udupi
+VIC01905,Lipika Vala,62,Male,Mangaluru
+VIC01906,Ira Kothari,74,Male,Shivamogga
+VIC01907,Noah Majumdar,59,Male,Mysuru
+VIC01908,Neelima Srivastava,18,Female,Mangaluru
+VIC01909,Tanay Goswami,19,Female,Udupi
+VIC01910,Aadi Hari,46,Female,Tumakuru
+VIC01911,Mohini Chatterjee,53,Male,Kalaburagi
+VIC01912,Jairaj Agrawal,29,Female,Vijayapura
+VIC01913,Dhriti Sarraf,54,Female,Davanagere
+VIC01914,Wahab Tak,34,Female,Hassan
+VIC01915,Ganga Bail,69,Female,Kalaburagi
+VIC01916,Falguni Pai,41,Female,Chikkamagaluru
+VIC01917,Nakul Murthy,33,Female,Tumakuru
+VIC01918,Isaiah Chhabra,40,Male,Davanagere
+VIC01919,Caleb Dhingra,26,Female,Udupi
+VIC01920,Tamanna Chowdhury,70,Male,Hassan
+VIC01921,Dhriti Krishnan,52,Male,Bengaluru Rural
+VIC01922,Isaiah Vohra,68,Female,Tumakuru
+VIC01923,Christopher Loke,38,Male,Hassan
+VIC01924,Bahadurjit Salvi,70,Male,Davanagere
+VIC01925,Laksh Borde,40,Male,Shivamogga
+VIC01926,Chaitaly Barad,35,Male,Shivamogga
+VIC01927,Bhavika Salvi,57,Female,Shivamogga
+VIC01928,Tara Wason,55,Female,Bengaluru Rural
+VIC01929,Zilmil Chada,28,Male,Tumakuru
+VIC01930,Imaran Viswanathan,46,Male,Chikkamagaluru
+VIC01931,Balhaar Mitra,40,Female,Udupi
+VIC01932,Yutika Chahal,63,Male,Bengaluru Rural
+VIC01933,Rajeshri Bose,61,Female,Bengaluru Rural
+VIC01934,Omisha Ray,64,Female,Ballari
+VIC01935,Vansha Karnik,34,Male,Davanagere
+VIC01936,Anita Garg,56,Female,Kalaburagi
+VIC01937,Yashodhara Mittal,63,Male,Kalaburagi
+VIC01938,Yashoda Naidu,31,Female,Hubballi-Dharwad
+VIC01939,Urvi Edwin,52,Female,Belagavi
+VIC01940,Oliver Gill,32,Female,Mysuru
+VIC01941,Ekaraj Chaudry,67,Female,Udupi
+VIC01942,Ishaan Karnik,18,Male,Davanagere
+VIC01943,Nimrat Dasgupta,66,Female,Ballari
+VIC01944,Falak Chad,25,Male,Ballari
+VIC01945,Krish Tata,22,Female,Davanagere
+VIC01946,Falguni Ganesh,28,Male,Mangaluru
+VIC01947,Pallavi Savant,56,Male,Udupi
+VIC01948,Banjeet Sachar,29,Male,Vijayapura
+VIC01949,Anika Krish,49,Male,Belagavi
+VIC01950,Falak Grover,23,Male,Kalaburagi
+VIC01951,Jalsa Char,54,Female,Hassan
+VIC01952,Atharv Acharya,44,Female,Davanagere
+VIC01953,Kala Chaudhari,48,Male,Udupi
+VIC01954,Udant Dube,39,Male,Bengaluru Rural
+VIC01955,Kevin Saran,37,Female,Mysuru
+VIC01956,Zinal Kala,63,Female,Chikkamagaluru
+VIC01957,Brinda Din,34,Female,Bengaluru Rural
+VIC01958,Ekalinga Malhotra,29,Female,Kalaburagi
+VIC01959,Rishi Borah,30,Male,Belagavi
+VIC01960,Wishi Dani,59,Male,Belagavi
+VIC01961,Arjun Rana,46,Male,Tumakuru
+VIC01962,Kashish Lad,34,Male,Chikkamagaluru
+VIC01963,Victor Bakshi,56,Male,Tumakuru
+VIC01964,Christopher Dutta,21,Female,Bengaluru Rural
+VIC01965,Rachita Borra,28,Male,Tumakuru
+VIC01966,Megha Kata,18,Male,Belagavi
+VIC01967,Meghana Bhavsar,42,Female,Bengaluru Urban
+VIC01968,Mekhala Balasubramanian,69,Female,Udupi
+VIC01969,Megha Chhabra,22,Male,Mangaluru
+VIC01970,Pooja Vyas,58,Female,Mysuru
+VIC01971,Vincent Edwin,52,Male,Belagavi
+VIC01972,Chaitaly Murty,24,Male,Ballari
+VIC01973,Chakrika Ramesh,41,Male,Chikkamagaluru
+VIC01974,Alexander Gara,46,Male,Tumakuru
+VIC01975,Qabil Narula,27,Female,Bengaluru Urban
+VIC01976,Avi Tak,57,Male,Chikkamagaluru
+VIC01977,Hiral Patla,52,Male,Hassan
+VIC01978,Ati Korpal,37,Female,Bengaluru Rural
+VIC01979,Chavvi Chatterjee,40,Male,Ballari
+VIC01980,Sai Pandey,51,Male,Chikkamagaluru
+VIC01981,Saanvi Zachariah,24,Female,Mangaluru
+VIC01982,Aadi Batra,56,Male,Ballari
+VIC01983,Jagrati Palla,39,Female,Chikkamagaluru
+VIC01984,Ansh Kannan,60,Female,Hassan
+VIC01985,Vincent Bahl,46,Male,Vijayapura
+VIC01986,Zaid Bhavsar,53,Male,Belagavi
+VIC01987,Adweta Raghavan,33,Female,Mysuru
+VIC01988,Abhiram Batta,33,Female,Mangaluru
+VIC01989,Yasti Dass,68,Female,Bengaluru Urban
+VIC01990,Faras Parikh,40,Male,Chikkamagaluru
+VIC01991,Nakul Shah,48,Male,Udupi
+VIC01992,Patrick More,51,Male,Vijayapura
+VIC01993,Azaan Varkey,59,Female,Chikkamagaluru
+VIC01994,Ayaan Parmar,51,Female,Hassan
+VIC01995,Lucky Lala,52,Male,Hubballi-Dharwad
+VIC01996,Arunima Bhavsar,38,Male,Shivamogga
+VIC01997,Mahika Wason,66,Male,Hubballi-Dharwad
+VIC01998,Vincent Chopra,58,Female,Kalaburagi
+VIC01999,Liam Divan,45,Female,Bengaluru Rural
+VIC02000,Charan Kala,49,Male,Shivamogga
+VIC02001,Janani Acharya,24,Female,Tumakuru
+VIC02002,Rajeshri Bala,48,Female,Hubballi-Dharwad
+VIC02003,Tanveer Hari,49,Female,Hassan
+VIC02004,Urmi Grover,61,Male,Tumakuru
+VIC02005,Harita Vig,71,Male,Mangaluru
+VIC02006,Sanaya Sankaran,23,Female,Chikkamagaluru
+VIC02007,Unni Wable,55,Male,Vijayapura
+VIC02008,Girik Karan,38,Male,Tumakuru
+VIC02009,Mugdha Banerjee,19,Male,Hubballi-Dharwad
+VIC02010,Victor Parikh,42,Male,Belagavi
+VIC02011,Lipika Chopra,52,Male,Udupi
+VIC02012,Wyatt Yadav,70,Female,Davanagere
+VIC02013,Balveer Tella,50,Male,Tumakuru
+VIC02014,Sanaya Kamdar,41,Male,Chikkamagaluru
+VIC02015,Bhavini Khosla,31,Male,Shivamogga
+VIC02016,Forum Issac,29,Male,Davanagere
+VIC02017,Vasatika Ramanathan,38,Male,Davanagere
+VIC02018,Anmol Gala,31,Female,Mangaluru
+VIC02019,Amruta Korpal,54,Male,Bengaluru Urban
+VIC02020,Oviya Brahmbhatt,42,Male,Chikkamagaluru
+VIC02021,Maanav Randhawa,62,Male,Chikkamagaluru
+VIC02022,Ira Handa,36,Male,Chikkamagaluru
+VIC02023,Jeet Madan,33,Female,Mysuru
+VIC02024,Watika Raju,42,Male,Belagavi
+VIC02025,Nimrat Sekhon,71,Female,Bengaluru Urban
+VIC02026,Falguni Gokhale,27,Male,Ballari
+VIC02027,Reyansh Narasimhan,33,Female,Chikkamagaluru
+VIC02028,Raagini Bajaj,45,Female,Mangaluru
+VIC02029,Chaitanya Subramanian,74,Female,Kalaburagi
+VIC02030,Amaira Gara,62,Male,Kalaburagi
+VIC02031,Baljiwan Borah,70,Female,Kalaburagi
+VIC02032,Amol Mand,35,Male,Udupi
+VIC02033,Sathvik Majumdar,67,Female,Hubballi-Dharwad
+VIC02034,Sanya Dugar,56,Male,Vijayapura
+VIC02035,Tanish Bajaj,62,Female,Bengaluru Urban
+VIC02036,Theodore Seth,62,Female,Mysuru
+VIC02037,Darsh Din,60,Male,Bengaluru Rural
+VIC02038,Aishani Venkatesh,58,Male,Bengaluru Rural
+VIC02039,Manan Wali,28,Female,Bengaluru Rural
+VIC02040,Advik Varma,29,Female,Mysuru
+VIC02041,Chandani Chandran,65,Female,Vijayapura
+VIC02042,Neelima Narang,63,Female,Hubballi-Dharwad
+VIC02043,Oviya Menon,52,Female,Hubballi-Dharwad
+VIC02044,Krishna Chahal,72,Female,Bengaluru Rural
+VIC02045,Nidra Ramanathan,66,Male,Kalaburagi
+VIC02046,Mitesh Kapadia,70,Male,Bengaluru Rural
+VIC02047,Vedant Mittal,53,Female,Mangaluru
+VIC02048,Niharika Konda,26,Male,Shivamogga
+VIC02049,Zehaan Bala,48,Male,Bengaluru Rural
+VIC02050,Janaki Palan,32,Male,Udupi
+VIC02051,Thomas Bansal,42,Male,Bengaluru Rural
+VIC02052,Oviya Mistry,66,Male,Mangaluru
+VIC02053,Faqid Nayar,45,Female,Shivamogga
+VIC02054,Abeer Saini,65,Male,Shivamogga
+VIC02055,Yutika Rana,56,Male,Vijayapura
+VIC02056,Ekbal Ram,50,Male,Hassan
+VIC02057,Radha Sridhar,31,Female,Bengaluru Urban
+VIC02058,Prisha Muni,54,Male,Mysuru
+VIC02059,Jhalak Ray,39,Female,Chikkamagaluru
+VIC02060,Frederick Shroff,29,Female,Shivamogga
+VIC02061,Quincy Bhardwaj,30,Male,Kalaburagi
+VIC02062,Rachana Bhargava,42,Male,Hubballi-Dharwad
+VIC02063,Lipika Sharma,50,Male,Mangaluru
+VIC02064,Gaurang Narasimhan,29,Male,Belagavi
+VIC02065,Arya Mannan,60,Female,Bengaluru Urban
+VIC02066,Gunbir Varughese,73,Female,Bengaluru Rural
+VIC02067,Nachiket Prabhu,71,Male,Ballari
+VIC02068,Rehaan Chad,51,Female,Tumakuru
+VIC02069,Daksha Babu,28,Male,Tumakuru
+VIC02070,Lohit Keer,38,Male,Bengaluru Rural
+VIC02071,Prisha Mammen,61,Male,Kalaburagi
+VIC02072,Wriddhish Mitra,51,Male,Ballari
+VIC02073,Wriddhish Deshmukh,64,Male,Davanagere
+VIC02074,Yashodhara Borra,38,Female,Bengaluru Urban
+VIC02075,Damyanti Narayan,27,Male,Vijayapura
+VIC02076,Darika Gara,32,Male,Kalaburagi
+VIC02077,Anya Ahuja,18,Male,Udupi
+VIC02078,Praneel Ranganathan,42,Male,Udupi
+VIC02079,Devika Nori,32,Male,Ballari
+VIC02080,Elijah Vaidya,52,Male,Bengaluru Urban
+VIC02081,Harita Borde,59,Female,Chikkamagaluru
+VIC02082,Dalbir Sathe,54,Female,Hubballi-Dharwad
+VIC02083,Ayaan Luthra,61,Female,Shivamogga
+VIC02084,Chasmum Choudhury,65,Male,Vijayapura
+VIC02085,Ishita Karnik,49,Female,Belagavi
+VIC02086,Ishani Madan,58,Female,Shivamogga
+VIC02087,Ekantika Verma,75,Male,Shivamogga
+VIC02088,Netra Agate,52,Female,Mangaluru
+VIC02089,Jyoti Mutti,27,Female,Vijayapura
+VIC02090,Avni Chadha,64,Male,Kalaburagi
+VIC02091,Pratyush Badal,34,Male,Belagavi
+VIC02092,Owen Tata,65,Male,Kalaburagi
+VIC02093,Faraj Basak,69,Female,Mysuru
+VIC02094,Anita Ravel,20,Female,Kalaburagi
+VIC02095,Champak Koshy,63,Male,Kalaburagi
+VIC02096,Naveen Sundaram,26,Female,Mangaluru
+VIC02097,Rishi Swaminathan,43,Female,Chikkamagaluru
+VIC02098,Oscar Gupta,44,Female,Davanagere
+VIC02099,Vasatika Sharaf,46,Female,Kalaburagi
+VIC02100,Praneel Sama,47,Female,Belagavi
+VIC02101,Lipika Mander,38,Female,Mysuru
+VIC02102,Bina Om,64,Male,Mangaluru
+VIC02103,Henry Tank,31,Male,Ballari
+VIC02104,Jagrati Chakrabarti,30,Female,Chikkamagaluru
+VIC02105,Chaitaly Bhat,47,Female,Belagavi
+VIC02106,Samaksh Kala,59,Female,Mangaluru
+VIC02107,Rajeshri Parmar,43,Male,Shivamogga
+VIC02108,Anika Nagarajan,24,Female,Hubballi-Dharwad
+VIC02109,Max Ram,75,Female,Bengaluru Urban
+VIC02110,Nakul Mitter,30,Male,Belagavi
+VIC02111,Abhimanyu Sengupta,53,Male,Vijayapura
+VIC02112,Sai Menon,42,Female,Mysuru
+VIC02113,Vanya Kannan,46,Male,Davanagere
+VIC02114,Upasna Setty,31,Female,Ballari
+VIC02115,Yauvani Tata,60,Male,Hubballi-Dharwad
+VIC02116,Unni Sandhu,65,Male,Vijayapura
+VIC02117,Deepa Nadkarni,43,Male,Mysuru
+VIC02118,Zinal Kashyap,44,Female,Shivamogga
+VIC02119,Samaksh Bhatnagar,33,Male,Hassan
+VIC02120,Dakshesh Panchal,49,Female,Ballari
+VIC02121,Kavya Cheema,66,Male,Vijayapura
+VIC02122,Akshay Keer,24,Male,Bengaluru Rural
+VIC02123,Advik Choudhary,19,Male,Chikkamagaluru
+VIC02124,Abha Dhaliwal,73,Male,Belagavi
+VIC02125,Indira Chowdhury,72,Male,Belagavi
+VIC02126,Nathaniel Chokshi,75,Female,Mangaluru
+VIC02127,Kavya Boase,65,Male,Mangaluru
+VIC02128,Eshana Dubey,37,Male,Belagavi
+VIC02129,Wriddhish Dalal,57,Female,Ballari
+VIC02130,Max Doctor,75,Female,Shivamogga
+VIC02131,Hamsini Brar,39,Male,Hubballi-Dharwad
+VIC02132,Zayan Bhat,37,Male,Hassan
+VIC02133,Anya Char,53,Male,Chikkamagaluru
+VIC02134,Ishita Krishnan,74,Male,Mysuru
+VIC02135,Ekantika Lad,44,Male,Tumakuru
+VIC02136,Idika Verma,57,Female,Mysuru
+VIC02137,Balvan Ratti,53,Female,Davanagere
+VIC02138,Samar Upadhyay,35,Male,Bengaluru Rural
+VIC02139,Sachi Dubey,60,Male,Chikkamagaluru
+VIC02140,Gabriel Bansal,46,Male,Hassan
+VIC02141,Pratyush Mody,20,Male,Chikkamagaluru
+VIC02142,Turvi Lala,42,Female,Kalaburagi
+VIC02143,Charles Lala,48,Male,Hassan
+VIC02144,Eta Chaudhary,19,Female,Chikkamagaluru
+VIC02145,Devansh Dube,46,Male,Shivamogga
+VIC02146,Zaid Nanda,75,Male,Shivamogga
+VIC02147,Lakshmi Nazareth,60,Female,Chikkamagaluru
+VIC02148,Advay Jayaraman,39,Male,Chikkamagaluru
+VIC02149,Yash Ratti,41,Male,Mysuru
+VIC02150,Upasna Mutti,26,Female,Vijayapura
+VIC02151,Vidhi Sangha,43,Male,Bengaluru Rural
+VIC02152,Warda Dara,68,Male,Vijayapura
+VIC02153,Kamya Patil,38,Female,Davanagere
+VIC02154,Rayaan Bhakta,68,Male,Belagavi
+VIC02155,Vansha Singh,56,Female,Bengaluru Urban
+VIC02156,Yashoda Chada,57,Female,Mysuru
+VIC02157,Nimrat Thakur,41,Female,Mangaluru
+VIC02158,Christopher Tara,50,Female,Tumakuru
+VIC02159,Zashil Bumb,75,Male,Shivamogga
+VIC02160,Pooja Prabhakar,38,Male,Bengaluru Urban
+VIC02161,Dominic Oza,59,Male,Davanagere
+VIC02162,Yamini Narayan,37,Female,Shivamogga
+VIC02163,Wazir Sibal,45,Female,Bengaluru Urban
+VIC02164,Jatin Sant,35,Female,Vijayapura
+VIC02165,Rohan Kara,23,Female,Tumakuru
+VIC02166,Harshil Mutti,20,Male,Udupi
+VIC02167,Raksha Barad,57,Male,Davanagere
+VIC02168,Jasmit Hegde,54,Male,Hubballi-Dharwad
+VIC02169,Rehaan Saxena,42,Male,Chikkamagaluru
+VIC02170,Nirja Dara,48,Female,Kalaburagi
+VIC02171,Ekavir Ben,20,Female,Davanagere
+VIC02172,Dev Cheema,42,Female,Belagavi
+VIC02173,Chasmum Salvi,69,Female,Kalaburagi
+VIC02174,Reyansh Dua,63,Female,Mysuru
+VIC02175,Chaitanya Ramakrishnan,40,Female,Tumakuru
+VIC02176,Indira Barman,30,Female,Hubballi-Dharwad
+VIC02177,Aarush Bhasin,35,Male,Chikkamagaluru
+VIC02178,Ikshita Raj,46,Male,Hassan
+VIC02179,Vincent Dugar,60,Female,Udupi
+VIC02180,Udarsh Pai,50,Male,Bengaluru Urban
+VIC02181,Pratyush Jha,69,Male,Hassan
+VIC02182,Xalak Sastry,66,Male,Mangaluru
+VIC02183,Kiaan Chandra,22,Male,Belagavi
+VIC02184,Yatin Sangha,22,Male,Ballari
+VIC02185,Pranit Sahni,69,Male,Hassan
+VIC02186,Ridhi Boase,23,Male,Bengaluru Urban
+VIC02187,Zaitra Kalita,64,Male,Davanagere
+VIC02188,Maanas Pau,69,Female,Udupi
+VIC02189,Ishani Brahmbhatt,57,Male,Mysuru
+VIC02190,Keya Sani,55,Female,Vijayapura
+VIC02191,Amaira Padmanabhan,73,Female,Hassan
+VIC02192,Damyanti Narayan,60,Male,Ballari
+VIC02193,Idika Chowdhury,25,Male,Davanagere
+VIC02194,Amara Srivastava,26,Male,Chikkamagaluru
+VIC02195,Matthew Sawhney,65,Male,Mysuru
+VIC02196,Christopher Lalla,23,Male,Bengaluru Urban
+VIC02197,Tarak Lal,45,Male,Mangaluru
+VIC02198,Damini Hayer,21,Male,Kalaburagi
+VIC02199,Harini Rajagopal,38,Male,Shivamogga
+VIC02200,Manbir Magar,70,Male,Davanagere
+VIC02201,Varenya Rao,49,Male,Shivamogga
+VIC02202,Owen Khurana,36,Male,Shivamogga
+VIC02203,Yachana Mannan,29,Male,Bengaluru Rural
+VIC02204,Ryan Wali,29,Male,Hubballi-Dharwad
+VIC02205,Dev Tripathi,27,Male,Davanagere
+VIC02206,Harrison Chhabra,25,Male,Mangaluru
+VIC02207,Harinakshi Dhaliwal,29,Female,Hassan
+VIC02208,Ronith Mammen,32,Male,Kalaburagi
+VIC02209,Abhiram Sule,58,Female,Ballari
+VIC02210,Chakradev Bains,44,Female,Mangaluru
+VIC02211,Bhavna Palla,45,Female,Udupi
+VIC02212,Xavier Bhardwaj,40,Male,Tumakuru
+VIC02213,Arin Ghosh,18,Female,Hubballi-Dharwad
+VIC02214,Janaki Mahal,66,Male,Bengaluru Rural
+VIC02215,Joshua Bali,21,Male,Shivamogga
+VIC02216,Dipta Divan,40,Male,Ballari
+VIC02217,Tarak Venkatesh,66,Female,Bengaluru Rural
+VIC02218,Ronith Rau,61,Female,Bengaluru Urban
+VIC02219,Victor Jha,65,Male,Belagavi
+VIC02220,Peter Rau,55,Female,Davanagere
+VIC02221,Falguni Patla,61,Male,Ballari
+VIC02222,Aryan Randhawa,34,Female,Shivamogga
+VIC02223,Lila Luthra,40,Female,Belagavi
+VIC02224,Faras Barad,49,Female,Hassan
+VIC02225,Baljiwan Morar,49,Female,Tumakuru
+VIC02226,Libni Sarin,65,Male,Mangaluru
+VIC02227,Nidra Virk,55,Male,Bengaluru Urban
+VIC02228,Jeevika Vaidya,62,Female,Kalaburagi
+VIC02229,Nisha Grover,47,Female,Belagavi
+VIC02230,Chatresh Sarkar,68,Female,Shivamogga
+VIC02231,Raghav Prabhakar,73,Female,Shivamogga
+VIC02232,Advik Oommen,27,Male,Davanagere
+VIC02233,Bakhshi Yohannan,66,Female,Kalaburagi
+VIC02234,Jack Munshi,19,Male,Hassan
+VIC02235,Vyanjana Kari,38,Female,Udupi
+VIC02236,Kala Lala,58,Male,Kalaburagi
+VIC02237,Vasudha Rajagopal,41,Male,Kalaburagi
+VIC02238,Charita Keer,68,Male,Mysuru
+VIC02239,Yamini Malhotra,55,Male,Mangaluru
+VIC02240,Zansi Walia,24,Male,Kalaburagi
+VIC02241,Bimala Mistry,48,Male,Hubballi-Dharwad
+VIC02242,Onveer Sharaf,39,Male,Bengaluru Urban
+VIC02243,Indira Sani,49,Female,Mysuru
+VIC02244,Manbir Ravel,37,Female,Mangaluru
+VIC02245,Harshil Subramanian,30,Female,Ballari
+VIC02246,Theodore Varkey,64,Female,Kalaburagi
+VIC02247,Wahab Wali,45,Male,Shivamogga
+VIC02248,Nachiket Nigam,60,Male,Belagavi
+VIC02249,Naveen Dada,24,Male,Belagavi
+VIC02250,Warda Thaker,63,Female,Ballari
+VIC02251,Nihal Bhavsar,36,Male,Mangaluru
+VIC02252,Rohan Upadhyay,51,Female,Hassan
+VIC02253,Vasatika Oza,31,Female,Shivamogga
+VIC02254,Logan Sani,18,Female,Vijayapura
+VIC02255,Vedika Zachariah,28,Female,Vijayapura
+VIC02256,Bhanumati Prabhakar,37,Female,Ballari
+VIC02257,Nidra Devan,25,Male,Tumakuru
+VIC02258,Yagnesh Chakraborty,36,Female,Davanagere
+VIC02259,Dalbir Dora,41,Male,Belagavi
+VIC02260,Andrew Dani,54,Female,Bengaluru Rural
+VIC02261,Mason Vig,19,Female,Belagavi
+VIC02262,Tara Saini,44,Male,Mangaluru
+VIC02263,Gunbir Sengupta,38,Male,Chikkamagaluru
+VIC02264,Girish Magar,73,Female,Vijayapura
+VIC02265,Veda Basak,75,Female,Hassan
+VIC02266,Raagini Palla,35,Female,Ballari
+VIC02267,Bakhshi Sur,68,Female,Davanagere
+VIC02268,Divya Dhingra,30,Male,Belagavi
+VIC02269,Chandani Chaudry,68,Male,Davanagere
+VIC02270,Maanas Gupta,55,Male,Udupi
+VIC02271,Hemangini Dora,70,Male,Shivamogga
+VIC02272,Charles Prabhu,54,Female,Chikkamagaluru
+VIC02273,Siya Mitter,19,Female,Tumakuru
+VIC02274,Kavya Sidhu,74,Male,Kalaburagi
+VIC02275,Ayaan Pandit,66,Male,Ballari
+VIC02276,Frederick Dutta,38,Male,Tumakuru
+VIC02277,Garima Rastogi,49,Female,Ballari
+VIC02278,Chaitanya Mukherjee,75,Female,Bengaluru Rural
+VIC02279,Unnati Dube,46,Female,Hassan
+VIC02280,Pahal Sethi,30,Female,Davanagere
+VIC02281,Yashodhara Khatri,27,Female,Udupi
+VIC02282,Omaja Dutta,67,Male,Shivamogga
+VIC02283,Ranbir Ghose,33,Male,Vijayapura
+VIC02284,Ridhi Chopra,18,Female,Belagavi
+VIC02285,Chakrika Jhaveri,70,Female,Tumakuru
+VIC02286,Sudiksha Contractor,27,Female,Belagavi
+VIC02287,Wriddhish Brahmbhatt,49,Female,Ballari
+VIC02288,Balveer Minhas,74,Male,Udupi
+VIC02289,Chanakya Ramaswamy,69,Male,Chikkamagaluru
+VIC02290,Vidhi Dalal,56,Male,Hubballi-Dharwad
+VIC02291,Tamanna Kurian,64,Male,Davanagere
+VIC02292,Abhimanyu Varghese,74,Male,Tumakuru
+VIC02293,Lohit Naik,69,Female,Mangaluru
+VIC02294,Warda Gala,68,Female,Kalaburagi
+VIC02295,Bhavya Parmer,62,Male,Hubballi-Dharwad
+VIC02296,Harinakshi Anand,34,Male,Mysuru
+VIC02297,Jai Sarma,36,Male,Bengaluru Urban
+VIC02298,Omkaar Bobal,59,Female,Bengaluru Rural
+VIC02299,Waida Nagi,41,Female,Hassan
+VIC02300,Dalaja Thaker,27,Female,Vijayapura
+VIC02301,Anika Shan,42,Male,Ballari
+VIC02302,Mason Saini,46,Female,Bengaluru Rural
+VIC02303,Maanas Mitra,35,Female,Hubballi-Dharwad
+VIC02304,Viraj Bera,30,Female,Hubballi-Dharwad
+VIC02305,Rishi Kulkarni,28,Male,Belagavi
+VIC02306,Yochana Dube,19,Male,Bengaluru Urban
+VIC02307,Pavani Gopal,73,Female,Tumakuru
+VIC02308,Oliver Merchant,48,Female,Mysuru
+VIC02309,Om Rao,38,Female,Tumakuru
+VIC02310,Sara Kanda,19,Female,Vijayapura
+VIC02311,Tripti Tandon,38,Female,Mysuru
+VIC02312,Amol Mani,38,Male,Vijayapura
+VIC02313,Unnati Zacharia,36,Female,Ballari
+VIC02314,Chandresh Ahuja,66,Male,Chikkamagaluru
+VIC02315,Eiravati Ratti,50,Male,Davanagere
+VIC02316,Dayamai Chander,63,Male,Shivamogga
+VIC02317,Wahab Guha,22,Male,Mysuru
+VIC02318,Hemal Nayak,27,Male,Tumakuru
+VIC02319,Kashish Aurora,28,Male,Bengaluru Rural
+VIC02320,Rudra Chahal,66,Female,Belagavi
+VIC02321,Faris Sama,39,Male,Kalaburagi
+VIC02322,Anirudh Nagi,39,Male,Shivamogga
+VIC02323,Hemani De,43,Male,Tumakuru
+VIC02324,Samarth Chada,44,Female,Davanagere
+VIC02325,Faraj Ramakrishnan,27,Male,Udupi
+VIC02326,Ganga Desai,31,Female,Mysuru
+VIC02327,Advaith Sahni,25,Female,Mangaluru
+VIC02328,Thomas Suri,33,Male,Vijayapura
+VIC02329,Arjun Apte,61,Male,Bengaluru Urban
+VIC02330,Lila Dua,59,Male,Shivamogga
+VIC02331,Ekbal Mann,20,Male,Mangaluru
+VIC02332,Meera Natt,66,Male,Mysuru
+VIC02333,Avi Comar,73,Male,Tumakuru
+VIC02334,Meghana Tripathi,38,Female,Kalaburagi
+VIC02335,Jairaj Pillai,66,Female,Bengaluru Urban
+VIC02336,Samesh Parmer,50,Female,Shivamogga
+VIC02337,Balhaar Karan,19,Female,Tumakuru
+VIC02338,Aayush Goda,22,Male,Mangaluru
+VIC02339,Ira Salvi,55,Male,Mangaluru
+VIC02340,Balvan Setty,32,Female,Bengaluru Urban
+VIC02341,Fiyaz Basak,40,Male,Ballari
+VIC02342,Oscar Edwin,74,Female,Tumakuru
+VIC02343,Upasna Sani,75,Male,Kalaburagi
+VIC02344,Turvi Anne,31,Male,Tumakuru
+VIC02345,Gavin Barad,18,Female,Hubballi-Dharwad
+VIC02346,Warda Shroff,53,Female,Tumakuru
+VIC02347,Omisha Savant,42,Male,Udupi
+VIC02348,Kabir Aggarwal,30,Female,Belagavi
+VIC02349,Matthew Sarin,30,Female,Chikkamagaluru
+VIC02350,Gautami Badami,34,Female,Bengaluru Rural
+VIC02351,Ekansh Khatri,59,Female,Shivamogga
+VIC02352,Rudra Parikh,19,Female,Ballari
+VIC02353,Wyatt Ramakrishnan,59,Female,Mangaluru
+VIC02354,Ranbir Pillai,29,Male,Bengaluru Urban
+VIC02355,Zaid Bala,42,Male,Davanagere
+VIC02356,Yatan Ramesh,73,Male,Mangaluru
+VIC02357,Anika Thakkar,66,Female,Udupi
+VIC02358,Devansh Pall,62,Male,Chikkamagaluru
+VIC02359,Wriddhish Chahal,55,Female,Belagavi
+VIC02360,Teerth Rege,47,Male,Vijayapura
+VIC02361,Nathan Sidhu,58,Male,Ballari
+VIC02362,Ikshita Agate,74,Female,Mangaluru
+VIC02363,Yashvi Kurian,50,Male,Hubballi-Dharwad
+VIC02364,Naksh Rastogi,18,Male,Udupi
+VIC02365,Amrita Ganguly,29,Female,Mangaluru
+VIC02366,Viraj Jayaraman,49,Female,Davanagere
+VIC02367,Aachal Dar,38,Female,Kalaburagi
+VIC02368,Zayan Mander,56,Male,Chikkamagaluru
+VIC02369,Janaki Thaker,49,Female,Tumakuru
+VIC02370,Omisha Barad,56,Female,Hassan
+VIC02371,Dhruv Dalal,60,Male,Bengaluru Rural
+VIC02372,Neelima Bains,57,Male,Chikkamagaluru
+VIC02373,Samuel Sabharwal,18,Male,Ballari
+VIC02374,Upma Swaminathan,21,Male,Hubballi-Dharwad
+VIC02375,Tejas Kaur,18,Female,Shivamogga
+VIC02376,Abeer Kala,42,Male,Bengaluru Rural
+VIC02377,Eesha Ranganathan,21,Female,Mangaluru
+VIC02378,Tristan Lad,59,Male,Kalaburagi
+VIC02379,Radhika Dalal,65,Female,Bengaluru Rural
+VIC02380,Azaan Singhal,35,Female,Vijayapura
+VIC02381,Eesha Dhingra,19,Female,Hassan
+VIC02382,Chatresh Chad,20,Male,Hubballi-Dharwad
+VIC02383,Yashodhara Chandra,27,Female,Shivamogga
+VIC02384,Elijah Chander,74,Male,Bengaluru Rural
+VIC02385,Krishna Suresh,58,Male,Chikkamagaluru
+VIC02386,Lajita Sahni,48,Male,Bengaluru Urban
+VIC02387,Maanas Mann,25,Male,Davanagere
+VIC02388,Akshay Roy,33,Female,Udupi
+VIC02389,Bhavika Karan,74,Female,Hubballi-Dharwad
+VIC02390,Chameli Prabhakar,19,Female,Bengaluru Rural
+VIC02391,Nachiket Bhatti,64,Male,Mangaluru
+VIC02392,Chaitaly Shroff,22,Female,Vijayapura
+VIC02393,Daniel Malhotra,42,Male,Bengaluru Urban
+VIC02394,Turvi Kohli,49,Female,Udupi
+VIC02395,Vedant Aurora,47,Female,Mysuru
+VIC02396,Rohan Bora,18,Male,Vijayapura
+VIC02397,Pooja Ahluwalia,22,Female,Davanagere
+VIC02398,Ranveer Thakur,36,Female,Mangaluru
+VIC02399,Naveen Raval,69,Female,Bengaluru Urban
+VIC02400,Onveer Ramesh,60,Female,Udupi
+VIC02401,Gaurav Sachdeva,30,Male,Davanagere
+VIC02402,Jason Nigam,46,Male,Vijayapura
+VIC02403,Baljiwan Hayre,20,Female,Tumakuru
+VIC02404,Warhi Shukla,62,Female,Hassan
+VIC02405,Brinda Deol,32,Male,Hubballi-Dharwad
+VIC02406,Kiaan Dey,41,Male,Ballari
+VIC02407,Amol Toor,41,Female,Udupi
+VIC02408,Veda Sha,48,Male,Belagavi
+VIC02409,Varsha Johal,60,Female,Davanagere
+VIC02410,Tripti Dave,53,Male,Belagavi
+VIC02411,Aarini Babu,65,Female,Kalaburagi
+VIC02412,Hiral Dara,29,Female,Belagavi
+VIC02413,Omkaar Dass,47,Female,Hassan
+VIC02414,Indrajit Venkataraman,36,Male,Udupi
+VIC02415,Daksha Sha,61,Female,Vijayapura
+VIC02416,Reva Chandran,52,Female,Belagavi
+VIC02417,Daksha Mann,45,Male,Ballari
+VIC02418,Lajita Bera,34,Male,Belagavi
+VIC02419,Upasna Saraf,40,Female,Shivamogga
+VIC02420,Tripti Raghavan,66,Male,Chikkamagaluru
+VIC02421,Vasana Chaudhuri,20,Female,Tumakuru
+VIC02422,Kiaan Sur,73,Male,Ballari
+VIC02423,Nihal Sandhu,39,Male,Udupi
+VIC02424,Sara Chacko,69,Male,Udupi
+VIC02425,Abhimanyu Datta,68,Male,Udupi
+VIC02426,Isaac Tripathi,62,Female,Bengaluru Rural
+VIC02427,Bhavika Saraf,70,Female,Chikkamagaluru
+VIC02428,Om Thakur,25,Male,Tumakuru
+VIC02429,Chanakya Toor,24,Male,Hubballi-Dharwad
+VIC02430,Bahadurjit Wable,53,Male,Davanagere
+VIC02431,Edhitha Basak,32,Female,Shivamogga
+VIC02432,Advay Dewan,25,Female,Davanagere
+VIC02433,Orinder Keer,71,Female,Tumakuru
+VIC02434,Siddharth Mane,43,Female,Mangaluru
+VIC02435,Lavanya Goyal,54,Female,Davanagere
+VIC02436,Samuel Sheth,44,Male,Mangaluru
+VIC02437,Yachana Vasa,58,Female,Mysuru
+VIC02438,Thomas Naik,71,Male,Davanagere
+VIC02439,Gaurika Pai,18,Male,Shivamogga
+VIC02440,Turvi Memon,27,Male,Davanagere
+VIC02441,Wyatt Bhardwaj,37,Male,Hassan
+VIC02442,Daniel Ramesh,43,Female,Udupi
+VIC02443,Mitali Purohit,31,Male,Udupi
+VIC02444,Yauvani Chadha,30,Male,Bengaluru Urban
+VIC02445,Jackson Saxena,19,Female,Bengaluru Rural
+VIC02446,Peter Hari,31,Male,Udupi
+VIC02447,Warda Sabharwal,67,Male,Bengaluru Rural
+VIC02448,Om Kaul,34,Female,Bengaluru Rural
+VIC02449,Udant Sehgal,45,Female,Vijayapura
+VIC02450,Upasna Gopal,43,Male,Davanagere
+VIC02451,Zayyan Sethi,56,Female,Belagavi
+VIC02452,Forum Dave,42,Female,Mangaluru
+VIC02453,Girik Goda,37,Female,Ballari
+VIC02454,Rajeshri Rajan,55,Female,Vijayapura
+VIC02455,Mitesh Parmar,57,Male,Vijayapura
+VIC02456,Chavvi Chatterjee,49,Male,Shivamogga
+VIC02457,Shivani Chaudhuri,38,Female,Bengaluru Urban
+VIC02458,Gagan Kashyap,34,Female,Udupi
+VIC02459,Anamika Keer,69,Female,Hassan
+VIC02460,Mugdha Dugar,52,Male,Kalaburagi
+VIC02461,Liam Bajaj,62,Female,Vijayapura
+VIC02462,Vrishti Chowdhury,49,Male,Kalaburagi
+VIC02463,Vritti Sheth,20,Female,Hassan
+VIC02464,Kai Apte,75,Male,Shivamogga
+VIC02465,Abeer Sura,34,Male,Bengaluru Rural
+VIC02466,Ekta Bahl,33,Male,Shivamogga
+VIC02467,Aahana Mital,42,Female,Mangaluru
+VIC02468,Falan Dua,56,Female,Bengaluru Urban
+VIC02469,Jyoti Kakar,38,Female,Tumakuru
+VIC02470,Hritik Uppal,67,Female,Mangaluru
+VIC02471,Inaya Grover,57,Female,Bengaluru Rural
+VIC02472,Parth Kalita,18,Male,Ballari
+VIC02473,Urmi Kalita,73,Male,Chikkamagaluru
+VIC02474,Matthew Lala,50,Female,Bengaluru Rural
+VIC02475,Darpan Sidhu,50,Male,Shivamogga
+VIC02476,Wahab Dyal,35,Female,Hassan
+VIC02477,Kashish Madan,52,Male,Hubballi-Dharwad
+VIC02478,Banjeet Basu,55,Male,Davanagere
+VIC02479,Jairaj Varghese,51,Female,Mysuru
+VIC02480,Advaith Dada,75,Female,Hubballi-Dharwad
+VIC02481,Aarna Malhotra,72,Male,Bengaluru Urban
+VIC02482,Wishi Kar,36,Female,Kalaburagi
+VIC02483,Wriddhish Desai,25,Male,Udupi
+VIC02484,Laban Sur,22,Male,Shivamogga
+VIC02485,Zashil Boase,49,Male,Bengaluru Urban
+VIC02486,Triya Vala,42,Male,Hassan
+VIC02487,Ekbal Sachdev,42,Male,Hubballi-Dharwad
+VIC02488,Darika Aggarwal,29,Male,Belagavi
+VIC02489,Sara Kata,73,Female,Mangaluru
+VIC02490,Daksha Basak,63,Female,Hassan
+VIC02491,Chaitanya Parmar,62,Male,Bengaluru Rural
+VIC02492,Zilmil Deshpande,28,Male,Mysuru
+VIC02493,Frado Chopra,65,Male,Shivamogga
+VIC02494,Rishi Chandra,49,Female,Hassan
+VIC02495,Shaurya Chakraborty,62,Female,Bengaluru Urban
+VIC02496,Brijesh Nori,63,Female,Vijayapura
+VIC02497,Aashi Aggarwal,52,Male,Kalaburagi
+VIC02498,Lopa Korpal,48,Male,Hubballi-Dharwad
+VIC02499,Ekta Ghosh,45,Female,Bengaluru Rural
+VIC02500,Manan Chokshi,22,Male,Hubballi-Dharwad
+VIC02501,Kiaan Yohannan,74,Female,Shivamogga
+VIC02502,Nandini Parikh,43,Male,Chikkamagaluru
+VIC02503,Agastya Barad,74,Male,Bengaluru Rural
+VIC02504,Yutika Kamdar,19,Male,Bengaluru Rural
+VIC02505,Dayita Pai,54,Male,Vijayapura
+VIC02506,Dakshesh Sahni,30,Female,Vijayapura
+VIC02507,Fiyaz Saran,52,Female,Tumakuru
+VIC02508,Dalbir Madan,34,Female,Bengaluru Rural
+VIC02509,Ishaan Kashyap,68,Male,Ballari
+VIC02510,Shaurya Uppal,44,Male,Tumakuru
+VIC02511,Zarna Trivedi,20,Male,Mangaluru
+VIC02512,Harsh Vora,27,Female,Mysuru
+VIC02513,Qasim Lalla,65,Female,Bengaluru Urban
+VIC02514,Aayush Saran,41,Male,Tumakuru
+VIC02515,Widisha Datta,68,Male,Bengaluru Rural
+VIC02516,Jagvi Narang,51,Female,Ballari
+VIC02517,Caleb Ramanathan,51,Male,Hubballi-Dharwad
+VIC02518,Chanakya Barman,74,Male,Belagavi
+VIC02519,Faris Anand,33,Female,Hassan
+VIC02520,Nihal Mane,31,Male,Vijayapura
+VIC02521,Krishna Pall,48,Female,Shivamogga
+VIC02522,Ishani Halder,31,Male,Mysuru
+VIC02523,Viraj Char,42,Male,Mysuru
+VIC02524,Deepa Karnik,60,Male,Udupi
+VIC02525,Pallavi Deshmukh,50,Male,Udupi
+VIC02526,Ati Raj,66,Male,Shivamogga
+VIC02527,Fiyaz Gupta,50,Male,Ballari
+VIC02528,Arya Singh,28,Male,Vijayapura
+VIC02529,Jairaj Pandya,66,Female,Udupi
+VIC02530,Qabil Khurana,58,Female,Mangaluru
+VIC02531,Gaurangi Sampath,70,Female,Kalaburagi
+VIC02532,Lila Mander,21,Female,Bengaluru Urban
+VIC02533,Vasudha Suri,73,Female,Hassan
+VIC02534,Chatura Khanna,43,Male,Mangaluru
+VIC02535,Utkarsh Wadhwa,60,Female,Kalaburagi
+VIC02536,Utkarsh Ahluwalia,46,Male,Davanagere
+VIC02537,Yug Borra,26,Female,Ballari
+VIC02538,Bhavya Shukla,68,Female,Vijayapura
+VIC02539,Mohini Nadkarni,73,Male,Mangaluru
+VIC02540,Gauri Mohanty,56,Female,Shivamogga
+VIC02541,Oeshi Chandra,67,Male,Kalaburagi
+VIC02542,Yadavi Sanghvi,56,Male,Kalaburagi
+VIC02543,Aayush Mukherjee,22,Male,Davanagere
+VIC02544,Imaran Talwar,75,Male,Hassan
+VIC02545,Ekavir Chatterjee,59,Male,Belagavi
+VIC02546,Aarnav Sarna,35,Female,Hubballi-Dharwad
+VIC02547,Kevin Wali,47,Female,Hubballi-Dharwad
+VIC02548,Janani Babu,71,Female,Chikkamagaluru
+VIC02549,Arunima Sodhi,37,Female,Tumakuru
+VIC02550,Elijah Vasa,49,Female,Hassan
+VIC02551,Reva Chand,73,Male,Shivamogga
+VIC02552,Yashawini Manda,39,Male,Davanagere
+VIC02553,Logan Bajaj,49,Female,Tumakuru
+VIC02554,Qarin Cheema,51,Male,Hubballi-Dharwad
+VIC02555,Benjamin Naidu,58,Female,Chikkamagaluru
+VIC02556,Yagnesh Pall,35,Female,Ballari
+VIC02557,Divya Sarraf,50,Male,Belagavi
+VIC02558,Tristan Gola,75,Female,Chikkamagaluru
+VIC02559,Ikshita Gandhi,33,Male,Belagavi
+VIC02560,Ayush Venkatesh,37,Male,Udupi
+VIC02561,Nathaniel More,39,Female,Hubballi-Dharwad
+VIC02562,Prisha Gopal,34,Female,Vijayapura
+VIC02563,Unni Magar,60,Male,Hassan
+VIC02564,Aryan Nath,57,Male,Hassan
+VIC02565,Rajeshri Sangha,67,Female,Mangaluru
+VIC02566,Sathvik Baral,61,Female,Davanagere
+VIC02567,Victor Raman,52,Female,Mangaluru
+VIC02568,Vincent Biswas,69,Female,Ballari
+VIC02569,Xalak Narula,51,Male,Bengaluru Rural
+VIC02570,Daksh Swamy,64,Female,Vijayapura
+VIC02571,Samesh Sengupta,33,Male,Ballari
+VIC02572,Chasmum Parikh,68,Female,Mysuru
+VIC02573,Mohini Hayer,74,Female,Belagavi
+VIC02574,Praneel Borra,33,Female,Shivamogga
+VIC02575,Shaurya Swamy,63,Female,Chikkamagaluru
+VIC02576,Riya Goel,54,Female,Tumakuru
+VIC02577,Theodore Vyas,39,Male,Hubballi-Dharwad
+VIC02578,Ishita Kamdar,56,Male,Hubballi-Dharwad
+VIC02579,Faris Sahota,25,Female,Udupi
+VIC02580,Samuel Edwin,53,Female,Bengaluru Urban
+VIC02581,Ria Mishra,22,Male,Hassan
+VIC02582,Mitali Salvi,34,Female,Shivamogga
+VIC02583,Ekalinga Batra,53,Female,Tumakuru
+VIC02584,Jackson Johal,54,Female,Mangaluru
+VIC02585,Chaman Ram,35,Male,Kalaburagi
+VIC02586,Nisha Pandit,58,Female,Ballari
+VIC02587,Eiravati Sandhu,24,Female,Kalaburagi
+VIC02588,Bhanumati Patla,42,Female,Bengaluru Rural
+VIC02589,Yutika Randhawa,26,Male,Bengaluru Rural
+VIC02590,Rachana Sarin,41,Male,Bengaluru Urban
+VIC02591,Fitan Saran,72,Male,Hubballi-Dharwad
+VIC02592,Zayan Soman,24,Female,Mysuru
+VIC02593,Jeet Keer,68,Male,Chikkamagaluru
+VIC02594,Riya Bhatnagar,65,Female,Mangaluru
+VIC02595,Irya Bir,20,Male,Bengaluru Urban
+VIC02596,Falan Sandhu,25,Female,Ballari
+VIC02597,Charles Uppal,64,Female,Hubballi-Dharwad
+VIC02598,Tanmayi Parsa,45,Male,Mangaluru
+VIC02599,Jack Thaman,32,Female,Chikkamagaluru
+VIC02600,Nakul Chaudhari,53,Female,Udupi
+VIC02601,Yauvani Madan,33,Male,Bengaluru Urban
+VIC02602,Indira Badami,53,Female,Hassan
+VIC02603,Naksh Choudhury,32,Male,Hassan
+VIC02604,Sachi Keer,70,Female,Mangaluru
+VIC02605,Aarna Aurora,52,Male,Mysuru
+VIC02606,Nihal Agarwal,23,Female,Hassan
+VIC02607,Ira Batta,49,Male,Bengaluru Rural
+VIC02608,Vedhika Wadhwa,33,Female,Mangaluru
+VIC02609,Anirudh Sridhar,33,Female,Ballari
+VIC02610,Tara Ravi,28,Male,Chikkamagaluru
+VIC02611,Saanvi Vasa,32,Female,Bengaluru Rural
+VIC02612,Vinaya Baral,18,Male,Vijayapura
+VIC02613,Ishanvi Jhaveri,37,Female,Ballari
+VIC02614,Manan Tiwari,73,Female,Shivamogga
+VIC02615,Ekaraj Magar,31,Male,Bengaluru Rural
+VIC02616,Rayaan Bhalla,72,Male,Kalaburagi
+VIC02617,Anusha Krishnamurthy,63,Female,Shivamogga
+VIC02618,Tanmayi Vig,27,Female,Udupi
+VIC02619,Balvan Sangha,57,Female,Bengaluru Urban
+VIC02620,Nandini Chander,52,Female,Mangaluru
+VIC02621,Gopal Dada,74,Female,Kalaburagi
+VIC02622,Hema Tailor,68,Female,Belagavi
+VIC02623,Megha Chakraborty,19,Female,Tumakuru
+VIC02624,Arya Mammen,57,Female,Udupi
+VIC02625,Amol Rajan,46,Male,Belagavi
+VIC02626,Leena Balay,27,Male,Ballari
+VIC02627,Christopher Krish,71,Female,Mysuru
+VIC02628,Madhavi Majumdar,68,Female,Mangaluru
+VIC02629,William Sridhar,31,Female,Belagavi
+VIC02630,Inaya Dey,43,Female,Mangaluru
+VIC02631,Ridhi Bhalla,63,Female,Chikkamagaluru
+VIC02632,David Vohra,32,Female,Ballari
+VIC02633,Sarthak Sekhon,74,Female,Bengaluru Urban
+VIC02634,Chaman Sharma,61,Male,Vijayapura
+VIC02635,Baghyawati Gera,62,Male,Shivamogga
+VIC02636,Charita Murty,63,Male,Kalaburagi
+VIC02637,Daksha Balasubramanian,54,Female,Belagavi
+VIC02638,Unni Bhardwaj,42,Male,Shivamogga
+VIC02639,Kai Lala,45,Female,Chikkamagaluru
+VIC02640,Turvi Behl,45,Male,Kalaburagi
+VIC02641,Ranbir Nori,34,Female,Mangaluru
+VIC02642,Yug Tailor,35,Female,Chikkamagaluru
+VIC02643,Dhruv Bandi,34,Female,Mysuru
+VIC02644,Ekiya Ganesan,28,Male,Udupi
+VIC02645,Yashica Dave,55,Male,Udupi
+VIC02646,Advika Jain,20,Female,Belagavi
+VIC02647,Ekbal D’Alia,21,Male,Bengaluru Rural
+VIC02648,Anika Chada,63,Male,Bengaluru Rural
+VIC02649,Urishilla Mitter,57,Male,Hubballi-Dharwad
+VIC02650,Fitan Rao,23,Female,Shivamogga
+VIC02651,Fitan Ravi,27,Female,Mysuru
+VIC02652,Ekiya Goyal,72,Female,Hubballi-Dharwad
+VIC02653,Yasti Grewal,73,Male,Mangaluru
+VIC02654,Samar Sibal,44,Female,Mysuru
+VIC02655,Lavanya Mand,51,Male,Mangaluru
+VIC02656,Vinaya Savant,73,Male,Ballari
+VIC02657,Charita Sanghvi,21,Male,Hubballi-Dharwad
+VIC02658,Chandran Bhasin,53,Female,Kalaburagi
+VIC02659,Tanay Kara,75,Male,Mangaluru
+VIC02660,Atharv Palla,19,Male,Ballari
+VIC02661,Aradhana Kapadia,63,Male,Bengaluru Rural
+VIC02662,Eesha Dugar,67,Male,Hubballi-Dharwad
+VIC02663,Ganga Ray,70,Male,Tumakuru
+VIC02664,Dhruv Keer,25,Female,Tumakuru
+VIC02665,Maanav Wadhwa,66,Female,Davanagere
+VIC02666,Harita Kade,29,Male,Tumakuru
+VIC02667,Kamya Chandran,29,Male,Hassan
+VIC02668,Radhika Wagle,18,Female,Udupi
+VIC02669,Abhiram Ghosh,28,Female,Tumakuru
+VIC02670,Radha Ranganathan,70,Male,Tumakuru
+VIC02671,Oviya Jha,50,Male,Kalaburagi
+VIC02672,Logan Mann,26,Male,Bengaluru Urban
+VIC02673,Sachi Parikh,48,Male,Udupi
+VIC02674,Hitesh Rajan,26,Male,Udupi
+VIC02675,Yatan Raman,56,Female,Ballari
+VIC02676,Laksh Pradhan,68,Female,Shivamogga
+VIC02677,Patrick Bhattacharyya,33,Female,Mysuru
+VIC02678,Pushti Sathe,63,Male,Davanagere
+VIC02679,Unni Tara,33,Male,Vijayapura
+VIC02680,Maya Ratti,56,Male,Bengaluru Rural
+VIC02681,Yagnesh Randhawa,42,Male,Bengaluru Urban
+VIC02682,Inaya Palla,36,Female,Tumakuru
+VIC02683,Yachana Hari,69,Female,Vijayapura
+VIC02684,Jeremiah Nagi,66,Female,Tumakuru
+VIC02685,Anjali Sule,52,Female,Chikkamagaluru
+VIC02686,Umang Yohannan,51,Female,Vijayapura
+VIC02687,Rayaan Agate,51,Female,Hassan
+VIC02688,Gagan Oommen,56,Female,Hassan
+VIC02689,Darika Chad,34,Female,Mysuru
+VIC02690,Nicholas Thaker,50,Female,Mysuru
+VIC02691,Akshay Garg,69,Male,Mangaluru
+VIC02692,Vrishti Kale,22,Female,Udupi
+VIC02693,Yutika Nadkarni,37,Male,Ballari
+VIC02694,Yatin Kant,75,Female,Kalaburagi
+VIC02695,Ira Sachdev,42,Female,Belagavi
+VIC02696,Dalbir Swamy,19,Female,Shivamogga
+VIC02697,Yashvi Yohannan,30,Male,Mangaluru
+VIC02698,Raagini Salvi,45,Male,Shivamogga
+VIC02699,Rachana Pai,73,Male,Vijayapura
+VIC02700,Darpan Golla,68,Female,Kalaburagi
+VIC02701,Thomas Subramaniam,33,Male,Bengaluru Urban
+VIC02702,Hemal Keer,75,Male,Chikkamagaluru
+VIC02703,Laksh Vala,46,Female,Shivamogga
+VIC02704,William Bajaj,43,Female,Davanagere
+VIC02705,Vrishti Seth,47,Female,Chikkamagaluru
+VIC02706,Faraj Buch,31,Female,Mysuru
+VIC02707,Chatura Bhasin,44,Male,Mangaluru
+VIC02708,Ikbal Walla,27,Male,Hubballi-Dharwad
+VIC02709,Prisha Agarwal,41,Male,Belagavi
+VIC02710,Jagat Radhakrishnan,47,Female,Chikkamagaluru
+VIC02711,Krishna Zacharia,59,Female,Bengaluru Rural
+VIC02712,Om Raju,56,Female,Belagavi
+VIC02713,Ira Ratta,70,Female,Bengaluru Urban
+VIC02714,Lila Kadakia,73,Female,Bengaluru Rural
+VIC02715,Turvi Dhaliwal,40,Female,Mangaluru
+VIC02716,Qadim Krishnamurthy,37,Male,Bengaluru Urban
+VIC02717,Chandresh Narula,24,Male,Davanagere
+VIC02718,Reyansh Ranganathan,63,Female,Bengaluru Urban
+VIC02719,Pratyush Kalla,19,Male,Vijayapura
+VIC02720,Krisha Hari,51,Female,Bengaluru Urban
+VIC02721,Yug Din,46,Female,Belagavi
+VIC02722,Bahadurjit Prasad,69,Female,Belagavi
+VIC02723,Kevin Kothari,57,Female,Hubballi-Dharwad
+VIC02724,Watika Yohannan,41,Male,Hassan
+VIC02725,Dakshesh Wali,51,Male,Chikkamagaluru
+VIC02726,Oni Naik,46,Female,Kalaburagi
+VIC02727,Xavier Bali,66,Male,Vijayapura
+VIC02728,Chaitanya Varughese,67,Male,Mysuru
+VIC02729,Zaid Kota,70,Female,Belagavi
+VIC02730,Charles Sama,60,Female,Davanagere
+VIC02731,Chandani Misra,64,Female,Mysuru
+VIC02732,Veer Bali,27,Male,Bengaluru Rural
+VIC02733,Daksh Mahajan,57,Female,Hubballi-Dharwad
+VIC02734,Harsh Parmer,43,Male,Bengaluru Urban
+VIC02735,Upadhriti Rama,20,Female,Bengaluru Urban
+VIC02736,Bakhshi Goda,26,Male,Kalaburagi
+VIC02737,Wridesh Mohan,54,Male,Kalaburagi
+VIC02738,Matthew Chowdhury,69,Male,Kalaburagi
+VIC02739,Osha Lad,53,Female,Chikkamagaluru
+VIC02740,Rachit Bhatnagar,31,Male,Bengaluru Rural
+VIC02741,Damini Choudhary,28,Male,Hubballi-Dharwad
+VIC02742,Madhavi Nair,64,Female,Hassan
+VIC02743,Oscar Mammen,22,Male,Shivamogga
+VIC02744,Yashica Mitter,28,Female,Bengaluru Rural
+VIC02745,Dalbir Singh,23,Female,Hassan
+VIC02746,Chanakya Kala,75,Female,Ballari
+VIC02747,Ikbal Dhingra,64,Female,Udupi
+VIC02748,Chasmum Mander,48,Female,Ballari
+VIC02749,Udant Rajan,53,Female,Vijayapura
+VIC02750,Yamini Kari,60,Female,Tumakuru
+VIC02751,Viraj Boase,27,Female,Hassan
+VIC02752,Xavier Kaul,56,Male,Mangaluru
+VIC02753,Liam Sunder,70,Male,Kalaburagi
+VIC02754,Yash Zacharia,48,Female,Belagavi
+VIC02755,Champak Bahl,50,Female,Shivamogga
+VIC02756,Manthan Dyal,64,Female,Bengaluru Urban
+VIC02757,Robert Kara,55,Female,Hassan
+VIC02758,Ekanta Anne,73,Female,Bengaluru Rural
+VIC02759,Max Dasgupta,70,Male,Tumakuru
+VIC02760,Ishani Garde,32,Male,Chikkamagaluru
+VIC02761,Aadhya Mangal,33,Female,Chikkamagaluru
+VIC02762,Anusha Wagle,27,Male,Davanagere
+VIC02763,Rajata Kadakia,52,Female,Kalaburagi
+VIC02764,Yuvraj Sangha,65,Female,Kalaburagi
+VIC02765,Widisha Mangal,54,Female,Hubballi-Dharwad
+VIC02766,Zayyan Vyas,23,Male,Mysuru
+VIC02767,Avni Barad,57,Female,Chikkamagaluru
+VIC02768,Harsh Bhargava,60,Male,Hassan
+VIC02769,Girindra Kanda,38,Male,Kalaburagi
+VIC02770,Eesha Dutt,43,Female,Mysuru
+VIC02771,Chandresh Shanker,44,Female,Bengaluru Urban
+VIC02772,Balendra Purohit,39,Female,Bengaluru Rural
+VIC02773,Wahab Srinivas,37,Male,Shivamogga
+VIC02774,Ishaan Nair,74,Female,Chikkamagaluru
+VIC02775,Divya Bala,43,Male,Kalaburagi
+VIC02776,Ubika Sinha,45,Male,Hubballi-Dharwad
+VIC02777,Naveen Raghavan,33,Male,Belagavi
+VIC02778,Girik Rau,28,Female,Ballari
+VIC02779,Balvan Shukla,42,Male,Bengaluru Rural
+VIC02780,Dayita Borra,23,Male,Hassan
+VIC02781,Ishita Shanker,65,Male,Mysuru
+VIC02782,Nakul Keer,52,Female,Shivamogga
+VIC02783,Unnati Palla,75,Male,Chikkamagaluru
+VIC02784,Prisha Puri,68,Male,Bengaluru Urban
+VIC02785,Rajata Thaman,18,Female,Mysuru
+VIC02786,Krisha Jha,20,Male,Hubballi-Dharwad
+VIC02787,Aishani Padmanabhan,71,Female,Vijayapura
+VIC02788,Darpan Gala,61,Female,Vijayapura
+VIC02789,Charvi Manne,54,Male,Bengaluru Urban
+VIC02790,Osha Chand,28,Female,Belagavi
+VIC02791,Rishi Sheth,24,Male,Ballari
+VIC02792,Xiti Grover,23,Male,Ballari
+VIC02793,Shivani Goyal,18,Male,Hassan
+VIC02794,Meghana Narula,28,Female,Udupi
+VIC02795,Jason Borah,49,Male,Hubballi-Dharwad
+VIC02796,Rachana Brahmbhatt,55,Female,Ballari
+VIC02797,Daksha Sha,71,Male,Udupi
+VIC02798,Oscar Basak,57,Female,Mysuru
+VIC02799,Januja Oza,22,Female,Ballari
+VIC02800,Yashvi Kadakia,72,Female,Mysuru
+VIC02801,Dayamai Bera,59,Male,Shivamogga
+VIC02802,Laban Viswanathan,56,Male,Davanagere
+VIC02803,Kamya Sathe,36,Male,Kalaburagi
+VIC02804,Onkar Mukhopadhyay,72,Female,Vijayapura
+VIC02805,Atharv Sur,28,Female,Hassan
+VIC02806,Akshay Dua,46,Female,Tumakuru
+VIC02807,Tanveer Suri,37,Female,Vijayapura
+VIC02808,Finn Nazareth,63,Female,Kalaburagi
+VIC02809,Indira Khalsa,69,Male,Hassan
+VIC02810,Qabil Pall,72,Female,Vijayapura
+VIC02811,Daniel Lala,38,Male,Mangaluru
+VIC02812,Samuel Ben,47,Male,Davanagere
+VIC02813,Charan Varma,27,Male,Bengaluru Rural
+VIC02814,Abha Majumdar,21,Male,Mysuru
+VIC02815,Madhavi Dewan,24,Female,Mysuru
+VIC02816,Naveen Anand,27,Male,Hubballi-Dharwad
+VIC02817,Christopher Bhatnagar,67,Female,Davanagere
+VIC02818,Guneet Mishra,38,Male,Davanagere
+VIC02819,Lucky Sekhon,48,Female,Kalaburagi
+VIC02820,Fariq Wagle,25,Female,Chikkamagaluru
+VIC02821,Nirja Golla,63,Male,Chikkamagaluru
+VIC02822,Damini Sami,48,Male,Belagavi
+VIC02823,Girish Hegde,28,Female,Mangaluru
+VIC02824,Upasna Ramakrishnan,40,Male,Bengaluru Urban
+VIC02825,Kalpit Nigam,20,Female,Kalaburagi
+VIC02826,Tejas Rajagopal,29,Female,Shivamogga
+VIC02827,Widisha Lanka,60,Female,Hassan
+VIC02828,Mohammed Patla,63,Female,Shivamogga
+VIC02829,Kamya Rastogi,26,Female,Davanagere
+VIC02830,Vritti Yogi,63,Female,Vijayapura
+VIC02831,Ijaya Sankar,38,Male,Bengaluru Urban
+VIC02832,Xalak Kala,73,Male,Hubballi-Dharwad
+VIC02833,Qabil Sangha,44,Male,Shivamogga
+VIC02834,Joshua Ramachandran,74,Female,Mysuru
+VIC02835,Ekbal Bahl,20,Male,Mangaluru
+VIC02836,Odika Ganesh,50,Female,Hubballi-Dharwad
+VIC02837,Vyanjana Hans,30,Male,Kalaburagi
+VIC02838,Lakshmi Sandal,20,Male,Vijayapura
+VIC02839,Orinder Om,41,Female,Hassan
+VIC02840,Radha Varughese,57,Female,Belagavi
+VIC02841,Nirja Madan,18,Male,Shivamogga
+VIC02842,Maya Majumdar,67,Male,Mangaluru
+VIC02843,Lucky Virk,27,Female,Vijayapura
+VIC02844,Utkarsh Basu,60,Female,Tumakuru
+VIC02845,Parth Bansal,43,Male,Kalaburagi
+VIC02846,Wazir Iyengar,67,Male,Shivamogga
+VIC02847,Fitan Om,64,Female,Tumakuru
+VIC02848,Aarush Khalsa,66,Female,Bengaluru Urban
+VIC02849,Kamya Deep,36,Female,Bengaluru Urban
+VIC02850,Samesh Tandon,44,Male,Shivamogga
+VIC02851,Reyansh Oak,71,Female,Chikkamagaluru
+VIC02852,Wyatt Varty,47,Male,Chikkamagaluru
+VIC02853,Nilima Grewal,38,Male,Shivamogga
+VIC02854,Gautam Behl,34,Female,Chikkamagaluru
+VIC02855,Gagan Sura,59,Male,Udupi
+VIC02856,Hardik Krishna,32,Female,Kalaburagi
+VIC02857,Vihaan Bal,34,Male,Tumakuru
+VIC02858,Jagat Srinivas,32,Male,Mangaluru
+VIC02859,Xalak Borah,70,Female,Mangaluru
+VIC02860,Sara Pal,43,Male,Kalaburagi
+VIC02861,Edhitha Ramanathan,21,Male,Hassan
+VIC02862,Manthan Jhaveri,69,Female,Tumakuru
+VIC02863,Lopa Kannan,70,Female,Bengaluru Urban
+VIC02864,Vihaan Din,50,Female,Hassan
+VIC02865,Alka Venkataraman,56,Male,Shivamogga
+VIC02866,Vritti Vig,55,Male,Tumakuru
+VIC02867,Nikita Tak,60,Female,Hassan
+VIC02868,Baghyawati Chand,25,Male,Chikkamagaluru
+VIC02869,Simon Karan,42,Female,Mysuru
+VIC02870,Zashil Wali,52,Male,Bengaluru Urban
+VIC02871,Bimala Swaminathan,61,Female,Bengaluru Rural
+VIC02872,Laban Cheema,39,Male,Shivamogga
+VIC02873,Manan Sur,19,Male,Mysuru
+VIC02874,Anvi Kapadia,65,Female,Mysuru
+VIC02875,Isaiah Narang,60,Female,Vijayapura
+VIC02876,Eta Sen,34,Female,Mysuru
+VIC02877,Jeet Nath,75,Female,Mangaluru
+VIC02878,Zayan Konda,64,Male,Belagavi
+VIC02879,Advika Madan,24,Female,Hubballi-Dharwad
+VIC02880,Vedant Mangat,52,Male,Bengaluru Rural
+VIC02881,Gaurang Issac,27,Male,Udupi
+VIC02882,Pooja Barad,18,Male,Bengaluru Rural
+VIC02883,Diya Bajwa,67,Female,Mysuru
+VIC02884,Vivaan Chaudhari,25,Female,Belagavi
+VIC02885,Gavin Ahuja,25,Female,Tumakuru
+VIC02886,Amaira Borra,25,Female,Vijayapura
+VIC02887,Arjun Iyengar,57,Female,Hassan
+VIC02888,Bakhshi Mand,23,Female,Hassan
+VIC02889,Idika Puri,23,Female,Mysuru
+VIC02890,Raghav Bhatti,42,Male,Tumakuru
+VIC02891,Ubika Parmar,34,Male,Chikkamagaluru
+VIC02892,Garima Ramesh,57,Male,Bengaluru Rural
+VIC02893,Sarthak Deshmukh,28,Male,Belagavi
+VIC02894,Charan Bhardwaj,28,Male,Shivamogga
+VIC02895,Charvi Chanda,66,Female,Bengaluru Urban
+VIC02896,Nirja Dada,39,Female,Hassan
+VIC02897,Anamika Warrior,66,Female,Bengaluru Rural
+VIC02898,Tarak Thakur,69,Female,Mangaluru
+VIC02899,Noah Batta,28,Male,Ballari
+VIC02900,Oni Shukla,58,Female,Hassan
+VIC02901,Indali Badal,55,Male,Davanagere
+VIC02902,Kiaan Munshi,32,Female,Tumakuru
+VIC02903,Faras Gulati,67,Female,Kalaburagi
+VIC02904,Barkha Kumer,38,Female,Mangaluru
+VIC02905,Avni Bajwa,75,Male,Bengaluru Urban
+VIC02906,Caleb Swamy,46,Male,Bengaluru Urban
+VIC02907,Ira Chandra,54,Female,Bengaluru Urban
+VIC02908,Manan Jha,60,Female,Vijayapura
+VIC02909,Oliver Suri,39,Female,Davanagere
+VIC02910,Brinda Sathe,71,Male,Belagavi
+VIC02911,Dhriti Kothari,73,Female,Bengaluru Rural
+VIC02912,Lavanya Sangha,26,Male,Ballari
+VIC02913,Sai Vala,51,Male,Ballari
+VIC02914,Rehaan Pathak,26,Female,Shivamogga
+VIC02915,Eta Banik,53,Female,Bengaluru Rural
+VIC02916,Chandani Badami,57,Male,Hassan
+VIC02917,Ryan Ramanathan,71,Female,Mangaluru
+VIC02918,Vamakshi Solanki,37,Female,Hubballi-Dharwad
+VIC02919,Lakshit Kade,20,Male,Bengaluru Urban
+VIC02920,Ladli Banerjee,37,Male,Davanagere
+VIC02921,Samesh Sibal,34,Female,Mysuru
+VIC02922,Ekalinga Buch,35,Female,Udupi
+VIC02923,Anay Dass,44,Male,Tumakuru
+VIC02924,Jagdish Murty,41,Male,Shivamogga
+VIC02925,Janani Dube,37,Female,Kalaburagi
+VIC02926,Orinder Doctor,19,Male,Hubballi-Dharwad
+VIC02927,Tanvi Narang,38,Male,Davanagere
+VIC02928,Yagnesh Mahal,23,Male,Chikkamagaluru
+VIC02929,Ekaraj Walla,51,Male,Belagavi
+VIC02930,Matthew Chacko,25,Male,Hubballi-Dharwad
+VIC02931,Yug Mammen,67,Female,Belagavi
+VIC02932,Upma Borah,74,Male,Mysuru
+VIC02933,Ekaja Rana,54,Male,Ballari
+VIC02934,Shaurya Chokshi,69,Male,Mangaluru
+VIC02935,Mohini Ramaswamy,21,Female,Hubballi-Dharwad
+VIC02936,Daksha Puri,71,Male,Hassan
+VIC02937,Onveer Ahuja,63,Female,Chikkamagaluru
+VIC02938,Sara Saini,53,Female,Bengaluru Rural
+VIC02939,Jackson Oza,75,Female,Hassan
+VIC02940,Avi Sharma,20,Female,Chikkamagaluru
+VIC02941,Yachana Mannan,74,Female,Bengaluru Rural
+VIC02942,Radha Pathak,60,Female,Hubballi-Dharwad
+VIC02943,Kevin Tiwari,65,Male,Mysuru
+VIC02944,Chanakya Kalla,22,Male,Ballari
+VIC02945,Eta Morar,18,Male,Chikkamagaluru
+VIC02946,Parth Soni,48,Male,Shivamogga
+VIC02947,Ikshita Trivedi,69,Female,Kalaburagi
+VIC02948,Bhavini Manda,52,Male,Hubballi-Dharwad
+VIC02949,Chandran Mallick,28,Male,Bengaluru Rural
+VIC02950,Anvi Chandran,39,Male,Mysuru
+VIC02951,Vyanjana Sethi,59,Male,Vijayapura
+VIC02952,Bimala Subramaniam,69,Male,Shivamogga
+VIC02953,Vyanjana Saxena,31,Male,Mysuru
+VIC02954,Amol Karan,65,Male,Kalaburagi
+VIC02955,Ishaan Dalal,18,Female,Ballari
+VIC02956,Isaiah Saran,68,Male,Shivamogga
+VIC02957,Jagrati Mammen,53,Male,Bengaluru Urban
+VIC02958,Vihaan Raju,45,Male,Ballari
+VIC02959,Azaan Merchant,60,Female,Mangaluru
+VIC02960,Jason Zacharia,70,Female,Belagavi
+VIC02961,Balhaar Wadhwa,26,Female,Ballari
+VIC02962,Oliver Handa,44,Female,Hubballi-Dharwad
+VIC02963,Zayan Rama,33,Male,Davanagere
+VIC02964,Raghav Ganguly,44,Female,Vijayapura
+VIC02965,Bina Yadav,56,Female,Bengaluru Urban
+VIC02966,Eta Koshy,25,Female,Ballari
+VIC02967,Meghana Bali,30,Female,Davanagere
+VIC02968,Devika Bose,26,Male,Udupi
+VIC02969,Thomas Bir,59,Male,Vijayapura
+VIC02970,Aahana Chatterjee,33,Male,Davanagere
+VIC02971,Ayaan Bhagat,20,Male,Mangaluru
+VIC02972,Anamika Goel,65,Male,Davanagere
+VIC02973,Dalbir Aggarwal,22,Female,Mysuru
+VIC02974,Zashil Banerjee,31,Female,Bengaluru Rural
+VIC02975,Dhruv Sharaf,54,Male,Vijayapura
+VIC02976,Yahvi Pal,31,Male,Udupi
+VIC02977,Naveen Tailor,62,Male,Kalaburagi
+VIC02978,Lavanya Lad,24,Female,Mangaluru
+VIC02979,Daniel Issac,46,Male,Mysuru
+VIC02980,Abha Tata,64,Male,Udupi
+VIC02981,Pavani Bala,41,Female,Kalaburagi
+VIC02982,Laksh Sahni,42,Female,Shivamogga
+VIC02983,Qadim Prabhakar,60,Male,Udupi
+VIC02984,Yasti Gupta,58,Male,Mangaluru
+VIC02985,Aashi Mukherjee,42,Female,Mangaluru
+VIC02986,Warinder Kala,73,Male,Shivamogga
+VIC02987,Anusha Mitter,49,Female,Kalaburagi
+VIC02988,Gauri Ramachandran,21,Female,Bengaluru Urban
+VIC02989,Indrajit Jaggi,45,Female,Mysuru
+VIC02990,Henry Bala,21,Male,Davanagere
+VIC02991,Nachiket Dora,47,Female,Mangaluru
+VIC02992,Yashawini Devi,44,Male,Chikkamagaluru
+VIC02993,Ekansh Deep,36,Male,Hubballi-Dharwad
+VIC02994,Chandani Mallick,35,Male,Kalaburagi
+VIC02995,Urvi Basak,67,Male,Shivamogga
+VIC02996,Yadavi Chhabra,68,Male,Ballari
+VIC02997,Henry Banerjee,47,Female,Hubballi-Dharwad
+VIC02998,Zaitra Krish,59,Male,Shivamogga
+VIC02999,Adya Sagar,30,Female,Udupi
+VIC03000,Yuvraj Bhatti,48,Female,Hubballi-Dharwad

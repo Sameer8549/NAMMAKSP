@@ -1,0 +1,694 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CrimeLens AI — Karnataka Police Intelligence Platform</title>
+  <meta name="description" content="Intelligent crime analytics and investigation support platform for Karnataka Police. AI-powered FIR analysis, criminal networks, hotspot mapping, and offender profiling." />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🔍</text></svg>">
+  <link rel="stylesheet" href="style.css" />
+
+  <!-- Leaflet.js for maps -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="https://unpkg.com/leaflet.heat@0.2.0/dist/leaflet-heat.js"></script>
+
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+
+  <!-- Cytoscape.js for network graph -->
+  <script src="https://unpkg.com/cytoscape@3.29.2/dist/cytoscape.min.js"></script>
+</head>
+<body>
+
+<!-- Login Screen Overlay -->
+<div id="login-screen" style="display: none;">
+  <div class="login-card">
+    <div class="login-header">
+      <div class="logo">🛡️</div>
+      <h2>CrimeLens AI</h2>
+      <span>Karnataka Police Intelligence Platform</span>
+    </div>
+    <div class="login-body">
+      <div id="login-error" class="login-error" style="display: none;"></div>
+      <form id="login-form" onsubmit="handleLoginSubmit(event)">
+        <div class="login-field">
+          <label for="login-username">Username</label>
+          <input type="text" id="login-username" required placeholder="Enter username..." />
+        </div>
+        <div class="login-field">
+          <label for="login-password">Password</label>
+          <input type="password" id="login-password" required placeholder="Enter password..." />
+        </div>
+        <button type="submit" id="btn-login-submit" class="btn btn-primary" style="width:100%; justify-content:center; padding:10px;">
+          Sign In
+        </button>
+      </form>
+      <div class="login-footer">
+        Official Police Use Only. Access is Logged.
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="app">
+
+  <!-- ════════════════════════════════════════
+       SIDEBAR
+  ════════════════════════════════════════ -->
+  <nav id="sidebar">
+    <div class="sidebar-logo">
+      <div class="logo-badge">
+        <div class="logo-icon">🔍</div>
+        <div class="logo-text">
+          <h1>CrimeLens AI</h1>
+          <span>Karnataka Police</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="sidebar-section-label">Intelligence</div>
+    <ul>
+      <li class="nav-item active" data-page="dashboard" id="nav-dashboard">
+        <span class="nav-icon">📊</span>
+        <span>Dashboard</span>
+      </li>
+      <li class="nav-item" data-page="chatbot" id="nav-chatbot">
+        <span class="nav-icon">🤖</span>
+        <span>AI Chatbot</span>
+      </li>
+    </ul>
+
+    <div class="sidebar-section-label">Analysis</div>
+    <ul>
+      <li class="nav-item" data-page="firs" id="nav-firs">
+        <span class="nav-icon">📁</span>
+        <span>FIR Records</span>
+      </li>
+      <li class="nav-item" data-page="hotspots" id="nav-hotspots">
+        <span class="nav-icon">🗺️</span>
+        <span>Crime Hotspots</span>
+      </li>
+      <li class="nav-item" data-page="network" id="nav-network">
+        <span class="nav-icon">🕸️</span>
+        <span>Criminal Network</span>
+      </li>
+    </ul>
+
+    <div class="sidebar-section-label">Profiling</div>
+    <ul>
+      <li class="nav-item" data-page="offenders" id="nav-offenders">
+        <span class="nav-icon">👤</span>
+        <span>Offender Profiles</span>
+      </li>
+      <li class="nav-item" data-page="reports" id="nav-reports">
+        <span class="nav-icon">📄</span>
+        <span>Reports</span>
+      </li>
+    </ul>
+
+    <div class="sidebar-section-label" id="section-admin-label">Administration</div>
+    <ul id="section-admin-menu">
+      <li class="nav-item" data-page="users" id="nav-users">
+        <span class="nav-icon">⚙️</span>
+        <span>User Management</span>
+      </li>
+    </ul>
+
+    <div class="sidebar-section-label">System</div>
+    <ul>
+      <li class="nav-item" id="nav-logout-btn" onclick="handleLogout()">
+        <span class="nav-icon">🚪</span>
+        <span>Logout</span>
+      </li>
+    </ul>
+
+    <div class="sidebar-footer">
+      <div class="db-status">
+        <div class="status-dot" id="db-status-dot"></div>
+        <span id="db-status-text">Connecting...</span>
+      </div>
+    </div>
+  </nav>
+
+  <!-- ════════════════════════════════════════
+       MAIN CONTENT
+  ════════════════════════════════════════ -->
+  <div id="main-content">
+
+    <!-- Top Header -->
+    <header id="top-header">
+      <span class="header-title" id="header-title">Intelligence Dashboard</span>
+      <span class="header-subtitle" id="header-subtitle">Real-time crime analytics overview</span>
+      <div class="header-actions">
+        <button class="btn btn-secondary btn-sm" onclick="refreshCurrentPage()">↻ Refresh</button>
+        <span style="font-size:12px;color:var(--text-muted)" id="last-updated"></span>
+      </div>
+    </header>
+
+    <!-- Page Content -->
+    <div id="page-content">
+
+      <!-- ══ DASHBOARD PAGE ══════════════════════════════════════════════ -->
+      <div class="page active" id="page-dashboard">
+
+        <!-- KPI Cards -->
+        <div class="kpi-grid" id="kpi-grid">
+          <div class="kpi-card highlight">
+            <div class="kpi-label">Total FIRs</div>
+            <div class="kpi-value" id="kpi-total-firs">—</div>
+            <div class="kpi-sub">All registered cases</div>
+          </div>
+          <div class="kpi-card warning">
+            <div class="kpi-label">Open Cases</div>
+            <div class="kpi-value" id="kpi-open">—</div>
+            <div class="kpi-sub">Pending investigation</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-label">Under Investigation</div>
+            <div class="kpi-value" id="kpi-investigating">—</div>
+            <div class="kpi-sub">Active cases</div>
+          </div>
+          <div class="kpi-card success">
+            <div class="kpi-label">Closed Cases</div>
+            <div class="kpi-value" id="kpi-closed">—</div>
+            <div class="kpi-sub">Resolved</div>
+          </div>
+          <div class="kpi-card danger">
+            <div class="kpi-label">Total Offenders</div>
+            <div class="kpi-value" id="kpi-offenders">—</div>
+            <div class="kpi-sub">Registered accused</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-label">Total Victims</div>
+            <div class="kpi-value" id="kpi-victims">—</div>
+            <div class="kpi-sub">Recorded victims</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-label">Districts</div>
+            <div class="kpi-value" id="kpi-districts">—</div>
+            <div class="kpi-sub">Karnataka coverage</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-label">Crime Types</div>
+            <div class="kpi-value" id="kpi-crime-types">—</div>
+            <div class="kpi-sub">Categories tracked</div>
+          </div>
+        </div>
+
+        <!-- Charts Row 1 -->
+        <div class="grid-2" style="margin-bottom:16px;">
+          <div class="card">
+            <div class="card-header">
+              <div>
+                <div class="card-title">Crime Type Distribution</div>
+                <div class="card-subtitle">All FIRs by category</div>
+              </div>
+            </div>
+            <div class="card-body">
+              <canvas id="chart-crime-types" height="240"></canvas>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-header">
+              <div>
+                <div class="card-title">Monthly Crime Trends</div>
+                <div class="card-subtitle">FIR count over time</div>
+              </div>
+            </div>
+            <div class="card-body">
+              <canvas id="chart-monthly" height="240"></canvas>
+            </div>
+          </div>
+        </div>
+
+        <!-- Charts Row 2 -->
+        <div class="grid-2" style="margin-bottom:16px;">
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title">District Crime Statistics</div>
+            </div>
+            <div class="card-body">
+              <canvas id="chart-districts" height="260"></canvas>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title">Case Status Breakdown</div>
+            </div>
+            <div class="card-body">
+              <canvas id="chart-status" height="260"></canvas>
+            </div>
+          </div>
+        </div>
+
+        <!-- District Table -->
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">District-wise Crime Summary</div>
+          </div>
+          <div class="table-wrapper">
+            <table id="table-districts">
+              <thead>
+                <tr>
+                  <th>District</th>
+                  <th>Total Crimes</th>
+                  <th>Open Cases</th>
+                  <th>Closed Cases</th>
+                  <th>Open Rate</th>
+                </tr>
+              </thead>
+              <tbody id="tbody-districts">
+                <tr><td colspan="5" class="loading"><div class="spinner"></div> Loading...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+      <!-- ═══════════════════════════════════════════════════════════════ -->
+
+
+      <!-- ══ AI CHATBOT PAGE ════════════════════════════════════════════ -->
+      <div class="page" id="page-chatbot" style="height:calc(100vh - 56px - 48px); display:none; flex-direction:column;">
+        <div class="chat-container" style="flex:1; display:flex; flex-direction:column; overflow:hidden;">
+          <div class="chat-header">
+            <div>
+              <strong style="font-size:14px;">CrimeLens Intelligence Chatbot</strong>
+              <div style="font-size:11px; color:#b0bdd0; margin-top:2px;">Powered by Groq · Mistral</div>
+            </div>
+            <span class="chat-ai-badge">AI ANALYST</span>
+            <button class="btn btn-secondary btn-sm" style="margin-left:auto;" onclick="clearChat()" id="btn-clear-chat">Clear Session</button>
+          </div>
+
+          <div class="suggestions" id="chat-suggestions">
+            <span class="suggestion-chip" onclick="sendSuggestion(this)">What are the top crime types in Bengaluru?</span>
+            <span class="suggestion-chip" onclick="sendSuggestion(this)">Which district has the most open cases?</span>
+            <span class="suggestion-chip" onclick="sendSuggestion(this)">Show me high-risk offenders</span>
+            <span class="suggestion-chip" onclick="sendSuggestion(this)">Crime trends for the last 2 years</span>
+            <span class="suggestion-chip" onclick="sendSuggestion(this)">Drug offense hotspots in Karnataka</span>
+          </div>
+
+          <div class="chat-messages" id="chat-messages">
+            <div class="message ai">
+              <div class="message-avatar">🤖</div>
+              <div>
+                <div class="message-bubble">
+                  <strong>Welcome to CrimeLens AI.</strong><br/><br/>
+                  I am your crime intelligence analyst with access to 5,000 FIR records, 2,000 offender profiles, 3,000 victim records, and 5,000 criminal relationship mappings across 15 Karnataka districts.<br/><br/>
+                  Ask me anything about crime patterns, specific cases, offender risk assessments, district statistics, or investigation recommendations.
+                </div>
+                <div class="message-meta">CrimeLens AI · Just now</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="chat-input-area">
+            <textarea id="chat-input" rows="1" placeholder="Ask about crime patterns, specific FIRs, offenders, districts..." onkeydown="handleChatKey(event)"></textarea>
+            <button class="btn btn-primary" id="btn-send" onclick="sendChat()">Send ▶</button>
+          </div>
+        </div>
+      </div>
+      <!-- ═══════════════════════════════════════════════════════════════ -->
+
+
+      <!-- ══ FIR RECORDS PAGE ═══════════════════════════════════════════ -->
+      <div class="page" id="page-firs">
+        <div class="filter-bar">
+          <input type="text" id="fir-search-crime" placeholder="Crime type..." />
+          <input type="text" id="fir-search-district" placeholder="District..." />
+          <select id="fir-search-status">
+            <option value="">All Statuses</option>
+            <option value="Open">Open</option>
+            <option value="Closed">Closed</option>
+            <option value="Under Investigation">Under Investigation</option>
+          </select>
+          <input type="date" id="fir-from-date" />
+          <input type="date" id="fir-to-date" />
+          <button class="btn btn-primary btn-sm" onclick="searchFIRs()" id="btn-fir-search">Search</button>
+          <button class="btn btn-secondary btn-sm" onclick="clearFIRFilters()">Clear</button>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">FIR Records</div>
+            <span class="card-subtitle" id="fir-count-label">Loading...</span>
+          </div>
+          <div class="table-wrapper">
+            <table>
+              <thead>
+                <tr>
+                  <th>FIR ID</th>
+                  <th>Crime Type</th>
+                  <th>Date</th>
+                  <th>District</th>
+                  <th>Police Station</th>
+                  <th>Status</th>
+                  <th>Offender</th>
+                  <th>Risk</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="tbody-firs">
+                <tr><td colspan="9" class="loading"><div class="spinner"></div> Loading...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+      <!-- ═══════════════════════════════════════════════════════════════ -->
+
+
+      <!-- ══ HOTSPOTS PAGE ══════════════════════════════════════════════ -->
+      <div class="page" id="page-hotspots">
+        <div class="kpi-grid" id="hotspot-district-kpis" style="margin-bottom:16px;"></div>
+        <div class="grid-2" style="margin-bottom:16px;">
+          <div class="card" style="grid-column:1/-1;">
+            <div class="card-header">
+              <div>
+                <div class="card-title">Karnataka Crime Heatmap</div>
+                <div class="card-subtitle">Crime density by location — darker = higher density</div>
+              </div>
+              <div style="display:flex; gap:8px;">
+                <button class="btn btn-secondary btn-sm" onclick="toggleHeatmap()">Toggle Heatmap</button>
+                <button class="btn btn-secondary btn-sm" onclick="toggleMarkers()">Toggle Markers</button>
+              </div>
+            </div>
+            <div id="map-container"></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header"><div class="card-title">Crime Density by District</div></div>
+          <div class="card-body">
+            <canvas id="chart-hotspot-density" height="200"></canvas>
+          </div>
+        </div>
+      </div>
+      <!-- ═══════════════════════════════════════════════════════════════ -->
+
+
+      <!-- ══ CRIMINAL NETWORK PAGE ══════════════════════════════════════ -->
+      <div class="page" id="page-network">
+        <div class="filter-bar">
+          <select id="net-district">
+            <option value="">All Districts</option>
+            <option>Bengaluru Urban</option><option>Bengaluru Rural</option>
+            <option>Mysuru</option><option>Mangaluru</option>
+            <option>Hubballi-Dharwad</option><option>Belagavi</option>
+            <option>Kalaburagi</option><option>Shivamogga</option>
+            <option>Tumakuru</option><option>Ballari</option>
+            <option>Vijayapura</option><option>Davanagere</option>
+            <option>Hassan</option><option>Udupi</option><option>Chikkamagaluru</option>
+          </select>
+          <select id="net-crime-type">
+            <option value="">All Crime Types</option>
+            <option>Theft</option><option>Robbery</option><option>Burglary</option>
+            <option>Assault</option><option>Cyber Crime</option><option>Fraud</option>
+            <option>Drug Offense</option><option>Vehicle Theft</option>
+            <option>Domestic Violence</option><option>Murder</option>
+            <option>Kidnapping</option><option>Financial Fraud</option>
+          </select>
+          <select id="net-limit">
+            <option value="100">100 nodes</option>
+            <option value="150" selected>150 nodes</option>
+            <option value="200">200 nodes</option>
+          </select>
+          <button class="btn btn-primary btn-sm" onclick="loadNetwork()" id="btn-load-network">Load Network</button>
+        </div>
+
+        <div class="grid-2" style="margin-bottom:16px;">
+          <div class="card" style="grid-column:1/-1;">
+            <div class="card-header">
+              <div class="card-title">Criminal Relationship Network</div>
+              <div class="network-legend">
+                <div class="legend-item"><div class="legend-dot" style="background:#c0392b;"></div> High-Risk Offender</div>
+                <div class="legend-item"><div class="legend-dot" style="background:#e67e22;"></div> Med-Risk Offender</div>
+                <div class="legend-item"><div class="legend-dot" style="background:#27ae60;"></div> Low-Risk Offender</div>
+                <div class="legend-item"><div class="legend-dot" style="background:#2980b9;"></div> Victim</div>
+                <div class="legend-item"><div class="legend-dot" style="background:#7f8c8d;"></div> FIR</div>
+              </div>
+            </div>
+            <div id="cy"></div>
+          </div>
+        </div>
+
+        <div class="grid-2">
+          <div class="card">
+            <div class="card-header"><div class="card-title">Network Metrics</div></div>
+            <div class="card-body" id="network-metrics">
+              <div class="empty-state"><div class="empty-icon">🕸️</div><p>Load network to see metrics</p></div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-header"><div class="card-title">Key Offenders</div></div>
+            <div class="table-wrapper">
+              <table>
+                <thead><tr><th>Offender</th><th>Risk</th><th>Prior FIRs</th><th>Centrality</th></tr></thead>
+                <tbody id="tbody-key-offenders">
+                  <tr><td colspan="4" class="empty-state" style="padding:20px;"><p>Load network to see key offenders</p></td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- ═══════════════════════════════════════════════════════════════ -->
+
+
+      <!-- ══ OFFENDER PROFILES PAGE ═════════════════════════════════════ -->
+      <div class="page" id="page-offenders">
+        <div class="tab-bar">
+          <button class="tab-btn active" onclick="switchOffenderTab('high-risk', this)">High Risk Offenders</button>
+          <button class="tab-btn" onclick="switchOffenderTab('repeat', this)">Repeat Offenders</button>
+          <button class="tab-btn" onclick="switchOffenderTab('lookup', this)">Profile Lookup</button>
+        </div>
+
+        <!-- High Risk Tab -->
+        <div id="tab-high-risk">
+          <div class="card">
+            <div class="card-header"><div class="card-title">High Risk Offenders</div><div class="card-subtitle">Sorted by risk score and prior FIRs</div></div>
+            <div class="table-wrapper">
+              <table>
+                <thead>
+                  <tr><th>Offender ID</th><th>Name</th><th>Age</th><th>District</th><th>Prior FIRs</th><th>Risk Category</th><th>Risk Score</th><th>Actions</th></tr>
+                </thead>
+                <tbody id="tbody-high-risk">
+                  <tr><td colspan="8" class="loading"><div class="spinner"></div> Loading...</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- Repeat Offenders Tab -->
+        <div id="tab-repeat" style="display:none;">
+          <div class="card">
+            <div class="card-header"><div class="card-title">Repeat Offenders</div><div class="card-subtitle">Multiple FIRs filed</div></div>
+            <div class="table-wrapper">
+              <table>
+                <thead>
+                  <tr><th>Offender ID</th><th>Name</th><th>District</th><th>FIR Count</th><th>Prior FIRs</th><th>Risk</th><th>Actions</th></tr>
+                </thead>
+                <tbody id="tbody-repeat">
+                  <tr><td colspan="7" class="loading"><div class="spinner"></div> Loading...</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- Profile Lookup Tab -->
+        <div id="tab-lookup" style="display:none;">
+          <div class="filter-bar" style="margin-bottom:16px;">
+            <input type="text" id="offender-id-input" placeholder="Enter Offender ID (e.g. OFF00042)" style="flex:0 0 280px;" />
+            <button class="btn btn-primary btn-sm" onclick="lookupOffender()" id="btn-lookup">Look Up Profile</button>
+          </div>
+          <div id="offender-profile-result">
+            <div class="empty-state">
+              <div class="empty-icon">👤</div>
+              <p>Enter an Offender ID above to view their full profile</p>
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- ═══════════════════════════════════════════════════════════════ -->
+
+
+      <!-- ══ REPORTS PAGE ═══════════════════════════════════════════════ -->
+      <div class="page" id="page-reports">
+        <div class="grid-2" style="margin-bottom:16px;">
+
+          <!-- Case Report Generator -->
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title">📋 Case Investigation Report</div>
+              <div class="card-subtitle">PDF report for a specific FIR</div>
+            </div>
+            <div class="card-body">
+              <div style="margin-bottom:12px;">
+                <label style="font-size:12px; font-weight:600; color:var(--text-secondary); display:block; margin-bottom:6px;">FIR ID</label>
+                <input type="text" id="report-fir-id" placeholder="e.g. FIR00042" style="width:100%; padding:8px 12px; border:1px solid var(--border); border-radius:var(--radius); font-size:13px;" />
+              </div>
+              <button class="btn btn-primary" onclick="generateCaseReport()" id="btn-gen-report" style="width:100%;">
+                Generate & Download Report
+              </button>
+              <div id="report-status" style="margin-top:10px;"></div>
+            </div>
+          </div>
+
+          <!-- District Report Generator -->
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title">🗺️ District Crime Report</div>
+              <div class="card-subtitle">AI-powered district summary</div>
+            </div>
+            <div class="card-body">
+              <div style="margin-bottom:12px;">
+                <label style="font-size:12px; font-weight:600; color:var(--text-secondary); display:block; margin-bottom:6px;">Select District</label>
+                <select id="report-district" style="width:100%; padding:8px 12px; border:1px solid var(--border); border-radius:var(--radius); font-size:13px;">
+                  <option value="">Select a district...</option>
+                  <option>Bengaluru Urban</option><option>Bengaluru Rural</option>
+                  <option>Mysuru</option><option>Mangaluru</option>
+                  <option>Hubballi-Dharwad</option><option>Belagavi</option>
+                  <option>Kalaburagi</option><option>Shivamogga</option>
+                  <option>Tumakuru</option><option>Ballari</option>
+                  <option>Vijayapura</option><option>Davanagere</option>
+                  <option>Hassan</option><option>Udupi</option><option>Chikkamagaluru</option>
+                </select>
+              </div>
+              <button class="btn btn-primary" onclick="generateDistrictReport()" id="btn-gen-district-report" style="width:100%;">
+                Generate & Download Report
+              </button>
+              <div id="district-report-status" style="margin-top:10px;"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- AI Recommendations Panel -->
+        <div class="card" style="margin-bottom:16px;">
+          <div class="card-header">
+            <div class="card-title">🤖 AI Investigation Recommendations</div>
+            <div style="display:flex; gap:8px; align-items:center;">
+              <select id="rec-district" style="padding:6px 10px; border:1px solid var(--border); border-radius:var(--radius); font-size:12px;">
+                <option value="">All Districts</option>
+                <option>Bengaluru Urban</option><option>Bengaluru Rural</option>
+                <option>Mysuru</option><option>Mangaluru</option><option>Hubballi-Dharwad</option>
+                <option>Belagavi</option><option>Kalaburagi</option><option>Shivamogga</option>
+                <option>Tumakuru</option><option>Ballari</option><option>Vijayapura</option>
+                <option>Davanagere</option><option>Hassan</option><option>Udupi</option><option>Chikkamagaluru</option>
+              </select>
+              <select id="rec-crime" style="padding:6px 10px; border:1px solid var(--border); border-radius:var(--radius); font-size:12px;">
+                <option value="">All Crime Types</option>
+                <option>Theft</option><option>Robbery</option><option>Assault</option>
+                <option>Cyber Crime</option><option>Fraud</option><option>Drug Offense</option>
+                <option>Murder</option><option>Kidnapping</option>
+              </select>
+              <button class="btn btn-primary btn-sm" onclick="loadRecommendations()" id="btn-load-rec">Get Recommendations</button>
+            </div>
+          </div>
+          <div class="card-body">
+            <div class="ai-label">AI ANALYSIS</div>
+            <div class="ai-panel" id="recommendations-panel">
+              Click "Get Recommendations" to generate AI-powered investigation insights and crime prevention strategies based on the current data patterns.
+            </div>
+          </div>
+        </div>
+
+        <!-- Generated Reports List -->
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">Generated Reports</div>
+            <button class="btn btn-secondary btn-sm" onclick="loadReportsList()">↻ Refresh</button>
+          </div>
+          <div class="table-wrapper">
+            <table>
+              <thead><tr><th>Filename</th><th>Size</th><th>Created</th><th>Download</th></tr></thead>
+              <tbody id="tbody-reports">
+                <tr><td colspan="4" class="loading"><div class="spinner"></div> Loading...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+      <!-- ═══════════════════════════════════════════════════════════════ -->
+
+      <!-- ══ USER MANAGEMENT PAGE ══════════════════════════════════════ -->
+      <div class="page" id="page-users" style="display:none;">
+        <div class="grid-2" style="margin-bottom:16px;">
+          
+          <!-- Add User Card -->
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title">➕ Create New User Account</div>
+              <div class="card-subtitle">Register a new Admin or Investigator</div>
+            </div>
+            <div class="card-body">
+              <div id="user-create-error" class="alert alert-danger" style="display:none; padding:6px 10px; font-size:12px; margin-bottom:12px;"></div>
+              <div id="user-create-success" class="alert alert-success" style="display:none; padding:6px 10px; font-size:12px; margin-bottom:12px;"></div>
+              
+              <form id="create-user-form" onsubmit="handleCreateUser(event)">
+                <div style="margin-bottom:12px;">
+                  <label style="font-size:12px; font-weight:600; color:var(--text-secondary); display:block; margin-bottom:6px;">Username</label>
+                  <input type="text" id="create-username" required style="width:100%; padding:8px 12px; border:1px solid var(--border); border-radius:var(--radius); font-size:13px; background:var(--surface);" placeholder="e.g. officer_john" />
+                </div>
+                <div style="margin-bottom:12px;">
+                  <label style="font-size:12px; font-weight:600; color:var(--text-secondary); display:block; margin-bottom:6px;">Password</label>
+                  <input type="password" id="create-password" required style="width:100%; padding:8px 12px; border:1px solid var(--border); border-radius:var(--radius); font-size:13px; background:var(--surface);" placeholder="Enter password..." />
+                </div>
+                <div style="margin-bottom:16px;">
+                  <label style="font-size:12px; font-weight:600; color:var(--text-secondary); display:block; margin-bottom:6px;">Role</label>
+                  <select id="create-role" required style="width:100%; padding:8px 12px; border:1px solid var(--border); border-radius:var(--radius); font-size:13px; background:var(--surface);">
+                    <option value="Investigator">Investigator</option>
+                    <option value="Admin">Admin</option>
+                  </select>
+                </div>
+                <button type="submit" class="btn btn-primary" style="width:100%; justify-content:center;">
+                  Create User Account
+                </button>
+              </form>
+            </div>
+          </div>
+          
+          <!-- Users List Card -->
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title">👥 User Directory</div>
+              <div class="card-subtitle">Active platform accounts</div>
+            </div>
+            <div class="table-wrapper">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Username</th>
+                    <th>Role</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="tbody-users">
+                  <tr><td colspan="3" class="loading"><div class="spinner"></div> Loading accounts...</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+        </div>
+      </div>
+      <!-- ═══════════════════════════════════════════════════════════════ -->
+
+    </div><!-- /#page-content -->
+  </div><!-- /#main-content -->
+</div><!-- /#app -->
+
+<!-- FIR Detail Modal -->
+<div id="modal-overlay" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:1000; overflow-y:auto;">
+  <div style="max-width:780px; margin:40px auto; background:var(--surface-2); border-radius:var(--radius-lg); box-shadow:var(--shadow-md); overflow:hidden;">
+    <div style="background:var(--navy-800); padding:16px 20px; display:flex; align-items:center; justify-content:space-between;">
+      <strong style="color:white; font-size:15px;" id="modal-title">Case Detail</strong>
+      <button onclick="closeModal()" style="background:none; border:none; color:#b0bdd0; font-size:20px; cursor:pointer;">✕</button>
+    </div>
+    <div style="padding:20px;" id="modal-body">Loading...</div>
+  </div>
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>
