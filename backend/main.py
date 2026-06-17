@@ -1,8 +1,8 @@
 """
-main.py — CrimeLens AI
+main.py — NAMMA KSP
 ────────────────────────
 FastAPI application entry point.
-All API routes for the CrimeLens AI platform.
+All API routes for the NAMMA KSP platform.
 """
 
 import os
@@ -13,7 +13,7 @@ from pathlib import Path
 from typing import Optional
 
 import uvicorn
-from fastapi import FastAPI, HTTPException, Query, BackgroundTasks, Depends, Header
+from fastapi import FastAPI, HTTPException, Query, BackgroundTasks, Depends, Header, UploadFile, File
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
@@ -25,6 +25,10 @@ sys.path.insert(0, str(Path(__file__).parent))
 
 load_dotenv(Path(__file__).parent.parent / ".env")
 
+import mimetypes
+mimetypes.init()
+mimetypes.add_type("application/pdf", ".pdf")
+
 from database  import init_db, get_db_stats
 from analytics import (
     get_overview_stats, get_crime_type_distribution, get_monthly_trends,
@@ -35,7 +39,7 @@ from analytics import (
 )
 from network   import get_network_data, get_shared_offender_network
 from ai_service import chat, generate_case_summary, get_investigation_recommendations, clear_session
-from report    import generate_case_report, generate_district_report, generate_chat_log_report
+from report    import generate_case_report, generate_district_report, generate_chat_log_report, generate_recommendations_report
 
 # ─── Logging ─────────────────────────────────────────────────────────────────
 logging.basicConfig(
@@ -48,9 +52,10 @@ logger = logging.getLogger(__name__)
 BASE_DIR    = Path(__file__).parent.parent
 FRONTEND_DIR = BASE_DIR / "frontend"
 REPORTS_DIR  = BASE_DIR / "reports"
+REPORTS_DIR.mkdir(parents=True, exist_ok=True)
 
 app = FastAPI(
-    title="CrimeLens AI",
+    title="NAMMA KSP",
     description="Intelligent Crime Analytics & Investigation Support Platform — Karnataka Police",
     version="1.0.0",
     docs_url="/api/docs",
@@ -65,10 +70,29 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# ─── No-Cache Middleware (dev mode — forces browsers to always get fresh files) ─
+from starlette.middleware.base import BaseHTTPMiddleware
+from starlette.requests import Request as StarletteRequest
+
+class NoCacheMiddleware(BaseHTTPMiddleware):
+    async def dispatch(self, request: StarletteRequest, call_next):
+        response = await call_next(request)
+        # Apply no-cache only to HTML, JS, CSS (not API responses or binary files)
+        ct = response.headers.get("content-type", "")
+        if any(x in ct for x in ("text/html", "javascript", "text/css")):
+            response.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
+            response.headers["Pragma"] = "no-cache"
+            response.headers["Expires"] = "0"
+        return response
+
+app.add_middleware(NoCacheMiddleware)
+
+
 # ─── Startup ──────────────────────────────────────────────────────────────────
 @app.on_event("startup")
 async def startup():
-    logger.info("CrimeLens AI starting up...")
+    logger.info("NAMMA KSP starting up...")
+    REPORTS_DIR.mkdir(parents=True, exist_ok=True)
     await init_db()
     logger.info("Database ready. API is live.")
 
@@ -88,6 +112,19 @@ class ReportRequest(BaseModel):
 class DistrictReportRequest(BaseModel):
     district: str
 
+class OffenderReportRequest(BaseModel):
+    offender_id: str
+
+class NetworkReportRequest(BaseModel):
+    image_data: str
+    district: Optional[str] = "All Districts"
+    crime_type: Optional[str] = "All Crimes"
+
+class RecommendationsReportRequest(BaseModel):
+    district: Optional[str] = None
+    crime_type: Optional[str] = None
+
+
 class LoginRequest(BaseModel):
     username: str
     password: str
@@ -104,6 +141,10 @@ class ChatMessage(BaseModel):
 class ExportChatRequest(BaseModel):
     session_id: str
     messages: list[ChatMessage]
+
+class TTSRequest(BaseModel):
+    text: str
+    language: Optional[str] = "en"  # "en" or "kn"
 
 
 # ─── Auth Session Registry & Dependencies ─────────────────────────────────────
@@ -156,6 +197,18 @@ async def analytics_monthly_trends():
 async def analytics_districts():
     """Crime statistics per district."""
     return await get_district_stats()
+
+
+@app.get("/api/analytics/district-crime-breakdown")
+async def analytics_district_crime_breakdown(district: str):
+    """Breakdown of crime types for a given district."""
+    from database import fetch_all
+    from analytics import normalize_district_name
+    norm_dist = normalize_district_name(district)
+    return await fetch_all(
+        "SELECT crime_type, COUNT(*) AS count FROM firs WHERE district LIKE ? GROUP BY crime_type ORDER BY count DESC",
+        (f"%{norm_dist}%",)
+    )
 
 
 @app.get("/api/analytics/districts/top-crime")
@@ -263,15 +316,27 @@ async def delete_user(username: str, admin_user: dict = Depends(require_admin)):
 # ═══════════════════════════════════════════════════════════════════════════════
 
 @app.get("/api/hotspots")
-async def hotspots(user: dict = Depends(get_current_user)):
+async def hotspots(
+    district: Optional[str] = Query(None),
+    crime_type: Optional[str] = Query(None),
+    from_date: Optional[str] = Query(None),
+    to_date: Optional[str] = Query(None),
+    user: dict = Depends(get_current_user)
+):
     """Lat/lon hotspot data for Leaflet.js heatmap."""
-    return await get_hotspot_data()
+    return await get_hotspot_data(district, crime_type, from_date, to_date)
 
 
 @app.get("/api/hotspots/density")
-async def hotspot_density(user: dict = Depends(get_current_user)):
+async def hotspot_density(
+    district: Optional[str] = Query(None),
+    crime_type: Optional[str] = Query(None),
+    from_date: Optional[str] = Query(None),
+    to_date: Optional[str] = Query(None),
+    user: dict = Depends(get_current_user)
+):
     """District crime density for choropleth map."""
-    return await get_district_crime_density()
+    return await get_district_crime_density(district, crime_type, from_date, to_date)
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -311,9 +376,12 @@ async def fir_related_cases(fir_id: str):
 # ═══════════════════════════════════════════════════════════════════════════════
 
 @app.get("/api/offenders/high-risk")
-async def high_risk_offenders(limit: int = Query(20, le=100)):
+async def high_risk_offenders(
+    limit: int = Query(20, le=100),
+    search: Optional[str] = Query(None)
+):
     """Top high-risk offenders with risk scores."""
-    return await get_high_risk_offenders(limit)
+    return await get_high_risk_offenders(limit, search)
 
 
 @app.get("/api/offenders/repeat")
@@ -375,6 +443,87 @@ async def clear_chat_session(request: ClearSessionRequest):
     """Clear conversation history for a session."""
     cleared = clear_session(request.session_id)
     return {"cleared": cleared, "session_id": request.session_id}
+
+
+@app.post("/api/tts")
+async def text_to_speech(request: TTSRequest):
+    """
+    Convert text to speech using Google TTS (gTTS).
+    Returns an MP3 audio stream.
+    Supports English (en) and Kannada (kn).
+    """
+    try:
+        from gtts import gTTS
+        import io
+
+        # Map language codes
+        lang_map = {
+            "en": "en",
+            "en-US": "en",
+            "kn": "kn",
+            "kn-IN": "kn",
+        }
+        lang = lang_map.get(request.language, "en")
+
+        # Clean text: strip markdown and keep only readable characters
+        import re
+        clean_text = request.text
+        clean_text = re.sub(r'\*\*(.+?)\*\*', r'\1', clean_text)   # bold
+        clean_text = re.sub(r'\*(.+?)\*', r'\1', clean_text)        # italic
+        clean_text = re.sub(r'#+\s*', '', clean_text)                # headings
+        clean_text = re.sub(r'[-•]\s+', '', clean_text)             # bullets
+        clean_text = re.sub(r'<[^>]+>', '', clean_text)             # html tags
+        clean_text = clean_text.strip()
+
+        if not clean_text:
+            raise HTTPException(status_code=400, detail="No text to speak")
+
+        # Limit text length to prevent very long audio (gTTS splits internally)
+        if len(clean_text) > 3000:
+            clean_text = clean_text[:3000] + "..."
+
+        # Generate TTS audio in memory
+        tts = gTTS(text=clean_text, lang=lang, slow=False)
+        audio_buffer = io.BytesIO()
+        tts.write_to_fp(audio_buffer)
+        audio_buffer.seek(0)
+
+        from fastapi.responses import StreamingResponse
+        return StreamingResponse(
+            audio_buffer,
+            media_type="audio/mpeg",
+            headers={
+                "Content-Disposition": "inline; filename=tts.mp3",
+                "Cache-Control": "no-cache",
+            }
+        )
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error("TTS generation failed: %s", e)
+        raise HTTPException(status_code=500, detail=f"TTS failed: {str(e)}")
+
+
+@app.post("/api/audio-transcribe")
+async def audio_transcribe_endpoint(
+    file: UploadFile = File(...),
+    language: Optional[str] = Query(None)
+):
+    """
+    Transcribe recorded audio file via Groq Whisper.
+    """
+    try:
+        content = await file.read()
+        if not content:
+            raise HTTPException(status_code=400, detail="Empty audio file")
+            
+        from ai_service import transcribing_audio
+        text = await transcribing_audio(content, file.filename or "audio.webm", language)
+        return {"text": text}
+    except Exception as e:
+        logger.error("Audio transcription endpoint failed: %s", e)
+        raise HTTPException(status_code=500, detail=str(e))
+
 
 
 @app.post("/api/chat/export")
@@ -488,7 +637,81 @@ async def generate_district_report_endpoint(request: DistrictReportRequest):
     )
 
 
+@app.post("/api/reports/offender")
+async def generate_offender_report_endpoint(request: OffenderReportRequest):
+    """Generate and download a PDF offender profile dossier."""
+    offender_id = request.offender_id.upper()
+    
+    from analytics import get_offender_profile
+    data = await get_offender_profile(offender_id)
+    if not data:
+        raise HTTPException(status_code=404, detail=f"Offender {offender_id} not found")
+        
+    try:
+        from report import generate_offender_report
+        pdf_path = await generate_offender_report(offender_id, data)
+    except Exception as e:
+        logger.error("Offender report generation failed: %s", e)
+        raise HTTPException(status_code=500, detail=str(e))
+        
+    return FileResponse(
+        path=pdf_path,
+        media_type="application/pdf",
+        filename=Path(pdf_path).name
+    )
+
+
+@app.post("/api/reports/network")
+async def generate_network_report_endpoint(request: NetworkReportRequest):
+    """Generate and download a PDF report containing the criminal network graph."""
+    try:
+        import base64
+        img_str = request.image_data
+        if "," in img_str:
+            img_str = img_str.split(",")[1]
+        img_bytes = base64.b64decode(img_str)
+        
+        from report import generate_network_pdf_report
+        pdf_path = await generate_network_pdf_report(img_bytes, request.district, request.crime_type)
+        
+        return FileResponse(
+            path=pdf_path,
+            media_type="application/pdf",
+            filename=Path(pdf_path).name
+        )
+    except Exception as e:
+        logger.error("Network report generation failed: %s", e)
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/api/reports/recommendations")
+async def generate_recommendations_report_endpoint(request: RecommendationsReportRequest):
+    """Generate and download a PDF containing AI recommendations."""
+    district = request.district
+    crime_type = request.crime_type
+
+    try:
+        ai_result = await get_investigation_recommendations(district=district, crime_type=crime_type)
+        recommendations = ai_result.get("recommendations", "No recommendations available.")
+    except Exception as e:
+        logger.error("Failed to generate AI recommendations: %s", e)
+        recommendations = "AI recommendations could not be generated at this time."
+
+    try:
+        pdf_path = await generate_recommendations_report(district, crime_type, recommendations)
+    except Exception as e:
+        logger.error("Recommendations report PDF generation error: %s", e)
+        raise HTTPException(status_code=500, detail=f"PDF generation failed: {e}")
+
+    return FileResponse(
+        path=pdf_path,
+        media_type="application/pdf",
+        filename=Path(pdf_path).name
+    )
+
+
 @app.get("/api/reports/list")
+
 async def list_reports():
     """List all generated PDF reports."""
     reports = []
@@ -502,13 +725,43 @@ async def list_reports():
     return reports
 
 
+@app.get("/api/reports/download/{filename}")
+async def download_report_file(filename: str):
+    """
+    Serve a generated PDF report file with guaranteed application/pdf content-type
+    and Content-Disposition: attachment so browsers download it instead of displaying it.
+    """
+    # Sanitize: only allow .pdf filenames with no path traversal
+    if "/" in filename or "\\" in filename or not filename.endswith(".pdf"):
+        raise HTTPException(status_code=400, detail="Invalid filename")
+    
+    pdf_path = REPORTS_DIR / filename
+    if not pdf_path.exists():
+        raise HTTPException(status_code=404, detail=f"Report '{filename}' not found")
+    
+    return FileResponse(
+        path=str(pdf_path),
+        media_type="application/pdf",
+        filename=filename,
+        headers={
+            "Content-Disposition": f'attachment; filename="{filename}"',
+            "Content-Type": "application/pdf",
+            "Cache-Control": "no-cache",
+        }
+    )
+
+
+# ─── Serve Reports (must come before frontend mount) ─────────────────────────
+app.mount("/reports", StaticFiles(directory=str(REPORTS_DIR)), name="reports")
+
 # ─── Serve Frontend ───────────────────────────────────────────────────────────
 if FRONTEND_DIR.exists():
     app.mount("/", StaticFiles(directory=str(FRONTEND_DIR), html=True), name="frontend")
 
 
-# ─── Entry Point ──────────────────────────────────────────────────────────────
 if __name__ == "__main__":
-    host = os.getenv("APP_HOST", "127.0.0.1")
-    port = int(os.getenv("APP_PORT", 8000))
-    uvicorn.run("main:app", host=host, port=port, reload=True, log_level="info")
+    catalyst_port = os.getenv("X_ZOHO_CATALYST_LISTEN_PORT")
+    host = os.getenv("APP_HOST", "0.0.0.0" if catalyst_port else "127.0.0.1")
+    port = int(catalyst_port or os.getenv("APP_PORT", 8000))
+    reload = False if catalyst_port else True
+    uvicorn.run("main:app", host=host, port=port, reload=reload, log_level="info")

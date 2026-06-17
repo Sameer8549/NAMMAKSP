@@ -1,5 +1,5 @@
 """
-ai_service.py — CrimeLens AI
+ai_service.py — NAMMA KSP
 ──────────────────────────────
 Conversational crime intelligence powered by Groq (mistral-saba-24b).
 Every AI response includes reasoning, evidence, and data citations.
@@ -23,12 +23,12 @@ logger = logging.getLogger(__name__)
 
 # ─── Client Setup ─────────────────────────────────────────────────────────────
 _groq_client = Groq(api_key=os.getenv("GROQ_API_KEY"))
-MODEL = os.getenv("GROQ_MODEL", "mistral-saba-24b")
+MODEL = os.getenv("GROQ_MODEL", "llama-3.3-70b-versatile")
 
 # ─── Conversation History Store (in-memory per session) ──────────────────────
 _sessions: dict[str, list[dict]] = {}
 
-SYSTEM_PROMPT = """You are CrimeLens AI, an expert crime intelligence analyst for Karnataka Police.
+SYSTEM_PROMPT = """You are NAMMA KSP, an expert crime intelligence analyst for Karnataka Police.
 You have access to a database of 5,000 FIR records, 2,000 offenders, 3,000 victims, 100 locations, and 5,000 criminal relationships.
 
 Your role:
@@ -37,7 +37,7 @@ Your role:
 - Suggest investigation leads and related cases.
 - Identify patterns and anomalies.
 - Explain your reasoning step by step (Explainable AI) with confidence scores.
-- ALWAYS reply in the language used by the user (English or Kannada). If the user asks in Kannada, answer in clear Kannada. If in English, answer in English.
+- ALWAYS reply in the language selected by the user (English or Kannada). If the selected language is Kannada, answer in clear Kannada. If English, answer in English.
 
 Response format:
 Please structure your response with the following sections:
@@ -304,6 +304,21 @@ If the selected language is Kannada, write in clean, grammatically correct Kanna
 
     ai_reply = response.choices[0].message.content
 
+    # Check if we requested Kannada but response has no Kannada characters
+    if language == "kn-IN" and not any('\u0c80' <= c <= '\u0cff' for c in ai_reply):
+        logger.info("Response was in English but Kannada was requested. Translating response...")
+        try:
+            translation_prompt = f"Translate the following English text to clean, natural, grammatically correct Kannada script. Return ONLY the translated Kannada text, preserving the sections and markdown formatting. Do not include any explanations.\n\nText:\n{ai_reply}"
+            translation_response = _groq_client.chat.completions.create(
+                model=MODEL,
+                messages=[{"role": "user", "content": translation_prompt}],
+                max_tokens=2000,
+                temperature=0.2,
+            )
+            ai_reply = translation_response.choices[0].message.content
+        except Exception as te:
+            logger.error("Failed to translate English response to Kannada: %s", te)
+
     # Store assistant response (clean, without augmented context)
     history.append({"role": "assistant", "content": ai_reply})
 
@@ -466,3 +481,35 @@ def get_session_history(session_id: str) -> list[dict]:
     """Get conversation turns for a session (excluding system prompt)."""
     history = _sessions.get(session_id, [])
     return [h for h in history if h["role"] != "system"]
+
+
+async def transcribing_audio(content: bytes, filename: str, language: str = None) -> str:
+    """
+    Transcribe audio bytes using Groq Whisper model.
+    """
+    import asyncio
+    from functools import partial
+    from typing import Optional
+
+    try:
+        ext = filename.split(".")[-1].lower() if "." in filename else "webm"
+        content_type = f"audio/{ext}" if ext in ["webm", "mp3", "wav", "m4a", "ogg"] else "audio/webm"
+        
+        kwargs = {
+            "file": (filename, content, content_type),
+            "model": "whisper-large-v3",
+            "response_format": "json"
+        }
+        if language:
+            kwargs["language"] = language
+            
+        loop = asyncio.get_running_loop()
+        response = await loop.run_in_executor(
+            None,
+            partial(_groq_client.audio.transcriptions.create, **kwargs)
+        )
+        return response.text.strip()
+    except Exception as e:
+        logger.error("Groq Whisper transcription failed: %s", e)
+        raise e
+

@@ -1,0 +1,9 @@
+{
+  "command": "uvicorn backend.main:app --host 0.0.0.0 --port $X_ZOHO_CATALYST_LISTEN_PORT",
+  "stack": "python3.10",
+  "memory": 512,
+  "env_variables": {
+    "DATA_DIR": "data",
+    "REPORTS_DIR": "reports"
+  }
+}

@@ -1,5 +1,5 @@
 """
-database.py — CrimeLens AI
+database.py — NAMMA KSP
 ──────────────────────────
 Handles all database operations:
   - SQLite initialization via aiosqlite (async)
@@ -127,40 +127,43 @@ async def init_db() -> None:
     """
     logger.info("Initializing database at %s", DB_PATH)
 
-    async with aiosqlite.connect(DB_PATH) as db:
-        # Create schema
-        await db.executescript(CREATE_TABLES_SQL)
-        await db.commit()
-        logger.info("Schema created / verified.")
-
-        # Seed default users if users table is empty
-        async with db.execute("SELECT COUNT(*) FROM users") as cur:
-            user_count = (await cur.fetchone())[0]
-        if user_count == 0:
-            logger.info("Seeding default users...")
-            admin_hash = hash_password("admin123")
-            officer_hash = hash_password("officer123")
-            await db.execute(
-                "INSERT INTO users (username, password_hash, role) VALUES (?, ?, ?)",
-                ("admin", admin_hash, "Admin")
-            )
-            await db.execute(
-                "INSERT INTO users (username, password_hash, role) VALUES (?, ?, ?)",
-                ("officer", officer_hash, "Investigator")
-            )
+    try:
+        async with aiosqlite.connect(DB_PATH) as db:
+            # Create schema
+            await db.executescript(CREATE_TABLES_SQL)
             await db.commit()
-            logger.info("Default users seeded.")
+            logger.info("Schema created / verified.")
 
-        # Check if data already loaded
-        async with db.execute("SELECT COUNT(*) FROM firs") as cur:
-            count = (await cur.fetchone())[0]
+            # Seed default users if users table is empty
+            async with db.execute("SELECT COUNT(*) FROM users") as cur:
+                user_count = (await cur.fetchone())[0]
+            if user_count == 0:
+                logger.info("Seeding default users...")
+                admin_hash = hash_password("admin123")
+                officer_hash = hash_password("officer123")
+                await db.execute(
+                    "INSERT INTO users (username, password_hash, role) VALUES (?, ?, ?)",
+                    ("admin", admin_hash, "Admin")
+                )
+                await db.execute(
+                    "INSERT INTO users (username, password_hash, role) VALUES (?, ?, ?)",
+                    ("officer", officer_hash, "Investigator")
+                )
+                await db.commit()
+                logger.info("Default users seeded.")
 
-        if count == 0:
-            logger.info("Database is empty — loading CSVs...")
-            await _ingest_csvs(db)
-            logger.info("CSV ingestion complete.")
-        else:
-            logger.info("Database already populated (%d FIR records).", count)
+            # Check if data already loaded
+            async with db.execute("SELECT COUNT(*) FROM firs") as cur:
+                count = (await cur.fetchone())[0]
+
+            if count == 0:
+                logger.info("Database is empty — loading CSVs...")
+                await _ingest_csvs(db)
+                logger.info("CSV ingestion complete.")
+            else:
+                logger.info("Database already populated (%d FIR records).", count)
+    except Exception as e:
+        logger.warning("Database initialization write failed (possibly read-only filesystem): %s. Continuing in read-only mode.", e)
 
 
 async def _ingest_csvs(db: aiosqlite.Connection) -> None:

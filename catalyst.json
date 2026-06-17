@@ -1,0 +1,27 @@
+{
+  "appsail": [
+    {
+      "name": "namma-ksp",
+      "source": ".",
+      "ignore": [
+        ".env",
+        "venv",
+        ".venv",
+        "**/__pycache__",
+        "**/*.pyc",
+        "reports/*.pdf",
+        ".vscode",
+        ".idea",
+        "start_server.bat",
+        "frontend"
+      ]
+    }
+  ],
+  "client": {
+    "source": "frontend",
+    "ignore": [
+      "**/__pycache__",
+      "**/*.pyc"
+    ]
+  }
+}

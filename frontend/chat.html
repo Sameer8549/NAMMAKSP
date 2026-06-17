@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AI Chat — NAMMA KSP</title>
+  <meta name="description" content="NAMMA KSP Crime Intelligence Assistant for Karnataka State Police." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Noto+Sans+Kannada:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+  <style>
+    /* ── Language Toggle ── */
+    .lang-toggle {
+      display: flex;
+      background: var(--color-surface-2, #F3F4F6);
+      border-radius: 8px;
+      padding: 3px;
+      gap: 2px;
+    }
+    .lang-btn {
+      padding: 5px 13px;
+      border: none;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      background: transparent;
+      color: var(--color-text-muted);
+      transition: all .2s;
+      font-family: inherit;
+    }
+    .lang-btn.active {
+      background: var(--color-primary, #1C2B4A);
+      color: #fff;
+      box-shadow: 0 1px 4px rgba(0,0,0,.15);
+    }
+    .lang-btn.kan-btn { font-family: 'Noto Sans Kannada', sans-serif; }
+
+    /* ── Voice button states ── */
+    #voice-btn { position: relative; transition: all .2s; }
+    #voice-btn.recording {
+      background: #FEE2E2;
+      color: #B91C1C;
+      border-color: #FECACA;
+      animation: voicePulse 1s infinite;
+    }
+    @keyframes voicePulse {
+      0%,100% { box-shadow: 0 0 0 0 rgba(185,28,28,.3); }
+      50%      { box-shadow: 0 0 0 6px rgba(185,28,28,.0); }
+    }
+    .voice-indicator {
+      display: none;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 12px;
+      background: #FEF3C7;
+      border: 1px solid #FCD34D;
+      border-radius: 8px;
+      font-size: 12px;
+      color: #92400E;
+      font-weight: 500;
+      margin-bottom: 6px;
+    }
+    .voice-indicator.show { display: flex; }
+    .voice-dot {
+      width: 8px; height: 8px; border-radius: 50%;
+      background: #B91C1C;
+      animation: voicePulse 1s infinite;
+    }
+
+    /* ── Chat input bar ── */
+    .chat-input-bar {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      padding: 12px 16px;
+      border-top: 1px solid var(--color-border);
+    }
+    .chat-input-row {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+    .chat-toolbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    /* ── Kannada suggestion chips ── */
+    .suggestion-chips-kan {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      margin-top: 6px;
+    }
+  </style>
+</head>
+<body>
+  <header class="app-header">
+    <div class="header-left">
+      <button id="hamburger-btn" class="hamburger-btn" aria-label="Toggle sidebar"><span></span><span></span><span></span></button>
+      <img src="assets/namma_ksp_logo_dark.png" alt="NAMMA KSP" style="height:45px; width:auto; object-fit:contain; margin-left:5px" />
+      <div class="header-brand" style="margin-left: 8px;">
+        <span class="header-brand-name"><b class="brand-namma">NAMMA</b> <b class="brand-ksp">KSP</b></span>
+        <span class="header-brand-sub kan">ಕರ್ನಾಟಕ ರಾಜ್ಯ ಪೊಲೀಸ್</span>
+      </div>
+    </div>
+    <div class="header-right">
+      <button class="header-icon-btn" onclick="toggleNotifications()" aria-label="Notifications"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg><span class="badge-dot"></span></button>
+      <span class="header-role-badge" id="header-role-badge">Admin</span>
+      <span class="header-username" id="header-username">Supt. Kumar</span>
+      <div class="header-avatar" id="header-avatar">SA</div>
+            <div id="ist-clock" class="ist-clock">--:--:--</div>
+      <button class="theme-toggle-btn" onclick="toggleDarkMode()" id="theme-toggle-btn" title="Toggle dark/light mode" aria-label="Toggle theme">
+        <svg id="theme-icon-moon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+        <svg id="theme-icon-sun" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:none"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/></svg>
+      </button>
+      <button class="header-icon-btn" data-action="logout" aria-label="Logout"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg></button>
+    </div>
+  </header>
+  <div class="app-body">
+    <aside id="app-sidebar" class="app-sidebar">
+      <nav class="sidebar-nav">
+        <div class="sidebar-section-title">Navigation</div>
+        <a href="dashboard.html" class="nav-item" data-page="dashboard.html"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg><span class="nav-label">Dashboard</span></a>
+        <a href="chat.html" class="nav-item" data-page="chat.html"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg><span class="nav-label">AI Chat</span></a>
+        <a href="network.html" class="nav-item" data-page="network.html"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg><span class="nav-label">Network Analysis</span></a>
+        <a href="heatmap.html" class="nav-item" data-page="heatmap.html"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg><span class="nav-label">Crime Heatmap</span></a>
+        <a href="offenders.html" class="nav-item" data-page="offenders.html"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><span class="nav-label">Offender Profiles</span></a>
+        <a href="reports.html" class="nav-item" data-page="reports.html"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg><span class="nav-label">Reports</span></a>
+        <a href="users.html" class="nav-item nav-admin-only" data-page="users.html"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg><span class="nav-label">User Management</span></a>
+        <div class="sidebar-divider"></div>
+        <div class="sidebar-bottom"><a href="#" class="nav-item" data-action="logout"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg><span class="nav-label">Logout</span></a></div>
+      </nav>
+    </aside>
+    <div id="sidebar-overlay" class="sidebar-overlay"></div>
+    <main id="app-main" class="app-main">
+      <div class="page-header">
+        <div>
+          <h1 class="page-title">Crime Intelligence Assistant</h1>
+          <div class="page-subtitle"><span class="kan">ಅಪರಾಧ ತನಿಖಾ ಸಹಾಯಕ</span> &mdash; AI-Powered Bilingual Intelligence Query Interface</div>
+        </div>
+        <div class="flex gap-sm" style="align-items:center">
+          <!-- Language toggle handled in global header -->
+          <button class="btn btn-outline btn-sm" id="chat-clear-btn" title="Clear conversation">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/></svg>
+            Clear
+          </button>
+          <button class="btn btn-outline btn-sm" id="chat-export-btn" title="Export as PDF">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            Export PDF
+          </button>
+        </div>
+      </div>
+
+      <div class="chat-layout">
+        <div class="chat-panel">
+          <div class="chat-panel-header">
+            <div>
+              <div class="chat-panel-title">Crime Intelligence Assistant</div>
+              <div class="chat-panel-subtitle" id="chat-lang-label"><span class="kan">ಅಪರಾಧ ತನಿಖಾ ಸಹಾಯಕ</span> — English mode</div>
+            </div>
+            <div class="ai-status"><div class="ai-status-dot"></div>AI Active · <span id="ai-model-label">llama-3.3-70b</span></div>
+          </div>
+
+          <div class="chat-messages" id="chat-messages">
+            <div class="chat-message ai">
+              <div class="chat-avatar"><span style="font-size:10px;font-weight:700;color:#2A7F7F">AI</span></div>
+              <div>
+                <div class="chat-bubble" id="welcome-bubble"><span class="kan">ನಮಸ್ಕಾರ</span>. I am NAMMA KSP, your bilingual crime intelligence assistant for Karnataka State Police. Ask me anything in <strong>English or ಕನ್ನಡ</strong> — I will respond in your chosen language. You can also use the <strong>microphone</strong> for voice input. What would you like to investigate?</div>
+                <div class="chat-timestamp" style="display:flex;align-items:center;gap:6px">
+                  <span>Ready</span>
+                  <button class="chat-speak-btn" onclick="readAloud(this.closest('.chat-message').querySelector('.chat-bubble').innerText, _chatLanguage, this)">
+                    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle;margin-right:2px">
+                      <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/>
+                      <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"/>
+                    </svg>
+                    Speak
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Typing Indicator -->
+          <div class="typing-indicator" id="typing-indicator" style="display:none">
+            <div class="chat-avatar"><span style="font-size:10px;font-weight:700;color:#2A7F7F">AI</span></div>
+            <div class="typing-dots">
+              <div class="typing-dot"></div>
+              <div class="typing-dot"></div>
+              <div class="typing-dot"></div>
+            </div>
+          </div>
+          <!-- Voice Recording Indicator -->
+          <div class="voice-indicator" id="voice-indicator">
+            <div class="voice-dot"></div>
+            <span id="voice-status-text">Listening… speak now</span>
+          </div>
+
+          <!-- Chat Input Bar -->
+<div class="chat-input-area" style="position:relative">
+          <!-- Templates panel removed -->
+          <div class="chat-input-bar">
+            <div class="chat-input-row">
+              <input class="chat-input" id="chat-input" type="text" placeholder="Type in English or ಕನ್ನಡ ನಲ್ಲಿ ಬರೆಯಿರಿ…" />
+              <!-- Voice button -->
+              <button class="btn btn-outline btn-icon" id="voice-btn" onclick="toggleVoiceInput()" aria-label="Voice input" title="Click to speak">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/>
+                  <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
+                  <line x1="12" y1="19" x2="12" y2="23"/>
+                  <line x1="8" y1="23" x2="16" y2="23"/>
+                </svg>
+              </button>
+              <button class="btn btn-primary" id="chat-send-btn">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="margin-right:4px"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+                Send
+              </button>
+            </div>
+          </div>
+          </div><!-- /chat-input-area -->
+        </div>
+
+        <div class="chat-context-panel">
+          <div class="context-section">
+            <div class="context-section-title">Language Mode / ಭಾಷಾ ಆಯ್ಕೆ</div>
+            <div style="background:var(--color-surface-2,#F3F4F6);border-radius:10px;padding:12px;font-size:12px;line-height:1.6">
+              <div style="font-weight:600;color:var(--color-primary);margin-bottom:6px" id="lang-mode-display">🇬🇧 English Mode Active</div>
+              <div style="color:var(--color-text-muted)">
+                AI will respond in your selected language.<br>
+                You can type in either script — the AI auto-detects and responds in your <strong>chosen language</strong>.
+              </div>
+            </div>
+          </div>
+
+          <div class="context-section">
+            <div class="context-section-title">Suggested Queries — English</div>
+            <button class="suggestion-chip" onclick="fillAndSend('Repeat offenders in Mysuru this year')">Repeat offenders in Mysuru</button>
+            <button class="suggestion-chip" onclick="fillAndSend('Top crime districts last 30 days')">Top crime districts last 30 days</button>
+            <button class="suggestion-chip" onclick="fillAndSend('High-risk accused in Bengaluru Urban')">High-risk accused in Bengaluru</button>
+            <button class="suggestion-chip" onclick="fillAndSend('Robbery pattern trend last 6 months')">Robbery trend last 6 months</button>
+          </div>
+
+          <div class="context-section">
+            <div class="context-section-title">ಸೂಚಿತ ಪ್ರಶ್ನೆಗಳು — ಕನ್ನಡ</div>
+            <div class="suggestion-chips-kan">
+              <button class="suggestion-chip kan" onclick="fillAndSend('ಮೈಸೂರಿನಲ್ಲಿ ಈ ವರ್ಷ ಪುನರಾವರ್ತಿತ ಅಪರಾಧಿಗಳು ಯಾರು?')"><span class="kan">ಮೈಸೂರಿನ ಪುನರಾವರ್ತಿತ ಅಪರಾಧಿಗಳು</span></button>
+              <button class="suggestion-chip kan" onclick="fillAndSend('ಬೆಂಗಳೂರಿನಲ್ಲಿ ಸೈಬರ್ ಅಪರಾಧಗಳ ಸಂಖ್ಯೆ ಎಷ್ಟು?')"><span class="kan">ಬೆಂಗಳೂರು ಸೈಬರ್ ಅಪರಾಧಗಳು</span></button>
+              <button class="suggestion-chip kan" onclick="fillAndSend('ಅಧಿಕ ಅಪರಾಧ ಜಿಲ್ಲೆಗಳು ಯಾವವು?')"><span class="kan">ಅಧಿಕ ಅಪರಾಧ ಜಿಲ್ಲೆಗಳು</span></button>
+            </div>
+          </div>
+
+          <div class="context-section">
+            <div class="context-section-title">Saved Responses</div>
+            <div id="chat-bookmarks-list" style="font-size:12px;color:var(--color-text-muted)">No saved responses yet.</div>
+          </div>
+          <div class="context-section">
+            <div class="context-section-title">Quick Intelligence</div>
+            <div class="quick-stat-row"><span class="quick-stat-label">Voice Input</span><span class="quick-stat-value" id="voice-support-label">Checking…</span></div>
+            <div class="quick-stat-row"><span class="quick-stat-label">AI Model</span><span class="quick-stat-value">llama-3.3-70b</span></div>
+            <div class="quick-stat-row"><span class="quick-stat-label">Languages</span><span class="quick-stat-value">English + ಕನ್ನಡ</span></div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+  <script src="app.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      initChat();
+      // Set user avatar
+      const username = localStorage.getItem('cl_username') || 'User';
+      const initials = username.split(' ').map(w => w[0]).join('').substring(0,2).toUpperCase();
+      document.querySelectorAll('.user-avatar').forEach(el => el.textContent = initials);
+      // Check voice support
+      const supported = ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window);
+      const label = document.getElementById('voice-support-label');
+      if (label) label.textContent = supported ? '✅ Supported' : '❌ Not supported';
+      if (!supported) {
+        const vbtn = document.getElementById('voice-btn');
+        if (vbtn) { vbtn.disabled = true; vbtn.title = 'Voice not supported in this browser'; }
+      }
+    });
+
+    function fillAndSend(text) {
+      const input = document.getElementById('chat-input');
+      if (input) { input.value = text; sendChatMessage(); }
+    }
+  </script>
+  <div id="page-progress-bar"></div>
+  <!-- Global Search Modal -->
+  <div id="global-search-overlay" class="global-search-overlay">
+    <div class="global-search-modal">
+      <div class="global-search-input-wrap">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <input class="global-search-input" id="global-search-input" type="text" placeholder="Search FIRs, offenders, districts..." autocomplete="off" />
+        <span class="global-search-hint">Esc to close</span>
+      </div>
+      <div class="global-search-results" id="global-search-results">
+        <div class="global-search-empty">Type to search across FIRs, offenders and districts...</div>
+      </div>
+      <div class="global-search-footer">
+        <span class="global-search-shortcut"><span class="kbd">Up/Down</span>&nbsp;navigate</span>
+        <span class="global-search-shortcut" style="margin-left:16px"><span class="kbd">Enter</span>&nbsp;open</span>
+        <span class="global-search-shortcut" style="margin-left:16px"><span class="kbd">Esc</span>&nbsp;close</span>
+      </div>
+    </div>
+  </div>
+  <!-- Keyboard Shortcuts Modal -->
+  <div id="shortcuts-overlay" class="global-search-overlay">
+    <div class="shortcuts-modal">
+      <div class="modal-header"><div class="modal-title">Keyboard Shortcuts</div><button class="modal-close" onclick="closeShortcuts()"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>
+      <div style="padding:0">
+        <div class="shortcut-row"><span class="shortcut-desc">Open Search</span><span class="shortcut-key"><span class="kbd">Ctrl</span>+<span class="kbd">K</span></span></div>
+        <div class="shortcut-row"><span class="shortcut-desc">Toggle Dark Mode</span><span class="shortcut-key"><span class="kbd">Ctrl</span>+<span class="kbd">D</span></span></div>
+        <div class="shortcut-row"><span class="shortcut-desc">Go to Dashboard</span><span class="shortcut-key"><span class="kbd">G</span> then <span class="kbd">D</span></span></div>
+        <div class="shortcut-row"><span class="shortcut-desc">Go to AI Chat</span><span class="shortcut-key"><span class="kbd">G</span> then <span class="kbd">C</span></span></div>
+        <div class="shortcut-row"><span class="shortcut-desc">Go to Heatmap</span><span class="shortcut-key"><span class="kbd">G</span> then <span class="kbd">H</span></span></div>
+        <div class="shortcut-row"><span class="shortcut-desc">Go to Network</span><span class="shortcut-key"><span class="kbd">G</span> then <span class="kbd">N</span></span></div>
+        <div class="shortcut-row"><span class="shortcut-desc">This help</span><span class="shortcut-key"><span class="kbd">?</span></span></div>
+        <div class="shortcut-row"><span class="shortcut-desc">Close panels</span><span class="shortcut-key"><span class="kbd">Esc</span></span></div>
+      </div>
+    </div>
+  </div>
+  <!-- FIR Detail Drawer -->
+  <div id="fir-drawer-overlay" class="fir-drawer-overlay"></div>
+  <div id="fir-drawer" class="fir-drawer">
+    <div class="fir-drawer-header">
+      <div><div id="fir-drawer-id" style="font-size:15px;font-weight:700;color:var(--color-text);font-family:monospace"></div><div id="fir-drawer-crime" style="font-size:12px;color:var(--color-text-muted);margin-top:2px"></div></div>
+      <button class="btn btn-ghost btn-icon" onclick="closeFIRDrawer()"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    </div>
+    <div class="fir-drawer-body">
+      <div class="fir-drawer-field"><div class="fir-drawer-field-label">District</div><div class="fir-drawer-field-value" id="fdd-district">-</div></div>
+      <div class="fir-drawer-field"><div class="fir-drawer-field-label">Date Filed</div><div class="fir-drawer-field-value" id="fdd-date">-</div></div>
+      <div class="fir-drawer-field"><div class="fir-drawer-field-label">Status</div><div class="fir-drawer-field-value" id="fdd-status">-</div></div>
+      <div class="fir-drawer-field"><div class="fir-drawer-field-label">Accused</div><div class="fir-drawer-field-value" id="fdd-accused">-</div></div>
+      <div class="fir-drawer-field"><div class="fir-drawer-field-label">Victim</div><div class="fir-drawer-field-value" id="fdd-victim">-</div></div>
+    </div>
+    <div class="fir-drawer-actions">
+      <button class="btn btn-primary btn-sm" onclick="copyFIRId()">Copy ID</button>
+      <a class="btn btn-outline btn-sm" id="fdd-ai-btn" href="chat.html">Ask AI</a>
+    </div>
+  </div>
+  <div id="cal-tooltip" class="crime-calendar-tooltip"></div>
+</body>
+</html>

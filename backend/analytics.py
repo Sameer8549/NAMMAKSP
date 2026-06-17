@@ -1,5 +1,5 @@
 """
-analytics.py — CrimeLens AI
+analytics.py — NAMMA KSP
 ────────────────────────────
 Crime analytics engine: computes all statistics for the dashboard,
 hotspot analysis, offender profiling, and trend detection.
@@ -98,9 +98,65 @@ async def get_district_top_crime() -> list[dict]:
 
 # ─── Crime Hotspot Analysis ───────────────────────────────────────────────────
 
-async def get_hotspot_data() -> list[dict]:
-    """Returns lat/lon points with crime count per location for heatmap."""
-    return await fetch_all("""
+def normalize_district_name(search: str) -> str:
+    """Helper to map common spelling typos / historic names to DB districts."""
+    if not search:
+        return ""
+    search_lower = search.lower().strip()
+    
+    # Typos & alternates for Bengaluru
+    if any(alias in search_lower for alias in ["bengl", "bengal", "bangal", "blur", "blr"]):
+        return "Bengaluru"
+    if any(alias in search_lower for alias in ["mys", "mysu"]):
+        return "Mysuru"
+    if any(alias in search_lower for alias in ["hub", "dhar"]):
+        return "Hubballi"
+    if any(alias in search_lower for alias in ["mang", "mng"]):
+        return "Mangaluru"
+    if any(alias in search_lower for alias in ["belag", "belga"]):
+        return "Belagavi"
+    if any(alias in search_lower for alias in ["kalab", "gulb"]):
+        return "Kalaburagi"
+    if any(alias in search_lower for alias in ["shiva", "shim"]):
+        return "Shivamogga"
+    if any(alias in search_lower for alias in ["tuma", "tumk"]):
+        return "Tumakuru"
+    if any(alias in search_lower for alias in ["balla", "bell"]):
+        return "Ballari"
+    if any(alias in search_lower for alias in ["vijay", "bijap"]):
+        return "Vijayapura"
+    if any(alias in search_lower for alias in ["davan", "davn"]):
+        return "Davanagere"
+    return search
+
+
+async def get_hotspot_data(
+    district: str = None,
+    crime_type: str = None,
+    from_date: str = None,
+    to_date: str = None
+) -> list[dict]:
+    """Returns lat/lon points with crime count per location for heatmap with optional filters."""
+    conditions = []
+    params = []
+
+    if district:
+        norm_dist = normalize_district_name(district)
+        conditions.append("l.district LIKE ?")
+        params.append(f"%{norm_dist}%")
+    if crime_type:
+        conditions.append("f.crime_type = ?")
+        params.append(crime_type)
+    if from_date:
+        conditions.append("f.date >= ?")
+        params.append(from_date)
+    if to_date:
+        conditions.append("f.date <= ?")
+        params.append(to_date)
+
+    where = ("WHERE " + " AND ".join(conditions)) if conditions else ""
+
+    query = f"""
         SELECT
             l.latitude,
             l.longitude,
@@ -108,15 +164,41 @@ async def get_hotspot_data() -> list[dict]:
             l.police_station,
             COUNT(f.fir_id) AS crime_count
         FROM locations l
-        LEFT JOIN firs f ON l.location_id = f.location_id
+        JOIN firs f ON l.location_id = f.location_id
+        {where}
         GROUP BY l.location_id
         ORDER BY crime_count DESC
-    """)
+    """
+    return await fetch_all(query, tuple(params))
 
 
-async def get_district_crime_density() -> list[dict]:
-    """Crime counts per district with coordinates for choropleth."""
-    return await fetch_all("""
+async def get_district_crime_density(
+    district: str = None,
+    crime_type: str = None,
+    from_date: str = None,
+    to_date: str = None
+) -> list[dict]:
+    """Crime counts per district with coordinates for choropleth with optional filters."""
+    conditions = []
+    params = []
+
+    if district:
+        norm_dist = normalize_district_name(district)
+        conditions.append("f.district LIKE ?")
+        params.append(f"%{norm_dist}%")
+    if crime_type:
+        conditions.append("f.crime_type = ?")
+        params.append(crime_type)
+    if from_date:
+        conditions.append("f.date >= ?")
+        params.append(from_date)
+    if to_date:
+        conditions.append("f.date <= ?")
+        params.append(to_date)
+
+    where = ("WHERE " + " AND ".join(conditions)) if conditions else ""
+
+    query = f"""
         SELECT
             f.district,
             COUNT(*) AS crime_count,
@@ -124,9 +206,11 @@ async def get_district_crime_density() -> list[dict]:
             AVG(l.longitude) AS avg_lon
         FROM firs f
         JOIN locations l ON f.location_id = l.location_id
+        {where}
         GROUP BY f.district
         ORDER BY crime_count DESC
-    """)
+    """
+    return await fetch_all(query, tuple(params))
 
 
 # ─── Offender Profiling ───────────────────────────────────────────────────────
@@ -156,9 +240,19 @@ async def get_offender_profile(offender_id: str) -> dict | None:
     return profile
 
 
-async def get_high_risk_offenders(limit: int = 20) -> list[dict]:
-    """Top offenders by risk — repeat offenders with high risk category."""
-    rows = await fetch_all("""
+async def get_high_risk_offenders(limit: int = 20, search: str = None) -> list[dict]:
+    """Top offenders by risk — repeat offenders with high risk category with optional search."""
+    conditions = []
+    params = []
+    
+    if search:
+        conditions.append("(o.name LIKE ? OR o.offender_id LIKE ?)")
+        params.append(f"%{search}%")
+        params.append(f"%{search}%")
+        
+    where = ("WHERE " + " AND ".join(conditions)) if conditions else ""
+    
+    query = f"""
         SELECT
             o.offender_id,
             o.name,
@@ -170,10 +264,13 @@ async def get_high_risk_offenders(limit: int = 20) -> list[dict]:
             COUNT(f.fir_id) AS active_firs
         FROM offenders o
         LEFT JOIN firs f ON o.offender_id = f.offender_id AND f.status != 'Closed'
+        {where}
         GROUP BY o.offender_id
         ORDER BY o.previous_firs DESC, active_firs DESC
         LIMIT ?
-    """, (limit,))
+    """
+    params.append(limit)
+    rows = await fetch_all(query, tuple(params))
 
     for row in rows:
         row["risk_score"] = _compute_risk_score(row)

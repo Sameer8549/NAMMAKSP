@@ -1,4 +1,4 @@
-# CrimeLens AI 🔍
+# NAMMA KSP 🔍
 ### Karnataka Police Intelligence Platform
 
 An intelligent crime analytics and investigation support platform powered by AI.

@@ -1,5 +1,5 @@
 """
-network.py — CrimeLens AI
+network.py — NAMMA KSP
 ──────────────────────────
 Criminal network analysis using NetworkX.
 Builds offender-victim-FIR relationship graphs and computes
