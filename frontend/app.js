@@ -3,8 +3,12 @@
    app.js
    ═══════════════════════════════════════════════════════════════════════════ */
 
-const API = 'http://127.0.0.1:8000/api';
+const API = '/api';
 let sessionId = null;
+let chatMessages = [{
+  role: 'assistant',
+  content: `**Welcome to CrimeLens AI.**\n\nI am your crime intelligence analyst with access to 5,000 FIR records, 2,000 offender profiles, 3,000 victim records, and 5,000 criminal relationship mappings across 15 Karnataka districts.\n\nAsk me anything about crime patterns, specific cases, offender risk assessments, district statistics, or investigation recommendations.`
+}];
 let map = null;
 let heatLayer = null;
 let markerLayer = null;
@@ -43,7 +47,7 @@ function navigateTo(page) {
 
   // Enforce role access limits
   const isAdmin = session.role === 'Admin';
-  if (!isAdmin && (page === 'hotspots' || page === 'users')) {
+  if (!isAdmin && (page === 'users')) {
     // Redirect Investigators to the chatbot page if trying to access Admin pages
     page = 'chatbot';
   }
@@ -311,12 +315,19 @@ async function sendChat() {
 
   input.value = '';
   appendMessage('user', msg);
+  chatMessages.push({ role: 'user', content: msg });
   showTyping();
 
   document.getElementById('btn-send').disabled = true;
 
+  const langSelect = document.getElementById('speech-lang');
+  const selectedLang = langSelect ? langSelect.value : 'en-US';
+
   try {
-    const body = { message: msg };
+    const body = { 
+      message: msg,
+      language: selectedLang
+    };
     if (sessionId) body.session_id = sessionId;
 
     const res = await fetch(`${API}/chat`, {
@@ -342,9 +353,10 @@ async function sendChat() {
 
     sessionId = data.session_id;
     appendMessage('ai', data.response, `${data.model} · ${data.tokens_used || 0} tokens`);
+    chatMessages.push({ role: 'assistant', content: data.response });
   } catch (err) {
     hideTyping();
-    appendMessage('ai', '⚠️ Connection error. Please ensure the backend server is running at http://127.0.0.1:8000');
+    appendMessage('ai', `⚠️ Connection error. Please ensure the backend server is running at ${window.location.origin}`);
     console.error('Chat error:', err);
   } finally {
     document.getElementById('btn-send').disabled = false;
@@ -364,11 +376,16 @@ function appendMessage(role, text, meta = '') {
   // Format assistant replies using custom markdown formatter, and escape user input safely
   const formattedContent = role === 'ai' ? formatMarkdown(text) : escapeHtml(text).replace(/\n/g, '<br/>');
 
+  let speechButtonHtml = '';
+  if (role === 'ai') {
+    speechButtonHtml = `<button class="speech-btn" onclick="speakMessageBubble(this)">🔊 Read Aloud</button>`;
+  }
+
   div.innerHTML = `
     <div class="message-avatar">${avatar}</div>
     <div>
       <div class="message-bubble">${formattedContent}</div>
-      <div class="message-meta">${metaStr}</div>
+      <div class="message-meta">${metaStr}${speechButtonHtml}</div>
     </div>`;
   container.appendChild(div);
   container.scrollTop = container.scrollHeight;
@@ -439,10 +456,11 @@ function formatMarkdown(text) {
 
 function getSectionIcon(title) {
   const t = title.toLowerCase();
-  if (t.includes('direct answer') || t.includes('answer')) return '💬';
-  if (t.includes('evidence') || t.includes('data') || t.includes('citation')) return '📊';
-  if (t.includes('reasoning') || t.includes('analysis')) return '🧠';
-  if (t.includes('recommendation') || t.includes('lead') || t.includes('action')) return '📋';
+  if (t.includes('direct answer') || t.includes('answer') || t.includes('ಉತ್ತರ')) return '💬';
+  if (t.includes('evidence') || t.includes('data') || t.includes('citation') || t.includes('ಪುರಾವೆ')) return '📊';
+  if (t.includes('reasoning') || t.includes('analysis') || t.includes('ವಿಶ್ಲೇಷಣೆ')) return '🧠';
+  if (t.includes('recommendation') || t.includes('lead') || t.includes('action') || t.includes('ಶಿಫಾರಸು')) return '📋';
+  if (t.includes('confidence') || t.includes('ವಿಶ್ವಾಸಾರ್ಹತೆ')) return '🎯';
   return '🔹';
 }
 
@@ -478,6 +496,10 @@ async function clearChat() {
     }).catch(() => {});
   }
   sessionId = null;
+  chatMessages = [{
+    role: 'assistant',
+    content: `**Welcome to CrimeLens AI.**\n\nI am your crime intelligence analyst with access to 5,000 FIR records, 2,000 offender profiles, 3,000 victim records, and 5,000 criminal relationship mappings across 15 Karnataka districts.\n\nAsk me anything about crime patterns, specific cases, offender risk assessments, district statistics, or investigation recommendations.`
+  }];
   document.getElementById('chat-messages').innerHTML = `
     <div class="message ai">
       <div class="message-avatar">🤖</div>
@@ -486,6 +508,192 @@ async function clearChat() {
         <div class="message-meta">CrimeLens AI</div>
       </div>
     </div>`;
+}
+
+async function exportChatSession() {
+  if (!sessionId || chatMessages.length <= 1) {
+    alert("No active chat history to export.");
+    return;
+  }
+
+  const btn = document.getElementById('btn-export-chat');
+  const oldText = btn.textContent;
+  btn.disabled = true;
+  btn.textContent = 'Generating PDF...';
+
+  try {
+    const res = await fetch(`${API}/chat/export`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        session_id: sessionId,
+        messages: chatMessages
+      })
+    });
+
+    if (!res.ok) {
+      throw new Error("Dossier compilation failed.");
+    }
+
+    const blob = await res.blob();
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `chat_log_${sessionId.substring(0, 8)}.pdf`;
+    a.click();
+    URL.revokeObjectURL(url);
+  } catch (err) {
+    alert("Failed to export dossier: " + err.message);
+  } finally {
+    btn.disabled = false;
+    btn.textContent = oldText;
+  }
+}
+
+
+// ─── Voice Interaction Engine (STT & TTS) ────────────────────────────────────
+
+let speechRecognition = null;
+let isRecognizing = false;
+let currentUtterance = null;
+let currentSpeakingBtn = null;
+
+function initSpeechRecognition() {
+  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SpeechRecognition) {
+    console.warn("Speech recognition not supported in this browser.");
+    return null;
+  }
+  const rec = new SpeechRecognition();
+  rec.continuous = false;
+  rec.interimResults = false;
+  
+  rec.onstart = () => {
+    isRecognizing = true;
+    const micBtn = document.getElementById('btn-mic');
+    if (micBtn) micBtn.classList.add('recording');
+    const input = document.getElementById('chat-input');
+    if (input) {
+      input.placeholder = "Listening... Speak now / ಆಲಿಸಲಾಗುತ್ತಿದೆ... ಈಗ ಮಾತನಾಡಿ";
+    }
+  };
+  
+  rec.onend = () => {
+    isRecognizing = false;
+    const micBtn = document.getElementById('btn-mic');
+    if (micBtn) micBtn.classList.remove('recording');
+    const input = document.getElementById('chat-input');
+    if (input) {
+      input.placeholder = "Ask about crime patterns, specific FIRs, offenders, districts...";
+    }
+  };
+  
+  rec.onerror = (e) => {
+    console.error("Speech recognition error:", e);
+    isRecognizing = false;
+    const micBtn = document.getElementById('btn-mic');
+    if (micBtn) micBtn.classList.remove('recording');
+    const input = document.getElementById('chat-input');
+    if (input) {
+      input.placeholder = "Ask about crime patterns, specific FIRs, offenders, districts...";
+    }
+  };
+  
+  rec.onresult = (event) => {
+    const transcript = event.results[0][0].transcript;
+    const input = document.getElementById('chat-input');
+    if (input) {
+      if (input.value) {
+        input.value += " " + transcript;
+      } else {
+        input.value = transcript;
+      }
+      input.dispatchEvent(new Event('input'));
+    }
+  };
+  
+  return rec;
+}
+
+function toggleSpeechRecognition() {
+  if (!speechRecognition) {
+    speechRecognition = initSpeechRecognition();
+  }
+  if (!speechRecognition) {
+    alert("Speech recognition is not supported in this browser. Please use Google Chrome or Microsoft Edge.");
+    return;
+  }
+  
+  if (isRecognizing) {
+    speechRecognition.stop();
+  } else {
+    const langSelect = document.getElementById('speech-lang');
+    speechRecognition.lang = langSelect ? langSelect.value : 'en-US';
+    speechRecognition.start();
+  }
+}
+
+function speakText(text, btn, lang = 'en-US') {
+  if (window.speechSynthesis.speaking) {
+    window.speechSynthesis.cancel();
+    if (currentSpeakingBtn) {
+      currentSpeakingBtn.classList.remove('speaking');
+      currentSpeakingBtn.textContent = '🔊 Read Aloud';
+    }
+    if (currentSpeakingBtn === btn) {
+      currentSpeakingBtn = null;
+      return; // Stop speaking is complete
+    }
+  }
+
+  // Strip Markdown characters for clean vocalization
+  const cleanText = text.replace(/[*#_`~]/g, '').trim();
+  if (!cleanText) return;
+
+  const utterance = new SpeechSynthesisUtterance(cleanText);
+  
+  // Set correct voice language
+  const hasKannada = /[\u0A80-\u0DFF]/.test(text);
+  const targetLang = hasKannada ? 'kn-IN' : lang;
+  utterance.lang = targetLang;
+
+  // Try to bind a specific voice matching the language
+  if (window.speechSynthesis && window.speechSynthesis.getVoices) {
+    const voices = window.speechSynthesis.getVoices();
+    const voice = voices.find(v => v.lang.includes(targetLang) || (targetLang.startsWith('kn') && v.lang.startsWith('kn')));
+    if (voice) utterance.voice = voice;
+  }
+
+  utterance.onstart = () => {
+    btn.classList.add('speaking');
+    btn.textContent = '🛑 Stop';
+    currentSpeakingBtn = btn;
+  };
+
+  utterance.onend = () => {
+    btn.classList.remove('speaking');
+    btn.textContent = '🔊 Read Aloud';
+    if (currentSpeakingBtn === btn) {
+      currentSpeakingBtn = null;
+    }
+  };
+
+  utterance.onerror = () => {
+    btn.classList.remove('speaking');
+    btn.textContent = '🔊 Read Aloud';
+    if (currentSpeakingBtn === btn) {
+      currentSpeakingBtn = null;
+    }
+  };
+
+  window.speechSynthesis.speak(utterance);
+}
+
+function speakMessageBubble(btn) {
+  const bubble = btn.closest('.message').querySelector('.message-bubble');
+  if (bubble) {
+    speakText(bubble.innerText, btn);
+  }
 }
 
 // ─── FIR RECORDS ─────────────────────────────────────────────────────────────
@@ -668,8 +876,8 @@ async function loadHotspots() {
     // Init map centered on Karnataka
     if (!map) {
       map = L.map('map-container').setView([14.5, 75.7], 7);
-      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '&copy; <a href="https://www.openstreetmap.org">OpenStreetMap</a> contributors',
+      L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+        attribution: 'Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community',
         maxZoom: 18,
       }).addTo(map);
     }
@@ -767,6 +975,11 @@ async function loadHotspots() {
 
   } catch (e) {
     console.error('Hotspot load error:', e);
+    // Reset map state so it can be re-created on retry
+    if (map) { try { map.remove(); } catch (_) {} }
+    map = null;
+    heatLayer = null;
+    markerLayer = null;
     document.getElementById('map-container').innerHTML =
       '<div class="alert alert-danger" style="margin:20px;">Failed to load hotspot data. Check backend.</div>';
   }
@@ -784,6 +997,9 @@ function toggleMarkers() {
 }
 
 // ─── CRIMINAL NETWORK ─────────────────────────────────────────────────────────
+
+let networkMap = null;        // Leaflet map for satellite network view
+let networkGraphData = null;  // Stores last loaded graph for satellite map
 
 async function loadNetwork() {
   const district   = document.getElementById('net-district').value;
@@ -811,10 +1027,19 @@ async function loadNetwork() {
       return;
     }
 
+    // Store graph data so satellite map can use it
+    networkGraphData = data.graph;
+
     // Clear loading text, then init Cytoscape
     cyContainer.innerHTML = '';
     renderCytoscape(data.graph, cyContainer);
     renderNetworkMetrics(data.metrics);
+
+    // If satellite map is currently visible, refresh it with new data
+    const mapWrapper = document.getElementById('network-map-wrapper');
+    if (mapWrapper && mapWrapper.style.display !== 'none') {
+      renderNetworkSatelliteMap(data.graph);
+    }
 
   } catch (e) {
     console.error('Network load error:', e);
@@ -824,6 +1049,179 @@ async function loadNetwork() {
     btn.textContent = 'Load Network';
   }
 }
+
+// ─── Network View Tab Switcher (Graph ⇔ Satellite Map) ─────────────────────────────────────────────────────────
+
+function switchNetworkTab(tab) {
+  const cyWrapper  = document.getElementById('cy-wrapper');
+  const mapWrapper = document.getElementById('network-map-wrapper');
+  const btnGraph   = document.getElementById('btn-tab-graph');
+  const btnMap     = document.getElementById('btn-tab-map');
+  const legend     = document.getElementById('net-legend');
+
+  if (tab === 'graph') {
+    cyWrapper.style.display  = 'block';
+    mapWrapper.style.display = 'none';
+    btnGraph.classList.add('active');
+    btnMap.classList.remove('active');
+    if (legend) legend.style.display = 'flex';
+    // Resize cytoscape after reveal
+    setTimeout(() => { if (cy) cy.resize(); }, 60);
+  } else {
+    cyWrapper.style.display  = 'none';
+    mapWrapper.style.display = 'block';
+    btnGraph.classList.remove('active');
+    btnMap.classList.add('active');
+    if (legend) legend.style.display = 'none';
+    // Render satellite map with stored data
+    setTimeout(() => {
+      if (networkGraphData) {
+        renderNetworkSatelliteMap(networkGraphData);
+      } else {
+        document.getElementById('network-map-container').innerHTML =
+          '<div style="background:var(--navy-900);color:#c8d4e8;height:520px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;">' +
+          '<div style="font-size:40px;">🛰️</div>' +
+          '<p>Load the criminal network first, then switch to satellite view.</p></div>';
+      }
+    }, 80);
+  }
+}
+
+// ─── Satellite Map for Criminal Network ──────────────────────────────────────
+
+function renderNetworkSatelliteMap(graph) {
+  const container = document.getElementById('network-map-container');
+  if (!container) return;
+
+  // Destroy existing map instance if present
+  if (networkMap) {
+    networkMap.remove();
+    networkMap = null;
+  }
+
+  // Initialize Leaflet with Esri Satellite tiles
+  networkMap = L.map('network-map-container', { zoomControl: true }).setView([14.5, 75.7], 7);
+
+  L.tileLayer(
+    'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+    {
+      attribution: 'Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community',
+      maxZoom: 18,
+    }
+  ).addTo(networkMap);
+
+  // Aggregate by district using FIR nodes (which have district data)
+  // and cross-reference offender risk via edge connections
+  const districtStats = {};  // district → { high, medium, low, firs }
+
+  // Build a lookup: node_id → node data
+  const nodeMap = {};
+  graph.nodes.forEach(n => { nodeMap[n.data.id] = n.data; });
+
+  // Build offender lookup by node id → risk
+  const offenderRisk = {};
+  graph.nodes.forEach(n => {
+    if (n.data.node_type === 'offender') {
+      offenderRisk[n.data.id] = (n.data.risk || 'Low').toLowerCase();
+    }
+  });
+
+  // For each FIR node (has district), find connected offenders via edges
+  graph.nodes.forEach(n => {
+    const d = n.data;
+    if (d.node_type === 'fir' && d.district) {
+      if (!districtStats[d.district]) {
+        districtStats[d.district] = { high: 0, medium: 0, low: 0, firs: 0 };
+      }
+      districtStats[d.district].firs++;
+    }
+  });
+
+  // Walk edges to count offender risk per district
+  graph.edges.forEach(e => {
+    const ed = e.data;
+    if (ed.edge_type === 'offender_fir') {
+      const firNode = nodeMap[ed.target] || nodeMap[ed.source];
+      const offId   = ed.source === (firNode && firNode.id) ? ed.target : ed.source;
+      const fir     = nodeMap[ed.target] || nodeMap[ed.source];
+      // Resolve: offender is the non-FIR end
+      let offenderNode = null, firNodeData = null;
+      if (nodeMap[ed.source] && nodeMap[ed.source].node_type === 'offender') {
+        offenderNode = nodeMap[ed.source];
+        firNodeData  = nodeMap[ed.target];
+      } else if (nodeMap[ed.target] && nodeMap[ed.target].node_type === 'offender') {
+        offenderNode = nodeMap[ed.target];
+        firNodeData  = nodeMap[ed.source];
+      }
+      if (offenderNode && firNodeData && firNodeData.district) {
+        const dist = firNodeData.district;
+        if (!districtStats[dist]) districtStats[dist] = { high: 0, medium: 0, low: 0, firs: 0 };
+        const risk = (offenderNode.risk || 'Low').toLowerCase();
+        if (risk === 'high')   districtStats[dist].high++;
+        else if (risk === 'medium') districtStats[dist].medium++;
+        else                   districtStats[dist].low++;
+      }
+    }
+  });
+
+  // Plot each district as a circle marker on the satellite map
+  Object.entries(districtStats).forEach(([district, stats]) => {
+    const coords = KARNATAKA_DISTRICTS[district];
+    if (!coords) return;
+
+    const total = stats.high + stats.medium + stats.low;
+    const radius = 8 + Math.min((total + stats.firs * 0.3) * 0.6, 22);
+    const fillColor = stats.high > 0   ? '#c0392b'
+                    : stats.medium > 0 ? '#e67e22'
+                    : '#27ae60';
+
+    L.circleMarker(coords, {
+      radius,
+      color: '#ffffff',
+      weight: 2,
+      fillColor,
+      fillOpacity: 0.85,
+    })
+    .bindPopup(`
+      <div style="font-family:sans-serif; min-width:210px;">
+        <div style="font-weight:700; font-size:14px; margin-bottom:8px; border-bottom:1px solid #eee; padding-bottom:6px;">
+          📍 ${district}
+        </div>
+        <div style="font-size:12px; line-height:1.8;">
+          <div>🔴 High-Risk Offenders: <strong>${stats.high}</strong></div>
+          <div>🟠 Medium-Risk Offenders: <strong>${stats.medium}</strong></div>
+          <div>🟢 Low-Risk Offenders: <strong>${stats.low}</strong></div>
+          <div>📁 FIR Nodes: <strong>${stats.firs}</strong></div>
+          <div style="margin-top:6px; padding-top:4px; border-top:1px solid #eee; color:#555; font-size:11px;">
+            Total criminal activity: ${total + stats.firs} nodes
+          </div>
+        </div>
+      </div>
+    `)
+    .bindTooltip(`${district}: ${total} offenders · ${stats.firs} FIRs`, { permanent: false, direction: 'top' })
+    .addTo(networkMap);
+
+    // District name label
+    L.marker(coords, {
+      icon: L.divIcon({
+        className: '',
+        html: `<div style="
+          color:#fff; font-weight:700; font-size:10px;
+          text-shadow: 0 1px 4px rgba(0,0,0,0.95);
+          white-space:nowrap; pointer-events:none;
+        ">${district}</div>`,
+        iconAnchor: [0, -18],
+      })
+    }).addTo(networkMap);
+  });
+
+  // Force map size recalculation after render
+  setTimeout(() => {
+    if (networkMap) networkMap.invalidateSize();
+  }, 150);
+}
+
+// ─── Cytoscape Graph Renderer ─────────────────────────────────────────────────
 
 function renderCytoscape(graph, container) {
   const el = container || document.getElementById('cy');
@@ -894,17 +1292,34 @@ function renderCytoscape(graph, container) {
     maxZoom: 5,
   });
 
-  // Node tap → show info panel
+  // Node tap → show info panel + highlight neighborhood (dim non-neighbors)
   cy.on('tap', 'node', function(evt) {
-    const d = evt.target.data();
+    const node = evt.target;
+    const d = node.data();
     showNetworkNodeInfo(d);
+
+    // Dim all elements not in the neighborhood of the selected node
+    const neighborhood = node.closedNeighborhood();
+    cy.elements().difference(neighborhood).style({ opacity: 0.12 });
+    neighborhood.style({ opacity: 1 });
+    // Highlight selected node with golden border
+    node.style({ 'border-width': 3, 'border-color': '#ffe066', 'border-opacity': 1 });
   });
 
-  // Pan/zoom hint
+  // Click on canvas background → restore full opacity
+  cy.on('tap', function(evt) {
+    if (evt.target === cy) {
+      cy.elements().style({ opacity: 1 });
+      cy.nodes().style({ 'border-width': '', 'border-color': '' });
+    }
+  });
+
+  // Fit graph on layout complete
   cy.on('ready', () => {
     cy.fit(cy.nodes(), 40);
   });
 }
+
 
 function showNetworkNodeInfo(data) {
   // Build a small info overlay inside the metrics panel
@@ -1354,8 +1769,8 @@ function handleLogout() {
 function applyRolePermissions(role) {
   const isAdmin = role === 'Admin';
   
-  // Toggle Admin-only menu nodes
-  document.getElementById('nav-hotspots').style.display = isAdmin ? 'flex' : 'none';
+  // Toggle Admin-only menu nodes (nav-hotspots is now visible to everyone)
+  document.getElementById('nav-hotspots').style.display = 'flex';
   document.getElementById('section-admin-label').style.display = isAdmin ? 'block' : 'none';
   document.getElementById('section-admin-menu').style.display = isAdmin ? 'block' : 'none';
   
@@ -1363,7 +1778,7 @@ function applyRolePermissions(role) {
   const activeItem = document.querySelector('.nav-item.active');
   if (activeItem) {
     const page = activeItem.dataset.page;
-    if (!isAdmin && (page === 'hotspots' || page === 'users')) {
+    if (!isAdmin && (page === 'users')) {
       navigateTo('chatbot');
     }
   }

@@ -22,6 +22,7 @@ mistralai==1.2.5
 
 # ─── PDF Report Generation ────────────────────────────────────────────────────
 reportlab==4.2.5
+qrcode==8.2
 
 # ─── Environment & Configuration ──────────────────────────────────────────────
 python-dotenv==1.0.1

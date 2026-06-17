@@ -510,6 +510,44 @@ tbody td {
   border-color: var(--navy-700);
 }
 
+/* Voice Integration styles */
+#btn-mic.recording {
+  background: var(--red-600) !important;
+  color: white !important;
+  border-color: var(--red-600) !important;
+  animation: mic-pulse 1.4s infinite ease-in-out;
+}
+@keyframes mic-pulse {
+  0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(192, 57, 43, 0.4); }
+  50% { transform: scale(1.08); box-shadow: 0 0 0 8px rgba(192, 57, 43, 0); }
+  100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(192, 57, 43, 0); }
+}
+.speech-btn {
+  background: none;
+  border: none;
+  font-size: 13px;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 2px 6px;
+  border-radius: 4px;
+  margin-left: 8px;
+  transition: all var(--transition);
+}
+.speech-btn:hover {
+  color: var(--navy-500);
+  background: var(--surface-3);
+}
+.speech-btn.speaking {
+  color: var(--red-600);
+  background: var(--red-100);
+  animation: speak-blink 1s infinite alternate;
+}
+@keyframes speak-blink {
+  from { opacity: 0.6; }
+  to { opacity: 1; }
+}
+
+
 /* ─── Map ────────────────────────────────────────────────────────────────── */
 #map-container {
   height: 480px;
@@ -523,8 +561,46 @@ tbody td {
 #cy {
   height: 520px;
   background: var(--navy-900);
-  border-radius: var(--radius-lg);
+  border-radius: 0 0 var(--radius-lg) var(--radius-lg);
   border: 1px solid var(--navy-600);
+}
+/* Satellite map for Criminal Network page */
+#network-map-container {
+  height: 520px;
+  border-radius: 0 0 var(--radius-lg) var(--radius-lg);
+  overflow: hidden;
+  border: 1px solid var(--navy-600);
+  box-shadow: var(--shadow);
+}
+/* Network view toggle tab buttons */
+.network-view-tabs {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  margin-right: auto;
+  margin-left: 16px;
+}
+.net-tab-btn {
+  padding: 5px 12px;
+  border-radius: var(--radius);
+  font-size: 12px;
+  font-weight: 500;
+  border: 1px solid var(--border);
+  background: var(--surface-3);
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all var(--transition);
+}
+.net-tab-btn:hover {
+  background: var(--navy-700);
+  color: white;
+  border-color: var(--navy-700);
+}
+.net-tab-btn.active {
+  background: var(--navy-700);
+  color: white;
+  border-color: var(--navy-700);
+  font-weight: 600;
 }
 .network-legend {
   display: flex;

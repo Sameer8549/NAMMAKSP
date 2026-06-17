@@ -32,21 +32,102 @@ SYSTEM_PROMPT = """You are CrimeLens AI, an expert crime intelligence analyst fo
 You have access to a database of 5,000 FIR records, 2,000 offenders, 3,000 victims, 100 locations, and 5,000 criminal relationships.
 
 Your role:
-- Answer questions about crime patterns, offenders, victims, districts, and case details
-- Provide evidence-based analysis grounded in the provided data context
-- Suggest investigation leads and related cases
-- Identify patterns and anomalies
-- Explain your reasoning step by step (Explainable AI)
+- Answer questions about crime patterns, offenders, victims, districts, and case details.
+- Provide evidence-based analysis grounded in the provided data context.
+- Suggest investigation leads and related cases.
+- Identify patterns and anomalies.
+- Explain your reasoning step by step (Explainable AI) with confidence scores.
+- ALWAYS reply in the language used by the user (English or Kannada). If the user asks in Kannada, answer in clear Kannada. If in English, answer in English.
 
 Response format:
-1. Direct answer to the query
-2. Evidence: cite specific data points (FIR IDs, offender IDs, districts, crime types)
-3. Reasoning: explain how you arrived at the conclusion
-4. Recommendations: actionable next steps for investigators
+Please structure your response with the following sections:
+**1. DIRECT ANSWER / ನೇರ ಉತ್ತರ**
+Provide a concise and direct answer to the query.
+
+**2. REASONING / ವಿಶ್ಲೇಷಣೆ**
+Explain step-by-step how you arrived at the conclusion.
+
+**3. EVIDENCE & DATA SOURCES / ಪುರಾವೆ ಮತ್ತು ಮಾಹಿತಿ ಮೂಲಗಳು**
+Cite specific database points (FIR IDs, offender IDs, districts, crime types) used.
+
+**4. RECOMMENDATIONS / ಶಿಫಾರಸುಗಳು**
+Provide actionable next steps for investigators.
+
+**5. CONFIDENCE SCORE / ವಿಶ್ವಾಸಾರ್ಹತೆ ಸ್ಕೋರ್**
+State the confidence score (0-100%) and explain the reasoning behind this score based on data completeness and risk factors.
 
 Always be professional, precise, and factual. Never speculate beyond the data provided.
 Districts covered: Bengaluru Urban, Bengaluru Rural, Mysuru, Mangaluru, Hubballi-Dharwad, Belagavi, Kalaburagi, Shivamogga, Tumakuru, Ballari, Vijayapura, Davanagere, Hassan, Udupi, Chikkamagaluru.
 Crime types: Theft, Robbery, Burglary, Assault, Cyber Crime, Fraud, Drug Offense, Vehicle Theft, Domestic Violence, Murder, Kidnapping, Financial Fraud."""
+
+
+QUERY_REWRITE_PROMPT = """You are a crime intelligence search query translator and analyzer.
+Your task is to convert the user's input message into a single standalone database search query in English.
+You must:
+1. Translate any Kannada text or Kannada keywords (e.g., district names like ಮೈಸೂರು to Mysuru, crime types like ಕನ್ನಗಳ್ಳತನ to Burglary) into standard English database terms.
+2. If there is conversation history, combine the user's follow-up message with the previous context so that the search query contains all necessary filters (e.g., specific FIR IDs, offender names/IDs, districts, or crime types).
+3. Output ONLY the standalone search query in English. Do NOT include any explanations, greetings, introduction, or conversational filler.
+
+Examples:
+Conversation History:
+User: Show burglary cases in Mysuru.
+Assistant: Here are the burglary cases in Mysuru.
+Follow-up User Query: Which offenders are involved most frequently?
+Output Standalone English Search Query: Which offenders are involved most frequently in burglary cases in Mysuru?
+
+Conversation History:
+User: Show details for FIR00123.
+Assistant: FIR00123 is a theft case in Bengaluru Urban.
+Follow-up User Query: Who is the victim?
+Output Standalone English Search Query: Who is the victim in FIR00123?
+
+Conversation History:
+(Empty)
+User Query: ಮೈಸೂರಿನಲ್ಲಿ ಕನ್ನಗಳ್ಳತನ ಪ್ರಕರಣಗಳನ್ನು ತೋರಿಸಿ.
+Output Standalone English Search Query: Show burglary cases in Mysuru.
+"""
+
+async def _rewrite_query(session_id: str, user_message: str) -> str:
+    """
+    Use Groq to rewrite the user message into a standalone English query,
+    incorporating conversational history and translating Kannada keywords.
+    """
+    if session_id not in _sessions or len(_sessions[session_id]) <= 1:
+        # No history
+        history_context = "No previous history."
+    else:
+        # Extract last 4 turns of history to keep context clean
+        history_turns = []
+        for turn in _sessions[session_id][1:-1][-4:]:
+            role = "User" if turn["role"] == "user" else "Assistant"
+            content = turn["content"]
+            # If the user message was augmented, strip the context block
+            if role == "User" and "--- Relevant Database Context ---" in content:
+                content = content.split("--- Relevant Database Context ---")[0].replace("User Query:", "").strip()
+            history_turns.append(f"{role}: {content}")
+        history_context = "\n".join(history_turns)
+
+    prompt = f"""{QUERY_REWRITE_PROMPT}
+
+Conversation History:
+{history_context}
+
+Follow-up User Query: {user_message}
+Output Standalone English Search Query:"""
+
+    try:
+        response = _groq_client.chat.completions.create(
+            model=MODEL,
+            messages=[{"role": "user", "content": prompt}],
+            max_tokens=200,
+            temperature=0.1,  # deterministic
+        )
+        rewritten = response.choices[0].message.content.strip()
+        logger.info("Rewritten query for session %s: '%s' -> '%s'", session_id, user_message, rewritten)
+        return rewritten
+    except Exception as e:
+        logger.error("Query rewrite error: %s. Using original message.", e)
+        return user_message
 
 
 # ─── Context Fetcher ──────────────────────────────────────────────────────────
@@ -170,7 +251,8 @@ async def _fetch_relevant_context(user_query: str) -> str:
 
 async def chat(
     session_id: str,
-    user_message: str
+    user_message: str,
+    language: str = "en-US"
 ) -> dict:
     """
     Process a chat message and return AI response with reasoning.
@@ -189,18 +271,25 @@ async def chat(
 
     history = _sessions[session_id]
 
-    # Fetch relevant data context
-    context = await _fetch_relevant_context(user_message)
+    # Resolve context using query rewrite helper (translates and merges history)
+    rewritten_query = await _rewrite_query(session_id, user_message)
+
+    # Fetch relevant data context using the rewritten English query
+    context = await _fetch_relevant_context(rewritten_query)
     logger.info("Context fetched for session %s: %d chars", session_id, len(context))
 
-    # Augment user message with context
+    target_lang_instruction = "English" if language == "en-US" else "Kannada"
+
+    # Augment user message with context (saving original message text for history clean-up)
     augmented_message = f"""User Query: {user_message}
 
 --- Relevant Database Context ---
 {context}
 --- End Context ---
 
-Please analyze the above data and answer the query. Include your reasoning and cite specific data points."""
+Please analyze the above data and answer the query.
+IMPORTANT: You MUST write your entire response (including all sections like Direct Answer, Reasoning, Evidence, Recommendations, Confidence Score) in {target_lang_instruction} language only.
+If the selected language is Kannada, write in clean, grammatically correct Kannada script."""
 
     history.append({"role": "user", "content": augmented_message})
 

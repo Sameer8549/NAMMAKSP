@@ -35,7 +35,7 @@ from analytics import (
 )
 from network   import get_network_data, get_shared_offender_network
 from ai_service import chat, generate_case_summary, get_investigation_recommendations, clear_session
-from report    import generate_case_report, generate_district_report
+from report    import generate_case_report, generate_district_report, generate_chat_log_report
 
 # ─── Logging ─────────────────────────────────────────────────────────────────
 logging.basicConfig(
@@ -77,6 +77,7 @@ async def startup():
 class ChatRequest(BaseModel):
     message:    str
     session_id: Optional[str] = None
+    language:   Optional[str] = "en-US"
 
 class ClearSessionRequest(BaseModel):
     session_id: str
@@ -95,6 +96,14 @@ class UserCreate(BaseModel):
     username: str
     password: str
     role: str  # 'Admin' or 'Investigator'
+
+class ChatMessage(BaseModel):
+    role: str
+    content: str
+
+class ExportChatRequest(BaseModel):
+    session_id: str
+    messages: list[ChatMessage]
 
 
 # ─── Auth Session Registry & Dependencies ─────────────────────────────────────
@@ -250,17 +259,17 @@ async def delete_user(username: str, admin_user: dict = Depends(require_admin)):
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
-# HOTSPOT / MAP ENDPOINTS (ADMIN ONLY)
+# HOTSPOT / MAP ENDPOINTS
 # ═══════════════════════════════════════════════════════════════════════════════
 
 @app.get("/api/hotspots")
-async def hotspots(admin_user: dict = Depends(require_admin)):
+async def hotspots(user: dict = Depends(get_current_user)):
     """Lat/lon hotspot data for Leaflet.js heatmap."""
     return await get_hotspot_data()
 
 
 @app.get("/api/hotspots/density")
-async def hotspot_density(admin_user: dict = Depends(require_admin)):
+async def hotspot_density(user: dict = Depends(get_current_user)):
     """District crime density for choropleth map."""
     return await get_district_crime_density()
 
@@ -354,7 +363,7 @@ async def chat_endpoint(request: ChatRequest):
     """
     session_id = request.session_id or str(uuid.uuid4())
     try:
-        result = await chat(session_id, request.message)
+        result = await chat(session_id, request.message, request.language)
         return result
     except Exception as e:
         logger.error("Chat error: %s", e)
@@ -366,6 +375,26 @@ async def clear_chat_session(request: ClearSessionRequest):
     """Clear conversation history for a session."""
     cleared = clear_session(request.session_id)
     return {"cleared": cleared, "session_id": request.session_id}
+
+
+@app.post("/api/chat/export")
+async def export_chat_endpoint(request: ExportChatRequest):
+    """
+    Generate and download a PDF investigation dossier for a chat session.
+    """
+    if not request.messages:
+        raise HTTPException(status_code=400, detail="Cannot export empty conversation history")
+    try:
+        msg_list = [{"role": m.role, "content": m.content} for m in request.messages]
+        pdf_path = await generate_chat_log_report(request.session_id, msg_list)
+        return FileResponse(
+            path=pdf_path,
+            media_type="application/pdf",
+            filename=Path(pdf_path).name
+        )
+    except Exception as e:
+        logger.error("Chat log export failed: %s", e)
+        raise HTTPException(status_code=500, detail=f"PDF generation failed: {str(e)}")
 
 
 @app.get("/api/ai/case-summary/{fir_id}")

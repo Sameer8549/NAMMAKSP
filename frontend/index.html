@@ -277,7 +277,8 @@
               <div style="font-size:11px; color:#b0bdd0; margin-top:2px;">Powered by Groq · Mistral</div>
             </div>
             <span class="chat-ai-badge">AI ANALYST</span>
-            <button class="btn btn-secondary btn-sm" style="margin-left:auto;" onclick="clearChat()" id="btn-clear-chat">Clear Session</button>
+            <button class="btn btn-secondary btn-sm" style="margin-left:auto; margin-right:8px;" onclick="exportChatSession()" id="btn-export-chat">Export Dossier (PDF)</button>
+            <button class="btn btn-secondary btn-sm" onclick="clearChat()" id="btn-clear-chat">Clear Session</button>
           </div>
 
           <div class="suggestions" id="chat-suggestions">
@@ -303,6 +304,11 @@
           </div>
 
           <div class="chat-input-area">
+            <select id="speech-lang" style="padding: 9px 6px; font-size: 12px; border: 1px solid var(--border); border-radius: var(--radius); background: var(--surface); color: var(--text-primary); margin-right: 4px; outline: none; cursor: pointer;">
+              <option value="en-US">English</option>
+              <option value="kn-IN">ಕನ್ನಡ (Kannada)</option>
+            </select>
+            <button class="btn btn-secondary" id="btn-mic" onclick="toggleSpeechRecognition()" title="Voice Typing / ಧ್ವನಿ ಟೈಪಿಂಗ್" style="padding: 10px; font-size: 14px; margin-right: 4px; display: flex; align-items: center; justify-content: center; height: 38px; width: 38px;">🎙️</button>
             <textarea id="chat-input" rows="1" placeholder="Ask about crime patterns, specific FIRs, offenders, districts..." onkeydown="handleChatKey(event)"></textarea>
             <button class="btn btn-primary" id="btn-send" onclick="sendChat()">Send ▶</button>
           </div>
@@ -418,8 +424,16 @@
         <div class="grid-2" style="margin-bottom:16px;">
           <div class="card" style="grid-column:1/-1;">
             <div class="card-header">
-              <div class="card-title">Criminal Relationship Network</div>
-              <div class="network-legend">
+              <div>
+                <div class="card-title">Criminal Relationship Network</div>
+                <div class="card-subtitle">Click any node to inspect · Satellite map shows district-level activity</div>
+              </div>
+              <!-- View toggle tabs -->
+              <div class="network-view-tabs">
+                <button class="net-tab-btn active" id="btn-tab-graph" onclick="switchNetworkTab('graph')">🕸️ Graph View</button>
+                <button class="net-tab-btn" id="btn-tab-map" onclick="switchNetworkTab('map')">🛰️ Satellite Map</button>
+              </div>
+              <div class="network-legend" id="net-legend">
                 <div class="legend-item"><div class="legend-dot" style="background:#c0392b;"></div> High-Risk Offender</div>
                 <div class="legend-item"><div class="legend-dot" style="background:#e67e22;"></div> Med-Risk Offender</div>
                 <div class="legend-item"><div class="legend-dot" style="background:#27ae60;"></div> Low-Risk Offender</div>
@@ -427,7 +441,20 @@
                 <div class="legend-item"><div class="legend-dot" style="background:#7f8c8d;"></div> FIR</div>
               </div>
             </div>
-            <div id="cy"></div>
+            <!-- Graph View -->
+            <div id="cy-wrapper">
+              <div id="cy"></div>
+            </div>
+            <!-- Satellite Map View (hidden by default) -->
+            <div id="network-map-wrapper" style="display:none;">
+              <div id="network-map-container"></div>
+              <div id="network-map-stats" style="padding:12px 16px; background:var(--navy-900); color:#c8d4e8; font-size:12px; border-top:1px solid var(--navy-600); display:flex; gap:20px; flex-wrap:wrap;">
+                <span>🔴 High-Risk Offenders shown as large red markers</span>
+                <span>🟠 Medium-Risk as orange markers</span>
+                <span>🟢 Low-Risk as green markers</span>
+                <span>📌 Click markers for details</span>
+              </div>
+            </div>
           </div>
         </div>
 

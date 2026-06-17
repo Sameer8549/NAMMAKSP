@@ -6,15 +6,8 @@ hotspot analysis, offender profiling, and trend detection.
 """
 
 import logging
-from collections import defaultdict
-from datetime import datetime
 
-import pandas as pd
-from sklearn.preprocessing import LabelEncoder
-from sklearn.ensemble import RandomForestClassifier
-import numpy as np
-
-from database import fetch_dataframe, fetch_all
+from database import fetch_all
 
 logger = logging.getLogger(__name__)
 
