@@ -8,7 +8,11 @@
 // TTS is handled server-side via gTTS (/api/tts) — no browser voice packs needed
 
 // ─── Config ───────────────────────────────────────────────────────────────────
-const API_BASE = (window.location.protocol === 'file:') ? 'http://127.0.0.1:8000' : 'https://namma-ksp-50043229029.development.catalystappsail.in';
+const LOCAL_API_BASE = 'http://127.0.0.1:8000';
+const CATALYST_APPSAIL_BASE = 'https://namma-ksp-50043229029.development.catalystappsail.in';
+const API_BASE = (window.location.protocol === 'file:' || ['127.0.0.1', 'localhost'].includes(window.location.hostname))
+  ? LOCAL_API_BASE
+  : (window.location.hostname.endsWith('catalystappsail.in') ? window.location.origin : CATALYST_APPSAIL_BASE);
 
 // ─── Bilingual Translation Engine ─────────────────────────────────────────────
 const TRANSLATIONS = {
@@ -621,12 +625,13 @@ function initParticleNetwork(canvasId) {
 
 async function initDashboardCharts() {
   try {
-    const [overview, trends, crimeTypes, districts, recentFIRs] = await Promise.all([
+    const [overview, trends, crimeTypes, districts, recentFIRs, advancedIntel] = await Promise.all([
       apiFetch('/api/analytics/overview'),
       apiFetch('/api/analytics/monthly-trends'),
       apiFetch('/api/analytics/crime-types'),
       apiFetch('/api/analytics/districts'),
-      apiFetch('/api/firs?limit=10')
+      apiFetch('/api/firs?limit=10'),
+      apiFetch('/api/analytics/advanced-intelligence')
     ]);
 
     if (overview) renderKPIs(overview);
@@ -634,6 +639,7 @@ async function initDashboardCharts() {
     if (crimeTypes) renderDonutChart(crimeTypes);
     if (districts)  renderDistrictCards(districts);
     if (recentFIRs) renderFIRTable(recentFIRs);
+    if (advancedIntel) renderAdvancedIntelligence(advancedIntel);
   } catch (err) {
     showToast('Failed to load dashboard data: ' + err.message, 'error');
     console.error(err);
@@ -755,6 +761,64 @@ function renderDistrictCards(districts) {
         </div>
       </div>`;
   }).join('');
+  translatePageUI();
+}
+
+function renderAdvancedIntelligence(data) {
+  const grid = document.getElementById('advanced-intel-grid');
+  if (!grid) return;
+
+  const forecast = data.forecast?.summary || {};
+  const warnings = data.forecast?.early_warnings || [];
+  const socio = data.sociological?.summary || {};
+  const socialDistricts = data.sociological?.district_social_risk || [];
+  const financial = data.financial?.summary || {};
+  const clusters = data.financial?.clusters || [];
+  const evidence = data.explainable?.evidence_trails || [];
+  const governance = data.governance || {};
+
+  const topWarning = warnings[0];
+  const topSocial = socialDistricts[0];
+  const topCluster = clusters[0];
+
+  grid.innerHTML = `
+    <div class="advanced-intel-card">
+      <div class="advanced-intel-title">Forecast & Early Warning</div>
+      <div class="advanced-intel-metric">${forecast.next_month_forecast || 0}</div>
+      <div class="advanced-intel-text">Projected FIRs next month · ${forecast.trend_direction || 'Stable'} trend</div>
+      <ul class="advanced-intel-list">
+        <li><span>${topWarning?.district || 'No active warning'}</span><strong>${topWarning?.alert_level || 'Stable'}</strong></li>
+        <li><span>Method</span><strong>Moving avg</strong></li>
+      </ul>
+    </div>
+    <div class="advanced-intel-card">
+      <div class="advanced-intel-title">Socio-Demographic Insight</div>
+      <div class="advanced-intel-metric">${socio.dominant_age_band || 'N/A'}</div>
+      <div class="advanced-intel-text">Dominant offender age band · ${socio.dominant_gender || 'N/A'}</div>
+      <ul class="advanced-intel-list">
+        <li><span>${topSocial?.district || 'No district data'}</span><strong>${Math.round(topSocial?.social_risk_index || 0)}</strong></li>
+        <li><span>Socio-economic CSV</span><strong>${socio.official_socio_economic_dataset ? 'Loaded' : 'Not uploaded'}</strong></li>
+      </ul>
+    </div>
+    <div class="advanced-intel-card">
+      <div class="advanced-intel-title">Financial Link Analysis</div>
+      <div class="advanced-intel-metric">${financial.suspicious_clusters || 0}</div>
+      <div class="advanced-intel-text">Suspicious cyber/financial-adjacent clusters detected</div>
+      <ul class="advanced-intel-list">
+        <li><span>${topCluster?.account || topCluster?.offender_id || 'No cluster'}</span><strong>${topCluster?.link_score || 0}</strong></li>
+        <li><span>Candidate cases</span><strong>${financial.candidate_cases || 0}</strong></li>
+      </ul>
+    </div>
+    <div class="advanced-intel-card">
+      <div class="advanced-intel-title">Explainability & Governance</div>
+      <div class="advanced-intel-metric">${evidence.length || 0}</div>
+      <div class="advanced-intel-text">Evidence trails available for analytics claims</div>
+      <ul class="advanced-intel-list">
+        <li><span>Roles</span><strong>${(governance.roles || []).join(', ') || 'Active'}</strong></li>
+        <li><span>Audit</span><strong>Prototype</strong></li>
+      </ul>
+    </div>
+  `;
   translatePageUI();
 }
 
@@ -2433,60 +2497,100 @@ style.textContent = `
 document.head.appendChild(style);
 
 
-// ─── Text-to-Speech (TTS) — Server-side gTTS (no browser voice packs needed) ──
-// Tracks the currently playing Audio instance and its button
+// ─── Text-to-Speech (TTS) ─────────────────────────────────────────────────────
+// Uses instant browser speech first, with server gTTS as a fallback.
 let _ttsAudio = null;
+let _ttsAbortController = null;
 let currentlySpeakingBubble = null;
+let _ttsMode = null;
 
 /**
- * readAloud — calls the backend /api/tts endpoint which uses Google TTS (gTTS).
- * Supports English ('en') and Kannada ('kn') natively.
+ * readAloud — speaks chat text quickly and toggles stop/start reliably.
  * @param {string} text       - The text to speak
  * @param {string} langCode   - 'en' or 'kn'
  * @param {Element} buttonEl  - The speak button element (for toggle/stop UI)
  */
 async function readAloud(text, langCode, buttonEl) {
-  // If this button is already playing → stop it
-  if (_ttsAudio && !_ttsAudio.paused && currentlySpeakingBubble === buttonEl) {
-    _ttsAudio.pause();
-    _ttsAudio = null;
-    resetSpeechButton(buttonEl);
-    currentlySpeakingBubble = null;
+  if (currentlySpeakingBubble === buttonEl && (_ttsMode || (_ttsAudio && !_ttsAudio.paused))) {
+    stopCurrentSpeech();
     return;
   }
 
-  // Stop any other playing audio
-  if (_ttsAudio && !_ttsAudio.paused) {
-    _ttsAudio.pause();
-    _ttsAudio = null;
-  }
-  if (currentlySpeakingBubble) {
-    resetSpeechButton(currentlySpeakingBubble);
-    currentlySpeakingBubble = null;
-  }
+  stopCurrentSpeech();
 
-  // Show loading state on button
-  buttonEl.innerHTML = `
-    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle;margin-right:2px;animation:spin 1s linear infinite">
-      <circle cx="12" cy="12" r="10" stroke-dasharray="31.4" stroke-dashoffset="10"/>
-    </svg>
-    Loading…
-  `;
+  const spokenText = prepareSpeechText(text);
+  if (!spokenText) return;
+
+  setSpeechButtonStop(buttonEl);
   buttonEl.classList.add('speaking');
   currentlySpeakingBubble = buttonEl;
 
+  if (startBrowserSpeech(spokenText, langCode, buttonEl)) return;
+  await startServerSpeech(spokenText, langCode, buttonEl);
+}
+
+function prepareSpeechText(text) {
+  return String(text || '')
+    .replace(/<[^>]+>/g, ' ')
+    .replace(/\*\*(.+?)\*\*/g, '$1')
+    .replace(/\*(.+?)\*/g, '$1')
+    .replace(/#+\s*/g, '')
+    .replace(/[-•]\s+/g, '')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .slice(0, 1200);
+}
+
+function startBrowserSpeech(text, langCode, buttonEl) {
+  if (!('speechSynthesis' in window) || !('SpeechSynthesisUtterance' in window)) return false;
+
+  const lang = langCode === 'kn' || langCode === 'kn-IN' ? 'kn-IN' : 'en-IN';
+  const utterance = new SpeechSynthesisUtterance(text);
+  utterance.lang = lang;
+  utterance.rate = lang.startsWith('kn') ? 1.05 : 1.12;
+  utterance.pitch = 1;
+  utterance.volume = 1;
+
+  const voices = window.speechSynthesis.getVoices();
+  const matchingVoice = voices.find(v => v.lang === lang) || voices.find(v => v.lang?.startsWith(lang.slice(0, 2)));
+  if (matchingVoice) utterance.voice = matchingVoice;
+
+  utterance.onend = () => {
+    if (currentlySpeakingBubble === buttonEl) {
+      resetSpeechButton(buttonEl);
+      currentlySpeakingBubble = null;
+      _ttsMode = null;
+    }
+  };
+  utterance.onerror = () => {
+    if (currentlySpeakingBubble === buttonEl) {
+      resetSpeechButton(buttonEl);
+      currentlySpeakingBubble = null;
+      _ttsMode = null;
+    }
+  };
+
+  window.speechSynthesis.cancel();
+  _ttsMode = 'browser';
+  window.speechSynthesis.speak(utterance);
+  return true;
+}
+
+async function startServerSpeech(text, langCode, buttonEl) {
   try {
-    // Map UI lang code to gTTS lang code
     const langMap = { 'en': 'en', 'en-US': 'en', 'en-IN': 'en', 'kn': 'kn', 'kn-IN': 'kn' };
     const ttsLang = langMap[langCode] || 'en';
 
+    _ttsAbortController = new AbortController();
+    _ttsMode = 'server';
     const res = await fetch(`${API_BASE}/api/tts`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${getToken()}`
       },
-      body: JSON.stringify({ text: text, language: ttsLang })
+      body: JSON.stringify({ text: text, language: ttsLang }),
+      signal: _ttsAbortController.signal
     });
 
     if (!res.ok) throw new Error(`TTS API error: ${res.status}`);
@@ -2496,19 +2600,12 @@ async function readAloud(text, langCode, buttonEl) {
     const audio     = new Audio(audioUrl);
     _ttsAudio = audio;
 
-    // Update button to Show "Stop"
-    buttonEl.innerHTML = `
-      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle;margin-right:2px">
-        <rect x="4" y="4" width="16" height="16" rx="2" ry="2"/>
-      </svg>
-      Stop
-    `;
-
     audio.onended = () => {
       resetSpeechButton(buttonEl);
       if (currentlySpeakingBubble === buttonEl) currentlySpeakingBubble = null;
       URL.revokeObjectURL(audioUrl);
       _ttsAudio = null;
+      _ttsMode = null;
     };
 
     audio.onerror = () => {
@@ -2516,18 +2613,46 @@ async function readAloud(text, langCode, buttonEl) {
       if (currentlySpeakingBubble === buttonEl) currentlySpeakingBubble = null;
       URL.revokeObjectURL(audioUrl);
       _ttsAudio = null;
+      _ttsMode = null;
       showToast('Audio playback failed', 'error');
     };
 
     audio.play();
 
   } catch (err) {
+    if (err.name === 'AbortError') return;
     console.error('TTS failed:', err);
     resetSpeechButton(buttonEl);
     currentlySpeakingBubble = null;
     _ttsAudio = null;
+    _ttsMode = null;
     showToast(`Text-to-speech failed: ${err.message}`, 'error');
   }
+}
+
+function stopCurrentSpeech() {
+  if ('speechSynthesis' in window) window.speechSynthesis.cancel();
+  if (_ttsAbortController) {
+    _ttsAbortController.abort();
+    _ttsAbortController = null;
+  }
+  if (_ttsAudio) {
+    _ttsAudio.pause();
+    _ttsAudio.currentTime = 0;
+    _ttsAudio = null;
+  }
+  if (currentlySpeakingBubble) resetSpeechButton(currentlySpeakingBubble);
+  currentlySpeakingBubble = null;
+  _ttsMode = null;
+}
+
+function setSpeechButtonStop(btn) {
+  btn.innerHTML = `
+    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle;margin-right:2px">
+      <rect x="4" y="4" width="16" height="16" rx="2" ry="2"/>
+    </svg>
+    Stop
+  `;
 }
 
 function resetSpeechButton(btn) {

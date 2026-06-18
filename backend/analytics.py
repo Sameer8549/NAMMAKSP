@@ -6,8 +6,10 @@ hotspot analysis, offender profiling, and trend detection.
 """
 
 import logging
+from collections import defaultdict
+from statistics import mean
 
-from database import fetch_all
+from database import fetch_all, fetch_one
 
 logger = logging.getLogger(__name__)
 
@@ -484,3 +486,385 @@ async def get_yearly_comparison() -> list[dict]:
         GROUP BY year, crime_type
         ORDER BY year, count DESC
     """)
+
+
+# ─── Advanced Intelligence Modules ───────────────────────────────────────────
+
+FINANCIAL_CRIME_TYPES = {"Financial Fraud", "Cyber Crime", "Extortion", "Robbery", "Burglary"}
+
+
+async def get_sociological_insights() -> dict:
+    """Socio-demographic crime insights from uploaded offender/victim/FIR data."""
+    age_gender = await fetch_all("""
+        SELECT
+            CASE
+                WHEN o.age < 18 THEN 'Under 18'
+                WHEN o.age BETWEEN 18 AND 25 THEN '18-25'
+                WHEN o.age BETWEEN 26 AND 40 THEN '26-40'
+                WHEN o.age BETWEEN 41 AND 60 THEN '41-60'
+                ELSE '60+'
+            END AS age_band,
+            o.gender,
+            COUNT(*) AS incidents,
+            AVG(o.previous_firs) AS avg_prior_firs
+        FROM firs f
+        JOIN offenders o ON f.offender_id = o.offender_id
+        GROUP BY age_band, o.gender
+        ORDER BY incidents DESC
+    """)
+
+    official_indicator_count = (await fetch_one("SELECT COUNT(*) AS cnt FROM socio_economic_indicators") or {}).get("cnt", 0)
+    indicator_select = """
+            sei.urbanization_index,
+            sei.migration_index,
+            sei.unemployment_rate,
+            sei.literacy_rate,
+            sei.income_index,
+            sei.population_density
+    """ if official_indicator_count else ""
+    indicator_join = "LEFT JOIN socio_economic_indicators sei ON sei.district = f.district" if official_indicator_count else ""
+
+    district_rows = await fetch_all(f"""
+        SELECT
+            f.district,
+            COUNT(*) AS incidents,
+            COUNT(DISTINCT f.crime_type) AS crime_diversity,
+            AVG(o.age) AS avg_offender_age,
+            AVG(v.age) AS avg_victim_age,
+            AVG(o.previous_firs) AS avg_prior_firs,
+            SUM(CASE WHEN o.risk_category='High' THEN 1 ELSE 0 END) AS high_risk_count,
+            SUM(CASE WHEN o.gender='Female' THEN 1 ELSE 0 END) AS female_offender_cases,
+            SUM(CASE WHEN o.gender='Male' THEN 1 ELSE 0 END) AS male_offender_cases,
+            SUM(CASE WHEN v.gender='Female' THEN 1 ELSE 0 END) AS female_victim_cases,
+            SUM(CASE WHEN v.gender='Male' THEN 1 ELSE 0 END) AS male_victim_cases
+            {"," if official_indicator_count else ""} {indicator_select}
+        FROM firs f
+        JOIN offenders o ON f.offender_id = o.offender_id
+        LEFT JOIN victims v ON f.victim_id = v.victim_id
+        {indicator_join}
+        GROUP BY f.district
+        ORDER BY incidents DESC
+    """)
+
+    district_insights = []
+    for row in district_rows:
+        risk_index = round(
+            (row["incidents"] * 0.45)
+            + (row["crime_diversity"] * 6)
+            + ((row["avg_prior_firs"] or 0) * 8)
+            + (row["high_risk_count"] * 1.5),
+            1
+        )
+        if official_indicator_count:
+            risk_index = round(
+                risk_index
+                + ((row.get("unemployment_rate") or 0) * 2)
+                + ((row.get("migration_index") or 0) * 0.4)
+                + ((100 - (row.get("literacy_rate") or 100)) * 0.6),
+                1
+            )
+
+        interpretation = (
+            f"{row['district']} has {row['incidents']} FIRs, {row['crime_diversity']} crime categories, "
+            f"average offender age {round(row['avg_offender_age'] or 0, 1)}, and "
+            f"{row['high_risk_count']} high-risk offender-linked cases."
+        )
+        if official_indicator_count:
+            interpretation += " Official socio-economic indicators are joined for this district."
+        else:
+            interpretation += " No official socio-economic indicator CSV is uploaded, so this uses only crime-demographic fields."
+
+        district_insights.append({
+            **row,
+            "social_risk_index": risk_index,
+            "interpretation": interpretation
+        })
+
+    top_age = age_gender[0] if age_gender else {}
+    return {
+        "summary": {
+            "dominant_age_band": top_age.get("age_band", "N/A"),
+            "dominant_gender": top_age.get("gender", "N/A"),
+            "official_socio_economic_dataset": bool(official_indicator_count),
+            "evidence_basis": (
+                "Derived from uploaded offender age, offender/victim gender, district, prior FIRs, and FIR distribution."
+                if not official_indicator_count else
+                "Derived from uploaded crime datasets joined with uploaded socio_economic_indicators.csv."
+            ),
+        },
+        "age_gender_distribution": age_gender,
+        "district_social_risk": district_insights[:10],
+    }
+
+
+async def get_financial_link_analysis() -> dict:
+    """Financial crime link analysis using transaction data when uploaded, otherwise FIR relationship evidence."""
+    transaction_count = (await fetch_one("SELECT COUNT(*) AS cnt FROM financial_transactions") or {}).get("cnt", 0)
+    if transaction_count:
+        rows = await fetch_all("""
+            SELECT
+                t.transaction_id,
+                t.fir_id,
+                t.sender_account,
+                t.receiver_account,
+                t.amount,
+                t.transaction_date,
+                t.channel,
+                t.district,
+                t.risk_flag,
+                f.crime_type,
+                o.offender_id,
+                o.name AS offender_name
+            FROM financial_transactions t
+            LEFT JOIN firs f ON f.fir_id = t.fir_id
+            LEFT JOIN offenders o ON o.offender_id = f.offender_id
+            ORDER BY t.amount DESC
+            LIMIT 300
+        """)
+        account_map = defaultdict(lambda: {
+            "account": "",
+            "transaction_ids": [],
+            "fir_ids": set(),
+            "counterparties": set(),
+            "total_amount": 0,
+            "districts": set(),
+            "risk_flags": set(),
+            "offenders": set(),
+        })
+        for row in rows:
+            for account_key, other_key in (("sender_account", "receiver_account"), ("receiver_account", "sender_account")):
+                account = row.get(account_key)
+                if not account:
+                    continue
+                item = account_map[account]
+                item["account"] = account
+                item["transaction_ids"].append(row["transaction_id"])
+                if row.get("fir_id"):
+                    item["fir_ids"].add(row["fir_id"])
+                if row.get(other_key):
+                    item["counterparties"].add(row[other_key])
+                item["total_amount"] += row.get("amount") or 0
+                if row.get("district"):
+                    item["districts"].add(row["district"])
+                if row.get("risk_flag"):
+                    item["risk_flags"].add(row["risk_flag"])
+                if row.get("offender_id"):
+                    item["offenders"].add(row["offender_id"])
+
+        clusters = []
+        for item in account_map.values():
+            score = min(
+                len(item["transaction_ids"]) * 10
+                + len(item["counterparties"]) * 8
+                + len(item["fir_ids"]) * 10
+                + len(item["risk_flags"]) * 12
+                + (20 if item["total_amount"] >= 100000 else 0),
+                100
+            )
+            if score >= 35:
+                clusters.append({
+                    "account": item["account"],
+                    "case_count": len(item["fir_ids"]),
+                    "transaction_count": len(item["transaction_ids"]),
+                    "counterparty_count": len(item["counterparties"]),
+                    "total_amount": round(item["total_amount"], 2),
+                    "districts": sorted(item["districts"]),
+                    "risk_flags": sorted(item["risk_flags"]),
+                    "link_score": score,
+                    "evidence": item["transaction_ids"][:8],
+                    "recommended_action": "Freeze/check linked accounts, identify counterparties, and compare FIR/device/phone evidence."
+                })
+        clusters.sort(key=lambda x: x["link_score"], reverse=True)
+        return {
+            "summary": {
+                "data_source": "financial_transactions.csv",
+                "transaction_rows": transaction_count,
+                "candidate_cases": len(rows),
+                "suspicious_clusters": len(clusters),
+                "evidence_basis": "Uploaded financial_transactions.csv joined to FIR/offender records.",
+            },
+            "clusters": clusters[:12],
+        }
+
+    placeholders = ",".join("?" for _ in FINANCIAL_CRIME_TYPES)
+    rows = await fetch_all(f"""
+        SELECT
+            f.fir_id,
+            f.crime_type,
+            f.date,
+            f.district,
+            f.status,
+            o.offender_id,
+            o.name AS offender_name,
+            o.previous_firs,
+            o.risk_category,
+            v.victim_id,
+            v.name AS victim_name
+        FROM firs f
+        JOIN offenders o ON f.offender_id = o.offender_id
+        LEFT JOIN victims v ON f.victim_id = v.victim_id
+        WHERE f.crime_type IN ({placeholders})
+        ORDER BY o.previous_firs DESC, f.date DESC
+        LIMIT 150
+    """, tuple(FINANCIAL_CRIME_TYPES))
+
+    offender_map = defaultdict(lambda: {
+        "offender_id": "",
+        "offender_name": "",
+        "districts": set(),
+        "crime_types": set(),
+        "fir_ids": [],
+        "victims": set(),
+        "risk_category": "Low",
+        "previous_firs": 0,
+    })
+    for row in rows:
+        item = offender_map[row["offender_id"]]
+        item["offender_id"] = row["offender_id"]
+        item["offender_name"] = row["offender_name"]
+        item["districts"].add(row["district"])
+        item["crime_types"].add(row["crime_type"])
+        item["fir_ids"].append(row["fir_id"])
+        if row.get("victim_name"):
+            item["victims"].add(row["victim_name"])
+        item["risk_category"] = row["risk_category"]
+        item["previous_firs"] = row["previous_firs"] or 0
+
+    suspicious_clusters = []
+    for item in offender_map.values():
+        score = (
+            len(item["fir_ids"]) * 12
+            + len(item["districts"]) * 10
+            + len(item["crime_types"]) * 8
+            + min(item["previous_firs"] * 2, 30)
+            + (20 if item["risk_category"] == "High" else 10 if item["risk_category"] == "Medium" else 0)
+        )
+        if len(item["fir_ids"]) >= 2 or score >= 45:
+            suspicious_clusters.append({
+                "offender_id": item["offender_id"],
+                "offender_name": item["offender_name"],
+                "case_count": len(item["fir_ids"]),
+                "districts": sorted(item["districts"]),
+                "crime_types": sorted(item["crime_types"]),
+                "victim_count": len(item["victims"]),
+                "risk_category": item["risk_category"],
+                "link_score": min(score, 100),
+                "evidence": item["fir_ids"][:8],
+                "recommended_action": "Check bank accounts, device identifiers, phone numbers, mule accounts, and shared addresses across linked FIRs."
+            })
+
+    suspicious_clusters.sort(key=lambda x: x["link_score"], reverse=True)
+    return {
+        "summary": {
+            "data_source": "uploaded FIR/offender/victim/relationship datasets",
+            "financial_crime_types": sorted(FINANCIAL_CRIME_TYPES),
+            "candidate_cases": len(rows),
+            "suspicious_clusters": len(suspicious_clusters),
+            "evidence_basis": "No financial_transactions.csv was uploaded, so this uses real uploaded cyber/financial-adjacent FIRs, shared offenders, victims, districts, and repeat history.",
+        },
+        "clusters": suspicious_clusters[:12],
+    }
+
+
+async def get_crime_forecast() -> dict:
+    """Simple explainable short-term forecast and early-warning signals."""
+    monthly = await get_monthly_trends()
+    district_rows = await fetch_all("""
+        SELECT
+            district,
+            strftime('%Y-%m', date) AS month,
+            COUNT(*) AS count
+        FROM firs
+        GROUP BY district, month
+        ORDER BY district, month
+    """)
+
+    counts = [r["count"] for r in monthly[-6:]]
+    avg_recent = mean(counts) if counts else 0
+    previous = mean([r["count"] for r in monthly[-12:-6]]) if len(monthly) >= 12 else avg_recent
+    trend_delta = avg_recent - previous
+    next_month = max(0, round(avg_recent + trend_delta * 0.35))
+
+    by_district = defaultdict(list)
+    for row in district_rows:
+        by_district[row["district"]].append(row["count"])
+
+    warnings = []
+    for district, series in by_district.items():
+        if len(series) < 4:
+            continue
+        recent = mean(series[-3:])
+        baseline = mean(series[:-3]) if len(series) > 3 else recent
+        lift = ((recent - baseline) / baseline * 100) if baseline else 0
+        if lift > 8 or recent >= baseline + 5:
+            warnings.append({
+                "district": district,
+                "recent_monthly_avg": round(recent, 1),
+                "baseline_monthly_avg": round(baseline, 1),
+                "increase_percent": round(lift, 1),
+                "alert_level": "High" if lift > 20 else "Medium",
+                "recommended_action": "Increase patrol visibility, review repeat-offender activity, and compare hotspot locations for the next 30 days."
+            })
+    warnings.sort(key=lambda x: (x["alert_level"] != "High", -x["increase_percent"]))
+
+    return {
+        "summary": {
+            "next_month_forecast": next_month,
+            "recent_monthly_average": round(avg_recent, 1),
+            "trend_direction": "Rising" if trend_delta > 0 else "Falling" if trend_delta < 0 else "Stable",
+            "method": "Explainable moving-average forecast using monthly FIR counts and district-level deviation from baseline.",
+        },
+        "early_warnings": warnings[:8],
+    }
+
+
+async def get_explainable_intelligence() -> dict:
+    """Transparent evidence trails for headline analytics."""
+    top_crimes = await fetch_all("""
+        SELECT crime_type, COUNT(*) AS count
+        FROM firs
+        GROUP BY crime_type
+        ORDER BY count DESC
+        LIMIT 5
+    """)
+    repeat_evidence = await get_repeat_offenders()
+    hotspot_evidence = await fetch_all("""
+        SELECT f.district, COUNT(*) AS count, COUNT(DISTINCT f.location_id) AS locations
+        FROM firs f
+        GROUP BY f.district
+        ORDER BY count DESC
+        LIMIT 5
+    """)
+
+    return {
+        "principles": [
+            "Every alert is linked to aggregate FIR/offender evidence.",
+            "Risk scores use transparent factors: previous FIRs, active cases, and risk category.",
+            "Forecasts use moving averages rather than opaque black-box predictions.",
+            "Socio-demographic insights use uploaded offender/victim/FIR fields; official socio-economic indicators are used when socio_economic_indicators.csv is uploaded."
+        ],
+        "evidence_trails": [
+            {"claim": "Dominant crime patterns", "data": top_crimes, "source": "firs grouped by crime_type"},
+            {"claim": "Repeat offender risk", "data": repeat_evidence[:5], "source": "offenders joined with FIR history"},
+            {"claim": "Hotspot concentration", "data": hotspot_evidence, "source": "firs grouped by district and location"},
+        ]
+    }
+
+
+async def get_advanced_intelligence_summary() -> dict:
+    """Combined response for the dashboard advanced-intelligence panel."""
+    socio = await get_sociological_insights()
+    financial = await get_financial_link_analysis()
+    forecast = await get_crime_forecast()
+    explainable = await get_explainable_intelligence()
+    return {
+        "sociological": socio,
+        "financial": financial,
+        "forecast": forecast,
+        "explainable": explainable,
+        "governance": {
+            "roles": ["Admin", "Investigator"],
+            "audit_status": "Persistent audit log table is enabled for login, logout, user management, reports, and sensitive analytics access.",
+            "data_handling": "Uploaded crime datasets are used as source investigation data; generated PDFs are marked as investigative aids."
+        }
+    }

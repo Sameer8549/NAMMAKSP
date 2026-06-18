@@ -34,6 +34,8 @@ CSV_FILES = {
     "victims":       DATA_DIR / "victims.csv",
     "locations":     DATA_DIR / "locations.csv",
     "relationships": DATA_DIR / "relationships.csv",
+    "financial_transactions": DATA_DIR / "financial_transactions.csv",
+    "socio_economic_indicators": DATA_DIR / "socio_economic_indicators.csv",
 }
 
 # ─── DDL: Table Definitions ───────────────────────────────────────────────────
@@ -98,11 +100,50 @@ CREATE TABLE IF NOT EXISTS relationships (
     FOREIGN KEY (fir_id)       REFERENCES firs(fir_id)
 );
 
+-- Optional financial transaction evidence table.
+-- Loaded automatically when data/financial_transactions.csv is present.
+CREATE TABLE IF NOT EXISTS financial_transactions (
+    transaction_id   TEXT PRIMARY KEY,
+    fir_id           TEXT,
+    sender_account   TEXT,
+    receiver_account TEXT,
+    amount           REAL,
+    transaction_date TEXT,
+    channel          TEXT,
+    district         TEXT,
+    risk_flag        TEXT,
+    FOREIGN KEY (fir_id) REFERENCES firs(fir_id)
+);
+
+-- Optional official socio-economic indicator table.
+-- Loaded automatically when data/socio_economic_indicators.csv is present.
+CREATE TABLE IF NOT EXISTS socio_economic_indicators (
+    district            TEXT PRIMARY KEY,
+    urbanization_index  REAL,
+    migration_index     REAL,
+    unemployment_rate   REAL,
+    literacy_rate       REAL,
+    income_index        REAL,
+    population_density  REAL
+);
+
 -- Users table for RBAC
 CREATE TABLE IF NOT EXISTS users (
     username      TEXT PRIMARY KEY,
     password_hash TEXT NOT NULL,
     role          TEXT NOT NULL -- 'Admin' or 'Investigator'
+);
+
+-- Audit logs for governance and traceability
+CREATE TABLE IF NOT EXISTS audit_logs (
+    id          INTEGER PRIMARY KEY AUTOINCREMENT,
+    timestamp   TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    username    TEXT,
+    role        TEXT,
+    action      TEXT NOT NULL,
+    resource    TEXT,
+    detail      TEXT,
+    ip_address  TEXT
 );
 
 -- Indexes for performance
@@ -114,6 +155,11 @@ CREATE INDEX IF NOT EXISTS idx_firs_offender    ON firs(offender_id);
 CREATE INDEX IF NOT EXISTS idx_offenders_risk   ON offenders(risk_category);
 CREATE INDEX IF NOT EXISTS idx_rel_offender     ON relationships(offender_id);
 CREATE INDEX IF NOT EXISTS idx_rel_fir          ON relationships(fir_id);
+CREATE INDEX IF NOT EXISTS idx_txn_fir          ON financial_transactions(fir_id);
+CREATE INDEX IF NOT EXISTS idx_txn_sender       ON financial_transactions(sender_account);
+CREATE INDEX IF NOT EXISTS idx_txn_receiver     ON financial_transactions(receiver_account);
+CREATE INDEX IF NOT EXISTS idx_audit_time       ON audit_logs(timestamp);
+CREATE INDEX IF NOT EXISTS idx_audit_user       ON audit_logs(username);
 """
 
 
@@ -162,6 +208,7 @@ async def init_db() -> None:
                 logger.info("CSV ingestion complete.")
             else:
                 logger.info("Database already populated (%d FIR records).", count)
+                await _ingest_optional_csvs(db)
     except Exception as e:
         logger.warning("Database initialization write failed (possibly read-only filesystem): %s. Continuing in read-only mode.", e)
 
@@ -211,6 +258,56 @@ async def _ingest_csvs(db: aiosqlite.Connection) -> None:
     )
 
     await db.commit()
+    await _ingest_optional_csvs(db)
+
+
+async def _ingest_optional_csvs(db: aiosqlite.Connection) -> None:
+    """Load optional real-world enrichment CSVs when they are uploaded."""
+    if CSV_FILES["financial_transactions"].exists():
+        async with db.execute("SELECT COUNT(*) FROM financial_transactions") as cur:
+            count = (await cur.fetchone())[0]
+        if count == 0:
+            tdf = pd.read_csv(CSV_FILES["financial_transactions"])
+            tdf.columns = [c.lower() for c in tdf.columns]
+            required = [
+                "transaction_id", "fir_id", "sender_account", "receiver_account",
+                "amount", "transaction_date", "channel", "district", "risk_flag"
+            ]
+            missing = [c for c in required if c not in tdf.columns]
+            if not missing:
+                tdf = tdf[required].astype(object).where(pd.notnull(tdf[required]), None)
+                await db.executemany(
+                    "INSERT OR IGNORE INTO financial_transactions VALUES (?,?,?,?,?,?,?,?,?)",
+                    tdf.values.tolist()
+                )
+                await db.commit()
+                logger.info("Loaded optional financial transaction dataset (%d rows).", len(tdf))
+            else:
+                logger.warning("financial_transactions.csv exists but is missing columns: %s", missing)
+
+    if CSV_FILES["socio_economic_indicators"].exists():
+        async with db.execute("SELECT COUNT(*) FROM socio_economic_indicators") as cur:
+            count = (await cur.fetchone())[0]
+        if count == 0:
+            sdf = pd.read_csv(CSV_FILES["socio_economic_indicators"])
+            sdf.columns = [c.lower() for c in sdf.columns]
+            required = [
+                "district", "urbanization_index", "migration_index", "unemployment_rate",
+                "literacy_rate", "income_index", "population_density"
+            ]
+            if "district" in sdf.columns:
+                for column in required:
+                    if column not in sdf.columns:
+                        sdf[column] = None
+                sdf = sdf[required].astype(object).where(pd.notnull(sdf[required]), None)
+                await db.executemany(
+                    "INSERT OR REPLACE INTO socio_economic_indicators VALUES (?,?,?,?,?,?,?)",
+                    sdf.values.tolist()
+                )
+                await db.commit()
+                logger.info("Loaded optional socio-economic indicator dataset (%d rows).", len(sdf))
+            else:
+                logger.warning("socio_economic_indicators.csv exists but is missing required column: district")
 
 
 # ─── Query Helpers ────────────────────────────────────────────────────────────
@@ -246,12 +343,33 @@ async def execute_write(query: str, params: tuple = ()) -> None:
         await db.commit()
 
 
+async def log_audit(
+    username: str | None,
+    role: str | None,
+    action: str,
+    resource: str = "",
+    detail: str = "",
+    ip_address: str = ""
+) -> None:
+    """Persist an audit event for governance and traceability."""
+    await execute_write(
+        """
+        INSERT INTO audit_logs (username, role, action, resource, detail, ip_address)
+        VALUES (?, ?, ?, ?, ?, ?)
+        """,
+        (username, role, action, resource, detail, ip_address)
+    )
+
+
 # ─── Quick Stats Helper ───────────────────────────────────────────────────────
 
 async def get_db_stats() -> dict:
     """Return row counts for all tables — used for health check."""
     stats = {}
-    tables = ["firs", "offenders", "victims", "locations", "relationships"]
+    tables = [
+        "firs", "offenders", "victims", "locations", "relationships",
+        "financial_transactions", "socio_economic_indicators", "audit_logs"
+    ]
     for table in tables:
         row = await fetch_one(f"SELECT COUNT(*) as cnt FROM {table}")
         stats[table] = row["cnt"] if row else 0

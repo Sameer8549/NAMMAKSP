@@ -1,0 +1,17 @@
+.git/**
+.venv/**
+venv/**
+env/**
+__pycache__/**
+**/__pycache__/**
+**/*.pyc
+**/*.pyo
+**/*.pyd
+.env
+.vscode/**
+.idea/**
+frontend/**
+reports/*.pdf
+local-server*.log
+uvicorn*.log
+start_server.bat

@@ -9,6 +9,7 @@ Generates bilingual (English + Kannada) KSP-style investigation reports.
 import os
 import io
 import logging
+import re
 from datetime import datetime
 from pathlib import Path
 import qrcode
@@ -18,7 +19,7 @@ from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
 from reportlab.lib.fonts import addMapping
 from reportlab.platypus import (
-    SimpleDocTemplate, Paragraph, Table, TableStyle, Spacer,
+    SimpleDocTemplate, Paragraph as RLParagraph, Table, TableStyle, Spacer,
     HRFlowable, Image as RLImage, KeepTogether
 )
 from reportlab.lib.pagesizes import A4
@@ -38,21 +39,74 @@ FRONTEND_DIR = BASE_DIR / "frontend"
 # ─── Font Registration for Kannada support ─────────────────────────────────
 FONT_REGULAR = "Helvetica"
 FONT_BOLD = "Helvetica-Bold"
+KANNADA_FONT_REGULAR = None
+KANNADA_FONT_BOLD = None
+
+def _register_pdf_fonts():
+    """Register a Unicode font so Kannada text does not render as missing-glyph boxes."""
+    global KANNADA_FONT_REGULAR, KANNADA_FONT_BOLD
+
+    bundled_regular = BACKEND_DIR / "fonts" / "NotoSansKannada-Regular.ttf"
+    bundled_bold = BACKEND_DIR / "fonts" / "NotoSansKannada-Bold.ttf"
+
+    if bundled_regular.exists() and bundled_bold.exists():
+        pdfmetrics.registerFont(TTFont("NotoKannada", str(bundled_regular)))
+        pdfmetrics.registerFont(TTFont("NotoKannada-Bold", str(bundled_bold)))
+        addMapping("NotoKannada", 0, 0, "NotoKannada")
+        addMapping("NotoKannada", 1, 0, "NotoKannada-Bold")
+        KANNADA_FONT_REGULAR = "NotoKannada"
+        KANNADA_FONT_BOLD = "NotoKannada-Bold"
+        logger.info("Bundled Noto Sans Kannada fonts registered successfully.")
+        return
+
+    font_path = Path(os.environ.get("SystemRoot", "C:/Windows")) / "Fonts" / "Nirmala.ttc"
+    if font_path.exists():
+        pdfmetrics.registerFont(TTFont("Nirmala", str(font_path), subfontIndex=0))
+        pdfmetrics.registerFont(TTFont("Nirmala-Bold", str(font_path), subfontIndex=1))
+        addMapping("Nirmala", 0, 0, "Nirmala")
+        addMapping("Nirmala", 1, 0, "Nirmala-Bold")
+        KANNADA_FONT_REGULAR = "Nirmala"
+        KANNADA_FONT_BOLD = "Nirmala-Bold"
+        logger.info("Nirmala UI font registered successfully for Kannada support.")
+        return
+
+    logger.warning("No Kannada-capable PDF font found. Falling back to Helvetica.")
+
 
 try:
-    font_path = os.path.join(os.environ.get('SystemRoot', 'C:/Windows'), 'Fonts', 'Nirmala.ttc')
-    if os.path.exists(font_path):
-        pdfmetrics.registerFont(TTFont('Nirmala', font_path, subfontIndex=0))
-        pdfmetrics.registerFont(TTFont('Nirmala-Bold', font_path, subfontIndex=1))
-        addMapping('Nirmala', 0, 0, 'Nirmala')
-        addMapping('Nirmala', 1, 0, 'Nirmala-Bold')
-        FONT_REGULAR = "Nirmala"
-        FONT_BOLD = "Nirmala-Bold"
-        logger.info("Nirmala UI font registered successfully for Kannada support.")
-    else:
-        logger.warning("Nirmala.ttc font not found. Falling back to Helvetica.")
+    _register_pdf_fonts()
 except Exception as e:
-    logger.error("Failed to register Nirmala font: %s", e)
+    logger.error("Failed to register PDF fonts: %s", e)
+
+
+_KANNADA_RE = re.compile(r"[\u0C80-\u0CFF][\u0C80-\u0CFF\s\u200c\u200d]*")
+
+
+def _escape_pdf_text(text: str) -> str:
+    return (
+        str(text)
+        .replace("&", "&amp;")
+        .replace("<", "&lt;")
+        .replace(">", "&gt;")
+    )
+
+
+def _with_kannada_font(text: str, bold: bool = False) -> str:
+    if not text or not KANNADA_FONT_REGULAR:
+        return text
+
+    font_name = KANNADA_FONT_BOLD if bold and KANNADA_FONT_BOLD else KANNADA_FONT_REGULAR
+
+    def repl(match):
+        return f'<font name="{font_name}">{_escape_pdf_text(match.group(0))}</font>'
+
+    return _KANNADA_RE.sub(repl, str(text))
+
+
+def Paragraph(text, style, *args, **kwargs):
+    font_name = getattr(style, "fontName", "")
+    bold = font_name == FONT_BOLD or "Bold" in font_name or "bold" in style.name.lower()
+    return RLParagraph(_with_kannada_font(str(text), bold), style, *args, **kwargs)
 
 # ─── Colors ──────────────────────────────────────────────────────────────────
 BLACK = colors.black

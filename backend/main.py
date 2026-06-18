@@ -13,7 +13,7 @@ from pathlib import Path
 from typing import Optional
 
 import uvicorn
-from fastapi import FastAPI, HTTPException, Query, BackgroundTasks, Depends, Header, UploadFile, File
+from fastapi import FastAPI, HTTPException, Query, BackgroundTasks, Depends, Header, UploadFile, File, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
@@ -29,13 +29,15 @@ import mimetypes
 mimetypes.init()
 mimetypes.add_type("application/pdf", ".pdf")
 
-from database  import init_db, get_db_stats
+from database  import init_db, get_db_stats, log_audit
 from analytics import (
     get_overview_stats, get_crime_type_distribution, get_monthly_trends,
     get_district_stats, get_district_top_crime, get_hotspot_data,
     get_district_crime_density, get_offender_profile, get_high_risk_offenders,
     get_repeat_offenders, search_firs, get_fir_detail, get_related_cases,
-    get_police_station_stats, get_yearly_comparison
+    get_police_station_stats, get_yearly_comparison, get_sociological_insights,
+    get_financial_link_analysis, get_crime_forecast, get_explainable_intelligence,
+    get_advanced_intelligence_summary
 )
 from network   import get_network_data, get_shared_offender_network
 from ai_service import chat, generate_case_summary, get_investigation_recommendations, clear_session
@@ -62,13 +64,21 @@ app = FastAPI(
     redoc_url="/api/redoc"
 )
 
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
+ALLOWED_ORIGINS = [
+    "http://127.0.0.1:8000",
+    "http://localhost:8000",
+    "https://nammaksp-60074625517.development.catalystserverless.in",
+    "https://namma-ksp-50043229029.development.catalystappsail.in",
+]
+
+if not os.getenv("X_ZOHO_CATALYST_LISTEN_PORT"):
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=ALLOWED_ORIGINS,
+        allow_credentials=True,
+        allow_methods=["*"],
+        allow_headers=["*"],
+    )
 
 # ─── No-Cache Middleware (dev mode — forces browsers to always get fresh files) ─
 from starlette.middleware.base import BaseHTTPMiddleware
@@ -229,12 +239,42 @@ async def analytics_police_stations():
     return await get_police_station_stats()
 
 
+@app.get("/api/analytics/sociological")
+async def analytics_sociological():
+    """Socio-demographic crime insights from uploaded datasets."""
+    return await get_sociological_insights()
+
+
+@app.get("/api/analytics/financial-links")
+async def analytics_financial_links():
+    """Financial transaction analysis when uploaded, otherwise FIR-based financial/cyber link analysis."""
+    return await get_financial_link_analysis()
+
+
+@app.get("/api/analytics/forecast")
+async def analytics_forecast():
+    """Explainable crime forecast and early-warning signals."""
+    return await get_crime_forecast()
+
+
+@app.get("/api/analytics/explainability")
+async def analytics_explainability():
+    """Evidence trails and transparent analytics basis."""
+    return await get_explainable_intelligence()
+
+
+@app.get("/api/analytics/advanced-intelligence")
+async def analytics_advanced_intelligence():
+    """Combined advanced intelligence summary for dashboard/demo."""
+    return await get_advanced_intelligence_summary()
+
+
 # ═══════════════════════════════════════════════════════════════════════════════
 # AUTHENTICATION ENDPOINTS
 # ═══════════════════════════════════════════════════════════════════════════════
 
 @app.post("/api/auth/login")
-async def login_endpoint(request: LoginRequest):
+async def login_endpoint(request: LoginRequest, http_request: Request):
     from database import fetch_one, hash_password
     pw_hash = hash_password(request.password)
     user = await fetch_one(
@@ -242,10 +282,12 @@ async def login_endpoint(request: LoginRequest):
         (request.username.lower(), pw_hash)
     )
     if not user:
+        await log_audit(request.username, None, "LOGIN_FAILED", "auth", "Invalid username or password", http_request.client.host if http_request.client else "")
         raise HTTPException(status_code=401, detail="Invalid username or password")
     
     token = str(uuid.uuid4())
     ACTIVE_SESSIONS[token] = {"username": user["username"], "role": user["role"]}
+    await log_audit(user["username"], user["role"], "LOGIN_SUCCESS", "auth", "User signed in", http_request.client.host if http_request.client else "")
     return {
         "token": token,
         "username": user["username"],
@@ -254,10 +296,13 @@ async def login_endpoint(request: LoginRequest):
 
 
 @app.post("/api/auth/logout")
-async def logout_endpoint(authorization: Optional[str] = Header(None)):
+async def logout_endpoint(http_request: Request, authorization: Optional[str] = Header(None)):
     if authorization and authorization.startswith("Bearer "):
         token = authorization.split(" ")[1]
+        user = ACTIVE_SESSIONS.get(token)
         ACTIVE_SESSIONS.pop(token, None)
+        if user:
+            await log_audit(user.get("username"), user.get("role"), "LOGOUT", "auth", "User signed out", http_request.client.host if http_request.client else "")
     return {"status": "logged_out"}
 
 
@@ -274,6 +319,17 @@ async def me_endpoint(user: dict = Depends(get_current_user)):
 async def list_users(admin_user: dict = Depends(require_admin)):
     from database import fetch_all
     return await fetch_all("SELECT username, role FROM users ORDER BY username ASC")
+
+
+@app.get("/api/audit/logs")
+async def list_audit_logs(limit: int = Query(100, ge=1, le=500), admin_user: dict = Depends(require_admin)):
+    from database import fetch_all
+    return await fetch_all("""
+        SELECT id, timestamp, username, role, action, resource, detail, ip_address
+        FROM audit_logs
+        ORDER BY id DESC
+        LIMIT ?
+    """, (limit,))
 
 
 @app.post("/api/users")
@@ -295,6 +351,7 @@ async def create_user(request: UserCreate, admin_user: dict = Depends(require_ad
         "INSERT INTO users (username, password_hash, role) VALUES (?, ?, ?)",
         (username, pw_hash, request.role)
     )
+    await log_audit(admin_user.get("username"), admin_user.get("role"), "USER_CREATE", "users", f"Created {username} as {request.role}", "")
     return {"username": username, "role": request.role}
 
 
@@ -308,6 +365,7 @@ async def delete_user(username: str, admin_user: dict = Depends(require_admin)):
         raise HTTPException(status_code=400, detail="Cannot delete your own active account")
     
     await execute_write("DELETE FROM users WHERE LOWER(username) = ?", (u,))
+    await log_audit(admin_user.get("username"), admin_user.get("role"), "USER_DELETE", "users", f"Deleted {u}", "")
     return {"deleted": username}
 
 
@@ -478,9 +536,9 @@ async def text_to_speech(request: TTSRequest):
         if not clean_text:
             raise HTTPException(status_code=400, detail="No text to speak")
 
-        # Limit text length to prevent very long audio (gTTS splits internally)
-        if len(clean_text) > 3000:
-            clean_text = clean_text[:3000] + "..."
+        # Keep fallback TTS snappy; the browser handles instant long-form speech.
+        if len(clean_text) > 1200:
+            clean_text = clean_text[:1200] + "..."
 
         # Generate TTS audio in memory
         tts = gTTS(text=clean_text, lang=lang, slow=False)
@@ -494,7 +552,7 @@ async def text_to_speech(request: TTSRequest):
             media_type="audio/mpeg",
             headers={
                 "Content-Disposition": "inline; filename=tts.mp3",
-                "Cache-Control": "no-cache",
+                "Cache-Control": "public, max-age=86400",
             }
         )
     except HTTPException:
