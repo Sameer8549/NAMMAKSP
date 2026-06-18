@@ -59,7 +59,7 @@ Use these credentials for prototype evaluation:
 
 ## Dataset
 
-The prototype uses generated Karnataka-specific investigation data.
+The prototype uses uploaded Karnataka-specific crime investigation datasets.
 
 | File | Records | Description |
 |---|---:|---|
@@ -231,7 +231,7 @@ NAMMA KSP helps investigation teams:
 ## Notes
 
 - This is a prototype built for evaluation and demonstration.
-- Generated data is synthetic and Karnataka-specific.
+- The uploaded crime datasets are treated as the source investigation data for prototype analytics.
 - AI-generated outputs should be verified before operational or legal use.
 - API keys must be configured securely through environment variables or Catalyst environment settings.
 
