@@ -1,117 +1,242 @@
-# NAMMA KSP 🔍
-### Karnataka Police Intelligence Platform
+# NAMMA KSP
 
-An intelligent crime analytics and investigation support platform powered by AI.
+**Karnataka Police Intelligence Platform**
+
+NAMMA KSP is an AI-powered crime intelligence and investigation support platform built for Karnataka State Police workflows. It combines FIR analytics, offender profiling, crime hotspot mapping, criminal network analysis, bilingual assistance, and official PDF report generation in one secure web application.
+
+**Live Catalyst Deployment:**  
+https://nammaksp-60074625517.development.catalystserverless.in/app/index.html
 
 ---
 
-## Features
+## Problem Statement
 
-| Module | Description |
+Police investigation data is often distributed across FIR records, offender histories, victim details, locations, and case notes. This makes it difficult for officers to quickly identify repeat offenders, high-risk cases, crime hotspots, and hidden links between incidents.
+
+NAMMA KSP addresses this by turning structured crime data into a usable intelligence platform for faster, more informed, and more coordinated investigation decisions.
+
+---
+
+## Key Features
+
+| Module | What It Does |
 |---|---|
-| 📊 **Dashboard** | KPI overview, crime type charts, monthly trends, district statistics |
-| 🤖 **AI Chatbot** | Natural language crime intelligence powered by Groq + Mistral |
-| 📁 **FIR Records** | Search, filter, and explore 5,000 crime records |
-| 🗺️ **Crime Hotspots** | Leaflet.js heatmap with Karnataka crime density |
-| 🕸️ **Criminal Network** | Cytoscape.js offender-victim-FIR relationship graph |
-| 👤 **Offender Profiles** | Risk scoring, repeat offender identification, FIR history |
-| 📄 **PDF Reports** | ReportLab-generated professional investigation reports |
+| Intelligence Dashboard | Shows total FIRs, active cases, repeat offenders, active districts, trends, and crime distribution. |
+| AI Chat Assistant | Answers investigation questions, summarizes patterns, and supports English/Kannada workflows. |
+| FIR Search | Searches and filters thousands of FIR records with case-level details. |
+| Crime Heatmap | Visualizes geographic crime density and district-level hotspots across Karnataka. |
+| Criminal Network Graph | Maps relationships between offenders, victims, FIRs, and locations. |
+| Offender Profiles | Displays offender identity, risk category, prior FIRs, crime history, and risk indicators. |
+| PDF Reports | Generates professional bilingual reports for cases, districts, offenders, recommendations, and networks. |
+| Role-Based Access | Supports Admin and Investigator roles for controlled access. |
+| Speech Support | Reads AI responses aloud and supports instant stop/start behavior. |
 
 ---
 
-## Tech Stack
+## Demo Login
 
-**Backend:** Python FastAPI · SQLite · Pandas · NetworkX · Scikit-Learn · ReportLab  
-**Frontend:** HTML · CSS · JavaScript · Chart.js · Leaflet.js · Cytoscape.js  
-**AI:** Groq API · Mistral (mistral-saba-24b)
+Use these credentials for prototype evaluation:
+
+| Role | Username | Password |
+|---|---|---|
+| Admin | `admin` | `admin123` |
+| Investigator | `officer` | `officer123` |
 
 ---
 
-## Setup
+## Technology Stack
 
-### 1. Install Dependencies
-```bash
-py -3.11 -m pip install -r requirements.txt
-```
-
-### 2. Configure Environment
-```bash
-copy .env.example .env
-# Edit .env and add your API keys
-```
-
-### 3. Run the Server
-```bash
-py -3.11 backend/main.py
-```
-
-The app will be available at: **http://127.0.0.1:8000**
+| Layer | Technologies |
+|---|---|
+| Backend | Python, FastAPI, SQLite, Pandas, NetworkX, Scikit-Learn, ReportLab |
+| Frontend | HTML, CSS, JavaScript |
+| Visualization | Chart.js, Leaflet.js, Cytoscape.js |
+| AI | Groq API |
+| Reports | ReportLab with bilingual English/Kannada PDF support |
+| Deployment | Zoho Catalyst AppSail and Catalyst Web Client Hosting |
 
 ---
 
 ## Dataset
 
-Generated using `generate_data.py` with Karnataka-specific data:
+The prototype uses generated Karnataka-specific investigation data.
 
 | File | Records | Description |
-|---|---|---|
-| `firs.csv` | 5,000 | Crime FIR records (2022-2025) |
-| `offenders.csv` | 2,000 | Accused persons |
-| `victims.csv` | 3,000 | Victims |
-| `locations.csv` | 100 | Locations with GPS coordinates |
-| `relationships.csv` | 5,000 | Criminal network edges |
+|---|---:|---|
+| `firs.csv` | 5,000 | FIR records from 2022-2025 |
+| `offenders.csv` | 2,000 | Accused/offender profiles |
+| `victims.csv` | 3,000 | Victim records |
+| `locations.csv` | 100 | Crime locations with GPS coordinates |
+| `relationships.csv` | 5,000 | Offender-victim-FIR network relationships |
 
-**15 Karnataka Districts** · **12 Crime Types** · **8 Police Station Types**
+Coverage includes Karnataka districts, multiple crime categories, police stations, FIR statuses, and offender risk signals.
 
 ---
 
 ## Project Structure
 
-```
-crime-lens-ai/
+```text
+NAMMAKSP/
 ├── backend/
-│   ├── main.py          # FastAPI application
-│   ├── database.py      # SQLite + CSV ingestion
-│   ├── analytics.py     # Crime statistics engine
-│   ├── network.py       # Criminal network (NetworkX)
-│   ├── ai_service.py    # Groq + Mistral chatbot
-│   └── report.py        # PDF generation (ReportLab)
-├── frontend/
-│   ├── index.html       # SPA dashboard
-│   ├── style.css        # Professional UI
-│   └── app.js           # All frontend logic
+│   ├── main.py          # FastAPI app and API routes
+│   ├── database.py      # SQLite setup and CSV ingestion
+│   ├── analytics.py     # Dashboard and crime analytics
+│   ├── network.py       # Criminal network graph data
+│   ├── ai_service.py    # AI chat and investigation assistance
+│   ├── report.py        # PDF report generation
+│   └── fonts/           # Kannada-capable PDF fonts
 ├── data/                # CSV datasets
+├── frontend/
+│   ├── index.html       # Login page
+│   ├── dashboard.html   # Intelligence dashboard
+│   ├── chat.html        # AI assistant
+│   ├── heatmap.html     # Crime heatmap
+│   ├── network.html     # Criminal network graph
+│   ├── offenders.html   # Offender profiles
+│   ├── reports.html     # Report generation and archive
+│   ├── users.html       # User management
+│   ├── app.js           # Frontend logic
+│   └── style.css        # UI styling
 ├── reports/             # Generated PDFs
-├── .env                 # API keys (never commit!)
-├── .env.example         # Template
-└── requirements.txt
+├── requirements.txt
+├── app-config.json      # Catalyst AppSail configuration
+└── README.md
 ```
 
 ---
 
-## API Endpoints
+## Local Setup
 
-| Method | Path | Description |
-|---|---|---|
-| GET | `/api/health` | System health check |
-| GET | `/api/analytics/overview` | Dashboard KPIs |
-| GET | `/api/analytics/crime-types` | Crime type distribution |
-| GET | `/api/analytics/monthly-trends` | Monthly trends |
-| GET | `/api/analytics/districts` | District statistics |
-| GET | `/api/firs` | Search FIRs (filterable) |
-| GET | `/api/firs/{fir_id}` | FIR detail |
-| GET | `/api/firs/{fir_id}/related` | Related cases |
-| GET | `/api/offenders/high-risk` | High-risk offenders |
-| GET | `/api/offenders/{id}` | Offender profile |
-| GET | `/api/network` | Criminal network graph |
-| GET | `/api/hotspots` | Crime heatmap data |
-| POST | `/api/chat` | AI chatbot |
-| GET | `/api/ai/case-summary/{fir_id}` | AI case analysis |
-| GET | `/api/ai/recommendations` | Investigation recommendations |
-| POST | `/api/reports/case` | Generate case PDF |
-| POST | `/api/reports/district` | Generate district PDF |
-| GET | `/api/docs` | Interactive API docs |
+### 1. Clone the Repository
+
+```bash
+git clone https://github.com/Sameer8549/NAMMAKSP.git
+cd NAMMAKSP
+```
+
+### 2. Create a Virtual Environment
+
+```bash
+python -m venv .venv
+```
+
+Activate it:
+
+```bash
+# Windows PowerShell
+.\.venv\Scripts\Activate.ps1
+```
+
+### 3. Install Dependencies
+
+```bash
+pip install -r requirements.txt
+```
+
+### 4. Configure Environment Variables
+
+Create a `.env` file from the example:
+
+```bash
+copy .env.example .env
+```
+
+Add the required API keys:
+
+```env
+GROQ_API_KEY=your_groq_api_key_here
+MISTRAL_API_KEY=your_mistral_api_key_here
+GROQ_MODEL=llama-3.3-70b-versatile
+```
+
+Never commit real API keys to GitHub.
+
+### 5. Run Locally
+
+```bash
+uvicorn backend.main:app --host 127.0.0.1 --port 8000
+```
+
+Open:
+
+```text
+http://127.0.0.1:8000/
+```
 
 ---
 
-*Built for datathon — Karnataka Crime Intelligence Platform*
+## Catalyst Deployment
+
+This prototype is deployed on Zoho Catalyst:
+
+| Component | Catalyst Service |
+|---|---|
+| Backend API | AppSail |
+| Frontend | Catalyst Web Client Hosting |
+| Runtime | Python 3.12 |
+
+Deployed frontend:
+
+```text
+https://nammaksp-60074625517.development.catalystserverless.in/app/index.html
+```
+
+Backend health endpoint:
+
+```text
+https://namma-ksp-50043229029.development.catalystappsail.in/api/health
+```
+
+---
+
+## API Overview
+
+| Method | Endpoint | Description |
+|---|---|---|
+| `GET` | `/api/health` | Health check and database summary |
+| `POST` | `/api/auth/login` | User login |
+| `GET` | `/api/analytics/overview` | Dashboard KPIs |
+| `GET` | `/api/analytics/crime-types` | Crime type distribution |
+| `GET` | `/api/analytics/monthly-trends` | Monthly trends |
+| `GET` | `/api/analytics/districts` | District statistics |
+| `GET` | `/api/firs` | FIR search and filters |
+| `GET` | `/api/firs/{fir_id}` | FIR details |
+| `GET` | `/api/offenders/{offender_id}` | Offender profile |
+| `GET` | `/api/network` | Criminal network graph |
+| `GET` | `/api/hotspots` | Crime hotspot data |
+| `POST` | `/api/chat` | AI chat assistant |
+| `POST` | `/api/tts` | Text-to-speech audio |
+| `POST` | `/api/reports/case` | Case PDF report |
+| `POST` | `/api/reports/district` | District PDF report |
+| `POST` | `/api/reports/offender` | Offender PDF dossier |
+| `POST` | `/api/reports/network` | Network PDF report |
+| `GET` | `/api/reports/list` | Generated report archive |
+| `GET` | `/api/docs` | FastAPI Swagger documentation |
+
+---
+
+## Prototype Impact
+
+NAMMA KSP helps investigation teams:
+
+1. Reduce time spent manually searching crime records.
+2. Identify repeat offenders and high-risk profiles faster.
+3. Understand district-wise crime trends and hotspots.
+4. Discover hidden offender-victim-FIR relationships.
+5. Generate structured bilingual reports for official workflows.
+6. Use AI assistance for summaries, recommendations, and investigation planning.
+
+---
+
+## Notes
+
+- This is a prototype built for evaluation and demonstration.
+- Generated data is synthetic and Karnataka-specific.
+- AI-generated outputs should be verified before operational or legal use.
+- API keys must be configured securely through environment variables or Catalyst environment settings.
+
+---
+
+## License
+
+This project is intended for prototype and hackathon/datathon evaluation use.
