@@ -2368,7 +2368,58 @@ async function downloadReport(filename) {
 // ═══════════════════════════════════════════════════════════════════════════════
 
 async function initUsersPage() {
-  await loadUsersList();
+  await Promise.all([loadUsersList(), loadAuditLogs()]);
+
+  if (window._auditRefreshTimer) clearInterval(window._auditRefreshTimer);
+  window._auditRefreshTimer = setInterval(() => {
+    if (document.visibilityState === 'visible') loadAuditLogs({ silent: true });
+  }, 15000);
+}
+
+function formatAuditTimestamp(value) {
+  if (!value) return '—';
+  const normalized = value.includes('T') ? value : value.replace(' ', 'T') + 'Z';
+  const date = new Date(normalized);
+  if (Number.isNaN(date.getTime())) return value;
+  return new Intl.DateTimeFormat('en-IN', {
+    timeZone: 'Asia/Kolkata',
+    day: '2-digit', month: 'short', year: 'numeric',
+    hour: '2-digit', minute: '2-digit', hour12: false
+  }).format(date);
+}
+
+async function loadAuditLogs({ silent = false } = {}) {
+  const tbody = document.getElementById('audit-log-tbody');
+  if (!tbody) return;
+
+  try {
+    const logs = await apiFetch('/api/audit/logs?limit=5');
+    if (!logs) return;
+
+    if (!logs.length) {
+      tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:20px;color:var(--color-text-muted)">No audit actions recorded yet.</td></tr>';
+      return;
+    }
+
+    tbody.innerHTML = logs.map(log => {
+      const action = escapeHTML(log.action || 'UNKNOWN');
+      const badgeClass = action.includes('FAILED') || action.includes('DELETE')
+        ? 'badge-closed'
+        : action.includes('LOGIN') || action.includes('CREATE')
+          ? 'badge-active'
+          : 'badge-investigating';
+      return `
+        <tr title="${escapeHTML(log.detail || '')}">
+          <td style="font-size:12px;font-family:monospace">${escapeHTML(formatAuditTimestamp(log.timestamp))}</td>
+          <td>${escapeHTML(log.username || 'Unknown')}</td>
+          <td><span class="badge ${badgeClass}" style="font-size:10px">${action}</span></td>
+          <td>${escapeHTML(log.resource || 'system')}</td>
+          <td style="font-family:monospace;font-size:12px">${escapeHTML(log.ip_address || '—')}</td>
+        </tr>`;
+    }).join('');
+  } catch (err) {
+    if (!silent) showToast('Failed to load audit log: ' + err.message, 'error');
+  }
 }
 
 async function loadUsersList() {
@@ -2426,7 +2477,7 @@ async function addUser() {
     const modal = document.getElementById('add-user-modal');
     if (modal) modal.style.display = 'none';
     showToast(`User "${username}" created as ${role}`, 'success');
-    await loadUsersList();
+    await Promise.all([loadUsersList(), loadAuditLogs()]);
 
     // Clear form
     ['new-username','new-fullname','new-password','new-role'].forEach(id => {
@@ -2446,7 +2497,7 @@ async function deleteUser(username) {
   try {
     await apiFetch(`/api/users/${username}`, { method: 'DELETE' });
     showToast(`User "${username}" removed`, 'success');
-    await loadUsersList();
+    await Promise.all([loadUsersList(), loadAuditLogs()]);
   } catch (err) {
     showToast('Failed to remove user: ' + err.message, 'error');
   }
