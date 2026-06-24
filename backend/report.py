@@ -20,7 +20,7 @@ from reportlab.pdfbase.ttfonts import TTFont
 from reportlab.lib.fonts import addMapping
 from reportlab.platypus import (
     SimpleDocTemplate, Paragraph as RLParagraph, Table, TableStyle, Spacer,
-    HRFlowable, Image as RLImage, KeepTogether
+    HRFlowable, Image as RLImage
 )
 from reportlab.lib.pagesizes import A4
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
@@ -44,19 +44,27 @@ KANNADA_FONT_BOLD = None
 
 def _register_pdf_fonts():
     """Register a Unicode font so Kannada text does not render as missing-glyph boxes."""
-    global KANNADA_FONT_REGULAR, KANNADA_FONT_BOLD
+    global FONT_REGULAR, FONT_BOLD, KANNADA_FONT_REGULAR, KANNADA_FONT_BOLD
 
     bundled_regular = BACKEND_DIR / "fonts" / "NotoSansKannada-Regular.ttf"
     bundled_bold = BACKEND_DIR / "fonts" / "NotoSansKannada-Bold.ttf"
+    latin_regular = BACKEND_DIR / "fonts" / "NotoSans-Regular.ttf"
+    latin_bold = BACKEND_DIR / "fonts" / "NotoSans-Bold.ttf"
 
-    if bundled_regular.exists() and bundled_bold.exists():
+    if all(p.exists() for p in (bundled_regular, bundled_bold, latin_regular, latin_bold)):
+        pdfmetrics.registerFont(TTFont("NotoLatin", str(latin_regular)))
+        pdfmetrics.registerFont(TTFont("NotoLatin-Bold", str(latin_bold)))
         pdfmetrics.registerFont(TTFont("NotoKannada", str(bundled_regular)))
         pdfmetrics.registerFont(TTFont("NotoKannada-Bold", str(bundled_bold)))
+        addMapping("NotoLatin", 0, 0, "NotoLatin")
+        addMapping("NotoLatin", 1, 0, "NotoLatin-Bold")
         addMapping("NotoKannada", 0, 0, "NotoKannada")
         addMapping("NotoKannada", 1, 0, "NotoKannada-Bold")
         KANNADA_FONT_REGULAR = "NotoKannada"
         KANNADA_FONT_BOLD = "NotoKannada-Bold"
-        logger.info("Bundled Noto Sans Kannada fonts registered successfully.")
+        FONT_REGULAR = "NotoLatin"
+        FONT_BOLD = "NotoLatin-Bold"
+        logger.info("Bundled Noto Sans Latin and Kannada fonts registered successfully.")
         return
 
     font_path = Path(os.environ.get("SystemRoot", "C:/Windows")) / "Fonts" / "Nirmala.ttc"
@@ -67,6 +75,8 @@ def _register_pdf_fonts():
         addMapping("Nirmala", 1, 0, "Nirmala-Bold")
         KANNADA_FONT_REGULAR = "Nirmala"
         KANNADA_FONT_BOLD = "Nirmala-Bold"
+        FONT_REGULAR = KANNADA_FONT_REGULAR
+        FONT_BOLD = KANNADA_FONT_BOLD
         logger.info("Nirmala UI font registered successfully for Kannada support.")
         return
 
@@ -79,7 +89,9 @@ except Exception as e:
     logger.error("Failed to register PDF fonts: %s", e)
 
 
-_KANNADA_RE = re.compile(r"[\u0C80-\u0CFF][\u0C80-\u0CFF\s\u200c\u200d]*")
+# Keep spaces outside font runs. ReportLab can drop a trailing shaped-space when
+# the following run switches back to Latin, which made bilingual labels join.
+_KANNADA_RE = re.compile(r"[\u0C80-\u0CFF\u200c\u200d]+")
 
 
 def _escape_pdf_text(text: str) -> str:
@@ -104,6 +116,8 @@ def _with_kannada_font(text: str, bold: bool = False) -> str:
 
 
 def Paragraph(text, style, *args, **kwargs):
+    # ReportLab 4.4 + uharfbuzz applies Indic glyph shaping when this flag is set.
+    style.shaping = bool(KANNADA_FONT_REGULAR)
     font_name = getattr(style, "fontName", "")
     bold = font_name == FONT_BOLD or "Bold" in font_name or "bold" in style.name.lower()
     return RLParagraph(_with_kannada_font(str(text), bold), style, *args, **kwargs)
@@ -167,7 +181,7 @@ def _doc(path: Path, title: str):
         str(path),
         pagesize=A4,
         leftMargin=1.2*cm, rightMargin=1.2*cm,
-        topMargin=0.8*cm,  bottomMargin=0.8*cm,
+        topMargin=0.8*cm,  bottomMargin=1.15*cm,
         title=title,
         author="NAMMA KSP — Karnataka State Police",
     )
@@ -179,24 +193,24 @@ def _styles():
     def add(name, **kw):
         s[name] = ParagraphStyle(name, **kw)
 
-    add("title",       fontName=FONT_BOLD,   fontSize=11, textColor=BLACK,
-                       spaceAfter=1, alignment=TA_CENTER)
+    add("title",       fontName=FONT_BOLD, fontSize=11, textColor=BLACK,
+                       leading=14, spaceAfter=2, alignment=TA_CENTER, shaping=True)
     add("subtitle",    fontName=FONT_REGULAR, fontSize=8.5,  textColor=BLACK,
-                       spaceAfter=1, alignment=TA_CENTER)
+                       leading=11, spaceAfter=2, alignment=TA_CENTER, shaping=True)
     add("section",     fontName=FONT_BOLD,   fontSize=9, textColor=BLACK,
-                       spaceBefore=5, spaceAfter=2)
+                       leading=12, spaceBefore=7, spaceAfter=3, shaping=True)
     add("body",        fontName=FONT_REGULAR, fontSize=8, textColor=BLACK,
-                       leading=11)
-    add("label",       fontName=FONT_BOLD,   fontSize=8, textColor=BLACK)
-    add("value",       fontName=FONT_REGULAR, fontSize=8, textColor=BLACK)
+                       leading=12, shaping=True)
+    add("label",       fontName=FONT_BOLD, fontSize=8, textColor=BLACK, leading=11, shaping=True)
+    add("value",       fontName=FONT_REGULAR, fontSize=8, textColor=BLACK, leading=11, shaping=True)
     add("ai_text",     fontName=FONT_REGULAR, fontSize=8, textColor=BLACK,
-                       leading=11.5)
+                       leading=12, shaping=True)
     add("disclaimer",  fontName=FONT_REGULAR, fontSize=7.5,   textColor=BLACK,
-                       leading=10.5)
-    add("red_bold",    fontName=FONT_BOLD,   fontSize=7.5,   textColor=KSP_RED)
-    add("meta_l",      fontName=FONT_REGULAR, fontSize=8, textColor=BLACK)
-    add("meta_c",      fontName=FONT_BOLD,   fontSize=8, textColor=BLACK, alignment=TA_CENTER)
-    add("meta_r",      fontName=FONT_REGULAR, fontSize=8, textColor=BLACK, alignment=TA_RIGHT)
+                       leading=11, shaping=True)
+    add("red_bold",    fontName=FONT_BOLD, fontSize=7.5, textColor=KSP_RED, leading=11, shaping=True)
+    add("meta_l",      fontName=FONT_REGULAR, fontSize=8, textColor=BLACK, leading=11, shaping=True)
+    add("meta_c",      fontName=FONT_BOLD, fontSize=8, textColor=BLACK, leading=11, alignment=TA_CENTER, shaping=True)
+    add("meta_r",      fontName=FONT_REGULAR, fontSize=8, textColor=BLACK, leading=11, alignment=TA_RIGHT, shaping=True)
     return s
 
 
@@ -241,7 +255,7 @@ def _header_block(serial_no: str, doc_type_en: str, doc_type_kn: str, sub_title:
     subtitle_law = Paragraph(sub_title, ParagraphStyle("h_sub", fontName=FONT_BOLD, fontSize=7.5, leading=9, alignment=TA_CENTER))
     doc_title_en = Paragraph(doc_type_en, ParagraphStyle("h_en", fontName=FONT_BOLD, fontSize=11, leading=13, alignment=TA_CENTER))
     doc_title_kn = Paragraph(doc_type_kn, ParagraphStyle("h_title_kn", fontName=FONT_BOLD, fontSize=10, leading=12, alignment=TA_CENTER))
-    serial_para = Paragraph(f"Serial No. / ಕ್ರಮ ಸಂಖ್ಯೆ: {serial_no}", ParagraphStyle("h_ser", fontName=FONT_REGULAR, fontSize=8.5, leading=10, alignment=TA_CENTER))
+    serial_para = Paragraph(f"Serial No.: {serial_no}", ParagraphStyle("h_ser", fontName=FONT_REGULAR, fontSize=8.5, leading=10, alignment=TA_CENTER))
 
     center_content.extend([title_kn, subtitle_law, doc_title_en, doc_title_kn, serial_para])
 
@@ -304,23 +318,36 @@ def _kv_table(rows: list[tuple]) -> Table:
     data = []
     for idx in range(0, len(rows), 2):
         row = []
+
+        def field_cell(item_idx, label, value):
+            label_style = ParagraphStyle(
+                f"kv_label_{item_idx}", fontName=FONT_BOLD, fontSize=8,
+                textColor=BLACK, leading=11, spaceAfter=1, shaping=True,
+            )
+            kannada_label_style = ParagraphStyle(
+                f"kv_label_kn_{item_idx}", fontName=KANNADA_FONT_BOLD or FONT_BOLD,
+                fontSize=8, textColor=BLACK, leading=11, leftIndent=11,
+                spaceAfter=1, shaping=True,
+            )
+            value_style = ParagraphStyle(
+                f"kv_value_{item_idx}", fontName=FONT_REGULAR, fontSize=8,
+                textColor=BLACK, leading=11, leftIndent=11, shaping=True,
+            )
+            label_parts = label.split(" / ", 1)
+            items = [Paragraph(f"{letters[item_idx]}. {label_parts[0]}:", label_style)]
+            if len(label_parts) == 2:
+                items.append(Paragraph(label_parts[1], kannada_label_style))
+            items.append(Paragraph(str(value) if value is not None else "N/A", value_style))
+            return items
         
         # Left item
         label1, val1 = rows[idx]
-        letter1 = letters[idx]
-        text1 = f"<b>{letter1}. {label1}:</b> {val1 if val1 is not None else 'N/A'}"
-        row.append(Paragraph(text1, ParagraphStyle(
-            f"kv_p_{idx}_a", fontName=FONT_REGULAR, fontSize=8, textColor=BLACK, leading=11
-        )))
+        row.append(field_cell(idx, label1, val1))
         
         # Right item
         if idx + 1 < len(rows):
             label2, val2 = rows[idx+1]
-            letter2 = letters[idx+1]
-            text2 = f"<b>{letter2}. {label2}:</b> {val2 if val2 is not None else 'N/A'}"
-            row.append(Paragraph(text2, ParagraphStyle(
-                f"kv_p_{idx}_b", fontName=FONT_REGULAR, fontSize=8, textColor=BLACK, leading=11
-            )))
+            row.append(field_cell(idx + 1, label2, val2))
         else:
             row.append(Paragraph("", ParagraphStyle("empty")))
             
@@ -419,7 +446,7 @@ def _format_chat_message_to_flowables(content: str, style) -> list:
                 firstLineIndent=-8,
                 spaceAfter=2
             )
-            marker = "•" if is_bullet else "1."
+            marker = "•" if is_bullet else line.split(".", 1)[0] + "."
             flowables.append(Paragraph(f"{marker} {formatted_text}", bullet_style))
         else:
             escaped_text = line.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
@@ -455,9 +482,9 @@ def _parse_ai_summary(summary: str) -> list:
         
     return sections
 
-def _ai_box(styles, summary: str) -> Table:
+def _ai_box(styles, summary: str) -> list:
     label = Paragraph(
-        "<b>AI Intelligence Assessment / ಕೃತಕ ಬುದ್ಧಿಮತ್ತೆ ಮೌಲ್ಯಮಾಪನ</b>",
+        "AI Intelligence Assessment / ಕೃತಕ ಬುದ್ಧಿಮತ್ತೆ ಮೌಲ್ಯಮಾಪನ",
         ParagraphStyle("ai_hd", fontName=FONT_BOLD, fontSize=9,
                        textColor=BLACK, spaceAfter=4)
     )
@@ -467,7 +494,11 @@ def _ai_box(styles, summary: str) -> Table:
                        textColor=colors.HexColor("#5A5A5A"), spaceAfter=6)
     )
     
-    content = [label, disclaimer]
+    content = [
+        HRFlowable(width="100%", thickness=0.5, color=colors.black, spaceBefore=2, spaceAfter=6),
+        label,
+        disclaimer,
+    ]
     
     # Parse summary into sections
     sections = _parse_ai_summary(summary)
@@ -479,7 +510,7 @@ def _ai_box(styles, summary: str) -> Table:
             content.append(Spacer(1, 4))
         else:
             # Heading paragraph (bold black text)
-            hd_p = Paragraph(f"<b>{heading}</b>", ParagraphStyle(
+            hd_p = Paragraph(heading, ParagraphStyle(
                 f"ai_sec_hd_{re.sub(r'[^a-zA-Z0-9]', '_', heading)[:10]}", fontName=FONT_BOLD, fontSize=8.5, textColor=BLACK,
                 spaceBefore=6, spaceAfter=2
             ))
@@ -491,25 +522,20 @@ def _ai_box(styles, summary: str) -> Table:
             content.append(body_p)
             content.append(Spacer(1, 4))
             
-    t = Table([[content]], colWidths=[18.6*cm])
-    t.setStyle(TableStyle([
-        ("BACKGROUND",  (0,0), (-1,-1), colors.HexColor("#F9FAFB")),
-        ("BOX",         (0,0), (-1,-1), 0.5, colors.black),
-        ("LEFTPADDING", (0,0), (-1,-1), 10),
-        ("RIGHTPADDING",(0,0), (-1,-1), 10),
-        ("TOPPADDING",  (0,0), (-1,-1), 5),
-        ("BOTTOMPADDING",(0,0),(-1,-1), 5),
-    ]))
-    return t
+    content.append(HRFlowable(
+        width="100%", thickness=0.5, color=colors.black,
+        spaceBefore=2, spaceAfter=4,
+    ))
+    return content
 
 
 
 # ─── Disclaimer Block Builder ───────────────────────────────────────────────
 def _disclaimer_block() -> list:
-    note_title = Paragraph("<b>Note/ಸೂಚನೆ:</b>", ParagraphStyle("d_note_t", fontName=FONT_BOLD, fontSize=8.5, textColor=BLACK, spaceBefore=10, spaceAfter=2))
+    note_title = Paragraph("Note:", ParagraphStyle("d_note_t", fontName=FONT_BOLD, fontSize=8.5, textColor=BLACK, spaceBefore=10, spaceAfter=2))
     note_val = Paragraph("1. This is digitally signed report / ಇದು ಡಿಜಿಟಲ್ ಸಹಿಯುಳ್ಳ ವರದಿಯಾಗಿದೆ.", ParagraphStyle("d_note_v", fontName=FONT_REGULAR, fontSize=8, textColor=BLACK, leading=11, leftIndent=10))
     
-    disc_title = Paragraph("<b>Disclaimer / ಹಕ್ಕುತ್ಯಾಗ:</b>", ParagraphStyle("d_disc_t", fontName=FONT_BOLD, fontSize=8.5, textColor=BLACK, spaceBefore=8, spaceAfter=2))
+    disc_title = Paragraph("Disclaimer:", ParagraphStyle("d_disc_t", fontName=FONT_BOLD, fontSize=8.5, textColor=BLACK, spaceBefore=8, spaceAfter=2))
     disc_val1 = Paragraph("1. This is an AI-generated intelligence report to assist official investigation. / ಇದು ಅಧಿಕೃತ ತನಿಖೆಗೆ ಸಹಾಯ ಮಾಡಲು ಕೃತಕ ಬುದ್ಧಿಮತ್ತೆಯಿಂದ ರಚಿಸಲಾದ ವರದಿಯಾಗಿದೆ.", ParagraphStyle("d_disc_v1", fontName=FONT_REGULAR, fontSize=8, textColor=BLACK, leading=11, leftIndent=10))
     disc_val2 = Paragraph("2. Content must be verified independently before operational or legal use. / ವರದಿಯ ವಿಷಯವನ್ನು ಅಧಿಕೃತ ಅಥವಾ ಕಾನೂನು ಬಳಕೆಗೆ ಮೊದಲು ಸ್ವತಂತ್ರವಾಗಿ ಪರಿಶೀಲಿಸಲ್ಪಡಬೇಕು.", ParagraphStyle("d_disc_v2", fontName=FONT_REGULAR, fontSize=8, textColor=BLACK, leading=11, leftIndent=10))
     disc_val3 = Paragraph("3. Unauthorized sharing or fabrication of this report is a punishable offence / ಈ ವರದಿಯನ್ನು ಅನಧಿಕೃತವಾಗಿ ಹಂಚಿಕೊಳ್ಳುವುದು ಅಥವಾ ನಕಲಿ ಮಾಡುವುದು ಶಿಕ್ಷಾರ್ಹ ಅಪರಾಧವಾಗಿದೆ.", ParagraphStyle("d_disc_v3", fontName=FONT_BOLD, fontSize=8, textColor=KSP_RED, leading=11, leftIndent=10))
@@ -573,7 +599,7 @@ async def generate_case_report(fir_id: str, case_data: dict, ai_summary: str) ->
     story += _section(styles, "2. Accused Details / ಆರೋಪಿಯ ವಿವರಗಳು")
     story.append(_kv_table([
         ("Name / ಹೆಸರು",              case_data.get("offender_name")),
-        ("Offender ID / ಆರೋಪಿ ID",   case_data.get("offender_id")),
+        ("Offender ID / ಆರೋಪಿ",      case_data.get("offender_id")),
         ("Age / ವಯಸ್ಸು",             case_data.get("offender_age")),
         ("Gender / ಲಿಂಗ",            case_data.get("offender_gender")),
         ("Risk Category / ಅಪಾಯ",     case_data.get("risk_category")),
@@ -584,7 +610,7 @@ async def generate_case_report(fir_id: str, case_data: dict, ai_summary: str) ->
     story += _section(styles, "3. Victim Details / ಸಂತ್ರಸ್ತರ ವಿವರಗಳು")
     story.append(_kv_table([
         ("Name / ಹೆಸರು",              case_data.get("victim_name")),
-        ("Victim ID / ಸಂತ್ರಸ್ತ ID",  case_data.get("victim_id")),
+        ("Victim ID / ಸಂತ್ರಸ್ತ",     case_data.get("victim_id")),
         ("Age / ವಯಸ್ಸು",             case_data.get("victim_age")),
         ("Gender / ಲಿಂಗ",            case_data.get("victim_gender")),
     ]))
@@ -605,7 +631,7 @@ async def generate_case_report(fir_id: str, case_data: dict, ai_summary: str) ->
 
     # ── 5. AI Assessment ─────────────────────────────────────────────────────
     story += _section(styles, "5. AI Intelligence Assessment / ಕೃತಕ ಬುದ್ಧಿಮತ್ತೆ ಮೌಲ್ಯಮಾಪನ")
-    story.append(_ai_box(styles, ai_summary))
+    story += _ai_box(styles, ai_summary)
 
     # ── Disclaimers ───────────────────────────────────────────────────────────
     story += _disclaimer_block()
@@ -666,7 +692,7 @@ async def generate_district_report(district: str, stats: list[dict], ai_insights
 
     # ── 2. AI Insights ────────────────────────────────────────────────────────
     story += _section(styles, "2. AI Intelligence Insights / ಕೃತಕ ಬುದ್ಧಿಮತ್ತೆ ವಿಶ್ಲೇಷಣೆ")
-    story.append(_ai_box(styles, ai_insights))
+    story += _ai_box(styles, ai_insights)
 
     # ── Disclaimers ───────────────────────────────────────────────────────────
     story += _disclaimer_block()
@@ -709,31 +735,36 @@ async def generate_chat_log_report(session_id: str, messages: list[dict]) -> str
     # ── Conversation Transcript ──────────────────────────────────────────────
     story += _section(styles, "Conversation Transcript / ಸಂವಾದ ಪ್ರತಿಲಿಪಿ")
 
-    user_style = ParagraphStyle("user_msg", fontName=FONT_BOLD, fontSize=8.5,
-                                 textColor=BLACK, leading=13)
-    ai_style   = ParagraphStyle("ai_msg",   fontName=FONT_REGULAR,       fontSize=8.5,
-                                 textColor=BLACK, leading=13)
+    user_style = ParagraphStyle(
+        "user_msg", fontName=FONT_BOLD, fontSize=8.5, textColor=BLACK,
+        leading=13, leftIndent=8, rightIndent=8, shaping=True,
+    )
+    ai_style = ParagraphStyle(
+        "ai_msg", fontName=FONT_REGULAR, fontSize=8.5, textColor=BLACK,
+        leading=13, leftIndent=8, rightIndent=8, shaping=True,
+    )
 
     for i, msg in enumerate(messages):
         role    = msg.get("role", "user")
         content = msg.get("content", "")
         label   = "You" if role == "user" else "NAMMA KSP"
-        bg      = colors.HexColor("#F9FAFB") if role == "user" else colors.HexColor("#FFFFFF")
         st      = user_style if role == "user" else ai_style
 
         msg_flowables = _format_chat_message_to_flowables(content, st)
-        lbl_para = Paragraph(f"<b>{label}</b>", ParagraphStyle(
+        lbl_para = Paragraph(label, ParagraphStyle(
             f"lbl_{i}", fontName=FONT_BOLD, fontSize=7.5,
-            textColor=colors.HexColor("#6B7280")))
+            textColor=colors.HexColor("#6B7280"), leftIndent=8,
+            keepWithNext=True, shaping=True))
 
-        cell = [lbl_para, Spacer(1, 2)] + msg_flowables
-        t = Table([[cell]], colWidths=[18.0*cm])
-        t.setStyle(TableStyle([
-            ("BACKGROUND",  (0,0), (-1,-1), bg),
-            ("BOX",         (0,0), (-1,-1), 0.5, colors.black),
-            ("PADDING",     (0,0), (-1,-1), 6),
-        ]))
-        story.append(t)
+        # A one-cell table cannot split, so long messages used to jump to the
+        # next page. Separate flowables fill the current page line by line.
+        story.append(HRFlowable(
+            width="100%", thickness=0.4, color=colors.HexColor("#9CA3AF"),
+            spaceBefore=2, spaceAfter=5,
+        ))
+        story.append(lbl_para)
+        story.append(Spacer(1, 2))
+        story.extend(msg_flowables)
         story.append(Spacer(1, 0.2*cm))
 
     # ── Disclaimers ───────────────────────────────────────────────────────────
@@ -778,7 +809,7 @@ async def generate_offender_report(offender_id: str, data: dict) -> str:
     story += _section(styles, "1. Profile Facts / ಆರೋಪಿಯ ವಿವರಗಳು")
     story.append(_kv_table([
         ("Name / ಹೆಸರು",              data.get("name")),
-        ("Offender ID / ಆರೋಪಿ ID",   offender_id),
+        ("Offender ID / ಆರೋಪಿ",      offender_id),
         ("Age / ವಯಸ್ಸು",             data.get("age")),
         ("Gender / ಲಿಂಗ",            data.get("gender")),
         ("District / ಜಿಲ್ಲೆ",        data.get("district")),
@@ -850,12 +881,10 @@ async def generate_network_pdf_report(img_bytes: bytes, district: str, crime_typ
     # ── Network Visualization Graph ───────────────────────────────────────────
     img_data = io.BytesIO(img_bytes)
     rl_img = RLImage(img_data, width=17*cm, height=11*cm)
-    story.append(KeepTogether([
-        Paragraph("<b>1. Network Visualization Graph / ನೆಟ್‌ವರ್ಕ್ ದೃಶ್ಯೀಕರಣ</b>", styles["section"]),
-        Spacer(1, 0.2*cm),
-        rl_img,
-        Spacer(1, 0.4*cm)
-    ]))
+    story.append(Paragraph("1. Network Visualization Graph / ನೆಟ್‌ವರ್ಕ್ ದೃಶ್ಯೀಕರಣ", styles["section"]))
+    story.append(Spacer(1, 0.2*cm))
+    story.append(rl_img)
+    story.append(Spacer(1, 0.4*cm))
 
     # ── Disclaimers ───────────────────────────────────────────────────────────
     story += _disclaimer_block()
@@ -902,7 +931,7 @@ async def generate_recommendations_report(district: str = None, crime_type: str 
 
     # ── 2. Strategic Recommendations ─────────────────────────────────────────
     story += _section(styles, "2. AI Investigation & Prevention Recommendations / ತನಿಖಾ ಶಿಫಾರಸುಗಳು")
-    story.append(_ai_box(styles, recommendations))
+    story += _ai_box(styles, recommendations)
 
     # ── Disclaimers ───────────────────────────────────────────────────────────
     story += _disclaimer_block()

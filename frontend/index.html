@@ -95,9 +95,6 @@
       const savedLang = localStorage.getItem('cl_lang') || 'en';
       const select = document.getElementById('login-lang-select');
       if (select) select.value = savedLang;
-      if (localStorage.getItem('cl_role') && localStorage.getItem('cl_username')) {
-        window.location.href = 'dashboard.html';
-      }
     });
   </script>
 </body>

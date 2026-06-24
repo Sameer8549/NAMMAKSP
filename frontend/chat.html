@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="auth-pending">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -268,10 +268,10 @@
   </div>
   <script src="app.js"></script>
   <script>
-    document.addEventListener('DOMContentLoaded', () => {
-      initChat();
+    document.addEventListener('DOMContentLoaded', async () => {
+      if (!await authGuard()) return;
       // Set user avatar
-      const username = localStorage.getItem('cl_username') || 'User';
+      const username = sessionStorage.getItem('cl_username') || 'User';
       const initials = username.split(' ').map(w => w[0]).join('').substring(0,2).toUpperCase();
       document.querySelectorAll('.user-avatar').forEach(el => el.textContent = initials);
       // Check voice support

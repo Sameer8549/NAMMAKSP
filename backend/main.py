@@ -160,6 +160,27 @@ class TTSRequest(BaseModel):
 # ─── Auth Session Registry & Dependencies ─────────────────────────────────────
 ACTIVE_SESSIONS = {}
 
+PUBLIC_API_PATHS = {"/api/health", "/api/auth/login"}
+
+@app.middleware("http")
+async def require_authenticated_api_session(request: Request, call_next):
+    """Reject access to crime data APIs before route handlers are reached."""
+    path = request.url.path.rstrip("/") or "/"
+    if (
+        request.method != "OPTIONS"
+        and path.startswith("/api/")
+        and path not in PUBLIC_API_PATHS
+    ):
+        authorization = request.headers.get("authorization", "")
+        token = authorization[7:].strip() if authorization.startswith("Bearer ") else ""
+        if not token or token not in ACTIVE_SESSIONS:
+            return JSONResponse(
+                status_code=401,
+                content={"detail": "Authentication required or session expired"},
+                headers={"Cache-Control": "no-store"},
+            )
+    return await call_next(request)
+
 async def get_current_user(authorization: Optional[str] = Header(None)):
     if not authorization or not authorization.startswith("Bearer "):
         raise HTTPException(status_code=401, detail="Authorization token required")

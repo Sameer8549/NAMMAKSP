@@ -21,7 +21,8 @@ groq==0.11.0
 mistralai==1.2.5
 
 # ─── PDF Report Generation ────────────────────────────────────────────────────
-reportlab==4.2.5
+reportlab==4.4.9
+uharfbuzz==0.53.3
 qrcode==8.2
 
 # ─── Environment & Configuration ──────────────────────────────────────────────

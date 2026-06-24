@@ -320,18 +320,22 @@ function injectHeaderLanguageToggle() {
 }
 
 // ─── Auth Helpers ─────────────────────────────────────────────────────────────
-function getToken()    { return localStorage.getItem('cl_token'); }
-function getUsername() { return localStorage.getItem('cl_username'); }
-function getRole()     { return localStorage.getItem('cl_role'); }
+function getToken()    { return sessionStorage.getItem('cl_token'); }
+function getUsername() { return sessionStorage.getItem('cl_username'); }
+function getRole()     { return sessionStorage.getItem('cl_role'); }
 
 function setSession(token, username, role) {
-  localStorage.setItem('cl_token',    token);
-  localStorage.setItem('cl_username', username);
-  localStorage.setItem('cl_role',     role);
+  sessionStorage.setItem('cl_token',    token);
+  sessionStorage.setItem('cl_username', username);
+  sessionStorage.setItem('cl_role',     role);
 }
 
 function clearSession() {
-  ['cl_token','cl_username','cl_role'].forEach(k => localStorage.removeItem(k));
+  ['cl_token','cl_username','cl_role'].forEach(k => {
+    sessionStorage.removeItem(k);
+    // Remove credentials created by older deployments.
+    localStorage.removeItem(k);
+  });
 }
 
 /** Authenticated fetch — auto-attaches Bearer token */
@@ -340,7 +344,11 @@ async function apiFetch(path, opts = {}) {
   const headers = { 'Content-Type': 'application/json', ...(opts.headers || {}) };
   if (token) headers['Authorization'] = `Bearer ${token}`;
   const res = await fetch(`${API_BASE}${path}`, { ...opts, headers });
-  if (res.status === 401) { logout(); return null; }
+  if (res.status === 401) {
+    clearSession();
+    location.replace('index.html');
+    return null;
+  }
   if (!res.ok) {
     const err = await res.json().catch(() => ({ detail: res.statusText }));
     throw new Error(err.detail || res.statusText);
@@ -349,15 +357,52 @@ async function apiFetch(path, opts = {}) {
 }
 
 // ─── Auth Guard ───────────────────────────────────────────────────────────────
+let _authGuardPromise = null;
+
+async function validateStoredSession(token) {
+  try {
+    const response = await fetch(`${API_BASE}/api/auth/me`, {
+      headers: { 'Authorization': `Bearer ${token}` },
+      cache: 'no-store'
+    });
+    if (!response.ok) return null;
+    return await response.json();
+  } catch (_) {
+    return null;
+  }
+}
+
 function authGuard() {
+  if (_authGuardPromise) return _authGuardPromise;
+
+  _authGuardPromise = (async () => {
   const page = location.pathname.split('/').pop() || 'index.html';
   const isLogin = page === 'index.html' || page === '';
-  const loggedIn = !!getToken();
+    const token = getToken();
 
-  if (!isLogin && !loggedIn) { location.href = 'index.html'; return; }
-  if (isLogin && loggedIn)   { location.href = 'dashboard.html'; return; }
+    // Discard persistent credentials left by previous versions.
+    ['cl_token','cl_username','cl_role'].forEach(k => localStorage.removeItem(k));
 
-  if (!isLogin && loggedIn) {
+    if (!token) {
+      if (!isLogin) location.replace('index.html');
+      return isLogin;
+    }
+
+    const user = await validateStoredSession(token);
+    if (!user) {
+      clearSession();
+      if (!isLogin) location.replace('index.html');
+      return isLogin;
+    }
+
+    sessionStorage.setItem('cl_username', user.username);
+    sessionStorage.setItem('cl_role', user.role);
+
+    if (isLogin) {
+      location.replace('dashboard.html');
+      return false;
+    }
+
     applyUserUI();
     initSidebar();
     initHeaderActions();
@@ -365,7 +410,11 @@ function authGuard() {
     initAdminGating();
     initPasswordToggle();
     initModals();
-  }
+    document.documentElement.classList.remove('auth-pending');
+    return true;
+  })();
+
+  return _authGuardPromise;
 }
 
 // ─── Login ────────────────────────────────────────────────────────────────────
@@ -433,10 +482,16 @@ function fillDemo(type) {
 // ─── Logout ───────────────────────────────────────────────────────────────────
 async function logout() {
   try {
-    await apiFetch('/api/auth/logout', { method: 'POST' });
+    const token = getToken();
+    if (token) {
+      await fetch(`${API_BASE}/api/auth/logout`, {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+    }
   } catch(_) {}
   clearSession();
-  location.href = 'index.html';
+  location.replace('index.html');
 }
 
 // ─── UI Helpers ───────────────────────────────────────────────────────────────
@@ -2404,11 +2459,11 @@ function deactivateUser(name) { showToast(`Deactivate user: backend integration 
 // PAGE ROUTER — called on DOMContentLoaded for each page
 // ═══════════════════════════════════════════════════════════════════════════════
 
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
   const page = location.pathname.split('/').pop() || 'index.html';
 
   // Run auth guard for all pages
-  authGuard();
+  if (!await authGuard()) return;
 
   // Page-specific init
   switch (page) {
@@ -3905,7 +3960,8 @@ window.filterFIRTable = filterFIRTable;
 // ─── GLOBAL INIT ─────────────────────────────────────────────────────────────
 (function() {
   // Run on every page load
-  document.addEventListener('DOMContentLoaded', () => {
+  document.addEventListener('DOMContentLoaded', async () => {
+    if (!await authGuard()) return;
     initDarkMode();
     initISTClock();
     initKeyboardShortcuts();
@@ -3939,16 +3995,6 @@ window.filterFIRTable = filterFIRTable;
     // Close shortcuts overlay on outside click
     const sho = document.getElementById('shortcuts-overlay');
     if (sho) sho.addEventListener('click', e => { if (e.target === sho) closeShortcuts(); });
-
-    // Auto-load report archive on reports page
-    if (location.pathname.includes('reports.html')) {
-      loadReportArchive();
-    }
-
-    // Auto-init crime calendar on dashboard
-    if (location.pathname.includes('dashboard.html')) {
-      initCrimeCalendar();
-    }
 
     // Patch existing sendChatMessage to add typing indicator
     if (typeof sendChatMessage === 'function') {
