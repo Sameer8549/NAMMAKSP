@@ -12,6 +12,7 @@ import logging
 import re
 from datetime import datetime
 from pathlib import Path
+from urllib.parse import quote
 import qrcode
 
 from reportlab.pdfgen import canvas
@@ -35,6 +36,10 @@ REPORTS_DIR = BASE_DIR / os.getenv("REPORTS_DIR", "reports")
 REPORTS_DIR.mkdir(exist_ok=True)
 BACKEND_DIR = BASE_DIR / "backend"
 FRONTEND_DIR = BASE_DIR / "frontend"
+PUBLIC_REPORT_BASE_URL = os.getenv(
+    "PUBLIC_REPORT_BASE_URL",
+    "https://namma-ksp-50043229029.development.catalystappsail.in"
+).rstrip("/")
 
 # ─── Font Registration for Kannada support ─────────────────────────────────
 FONT_REGULAR = "Helvetica"
@@ -231,6 +236,11 @@ def _generate_qr_code(data: str) -> RLImage:
     buf.seek(0)
     
     return RLImage(buf, width=2.0*cm, height=2.0*cm)
+
+
+def _report_qr_url(pdf_path: Path) -> str:
+    """Absolute QR URL that opens the generated PDF from Catalyst/AppSail."""
+    return f"{PUBLIC_REPORT_BASE_URL}/api/reports/qr/{quote(pdf_path.name)}"
 
 
 # ─── Header Block Builder ───────────────────────────────────────────────────
@@ -571,7 +581,7 @@ async def generate_case_report(fir_id: str, case_data: dict, ai_summary: str) ->
         doc_type_en="Case Investigation Report",
         doc_type_kn="ಅಪರಾಧ ತನಿಖಾ ವರದಿ",
         sub_title="[NAMMA KSP Intelligence Report]",
-        qr_data=f"FIR:{fir_id}|District:{case_data.get('district','N/A')}|Date:{case_data.get('date','N/A')}"
+        qr_data=_report_qr_url(pdf_path)
     )
 
     # ── Meta bar ─────────────────────────────────────────────────────────────
@@ -661,7 +671,7 @@ async def generate_district_report(district: str, stats: list[dict], ai_insights
         doc_type_en="District Crime Report",
         doc_type_kn="ಜಿಲ್ಲಾ ಅಪರಾಧ ವಿಶ್ಲೇಷಣಾ ವರದಿ",
         sub_title="[NAMMA KSP Intelligence Report]",
-        qr_data=f"District:{district}|Date:{datetime.now().strftime('%d/%m/%Y')}"
+        qr_data=_report_qr_url(pdf_path)
     )
 
     # ── Meta bar ─────────────────────────────────────────────────────────────
@@ -721,7 +731,7 @@ async def generate_chat_log_report(session_id: str, messages: list[dict]) -> str
         doc_type_en="AI Chat Log Export",
         doc_type_kn="ಎಐ ಚಾಟ್ ಲಾಗ್ ರಫ್ತು",
         sub_title="[NAMMA KSP Assistant Log]",
-        qr_data=f"Session:{session_id}|Messages:{len(messages)}"
+        qr_data=_report_qr_url(pdf_path)
     )
 
     # ── Meta bar ─────────────────────────────────────────────────────────────
@@ -794,7 +804,7 @@ async def generate_offender_report(offender_id: str, data: dict) -> str:
         doc_type_en="Offender Profile Dossier",
         doc_type_kn="ಆರೋಪಿ ವಿವರಗಳ ವರದಿ",
         sub_title="[NAMMA KSP Offender Profile]",
-        qr_data=f"Offender:{offender_id}|Risk:{data.get('risk_category','N/A')}"
+        qr_data=_report_qr_url(pdf_path)
     )
 
     # ── Meta bar ─────────────────────────────────────────────────────────────
@@ -867,7 +877,7 @@ async def generate_network_pdf_report(img_bytes: bytes, district: str, crime_typ
         doc_type_en="Criminal Network Graph",
         doc_type_kn="ಕ್ರಿಮಿನಲ್ ನೆಟ್‌ವರ್ಕ್ ನಕ್ಷೆ",
         sub_title="[NAMMA KSP Network Intelligence]",
-        qr_data=f"Network|District:{district or 'All'}|Crime:{crime_type or 'All'}"
+        qr_data=_report_qr_url(pdf_path)
     )
 
     # ── Meta bar ─────────────────────────────────────────────────────────────
@@ -912,7 +922,7 @@ async def generate_recommendations_report(district: str = None, crime_type: str 
         doc_type_en="AI Investigation Recommendations",
         doc_type_kn="ಕೃತಕ ಬುದ್ಧಿಮತ್ತೆ ತನಿಖಾ ಶಿಫಾರಸುಗಳು",
         sub_title="[NAMMA KSP Strategic Recommendations]",
-        qr_data=f"Recs|Dist:{district or 'All'}|Crime:{crime_type or 'All'}|Date:{datetime.now().strftime('%d/%m/%Y')}"
+        qr_data=_report_qr_url(pdf_path)
     )
 
     # ── Meta bar ─────────────────────────────────────────────────────────────

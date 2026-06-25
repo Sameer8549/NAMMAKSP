@@ -165,6 +165,7 @@ class TTSRequest(BaseModel):
 ACTIVE_SESSIONS = {}
 
 PUBLIC_API_PATHS = {"/api/health", "/api/auth/login"}
+PUBLIC_API_PREFIXES = ("/api/reports/qr/",)
 
 @app.middleware("http")
 async def require_authenticated_api_session(request: Request, call_next):
@@ -174,6 +175,7 @@ async def require_authenticated_api_session(request: Request, call_next):
         request.method != "OPTIONS"
         and path.startswith("/api/")
         and path not in PUBLIC_API_PATHS
+        and not any(path.startswith(prefix) for prefix in PUBLIC_API_PREFIXES)
     ):
         authorization = request.headers.get("authorization", "")
         token = authorization[7:].strip() if authorization.startswith("Bearer ") else ""
@@ -1081,7 +1083,7 @@ async def download_report_file(filename: str, http_request: Request, user: dict 
         f"Downloaded {filename}",
         _client_ip(http_request)
     )
-    
+
     return FileResponse(
         path=str(pdf_path),
         media_type="application/pdf",
@@ -1090,6 +1092,31 @@ async def download_report_file(filename: str, http_request: Request, user: dict 
             "Content-Disposition": f'attachment; filename="{filename}"',
             "Content-Type": "application/pdf",
             "Cache-Control": "no-cache",
+        }
+    )
+
+
+@app.get("/api/reports/qr/{filename}")
+async def open_report_from_qr(filename: str):
+    """
+    Public QR endpoint for generated PDF reports.
+    The QR embedded inside a report opens this URL directly.
+    """
+    if "/" in filename or "\\" in filename or not filename.endswith(".pdf"):
+        raise HTTPException(status_code=400, detail="Invalid filename")
+
+    pdf_path = REPORTS_DIR / filename
+    if not pdf_path.exists():
+        raise HTTPException(status_code=404, detail=f"Report '{filename}' not found")
+
+    return FileResponse(
+        path=str(pdf_path),
+        media_type="application/pdf",
+        filename=filename,
+        headers={
+            "Content-Disposition": f'inline; filename="{filename}"',
+            "Content-Type": "application/pdf",
+            "Cache-Control": "public, max-age=86400",
         }
     )
 
