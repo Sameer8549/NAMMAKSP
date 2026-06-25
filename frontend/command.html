@@ -55,8 +55,8 @@
           <div class="page-subtitle">Case workspace, evidence trail, early warnings, voice workflow and one-click dossier</div>
         </div>
         <div class="flex gap-sm">
-          <button class="btn btn-outline" onclick="startCommandDemo()">Datathon Demo</button>
-          <button class="btn btn-accent" onclick="generateCommandDossier()">Generate Dossier</button>
+          <button class="btn btn-outline" id="command-demo-btn">Datathon Demo</button>
+          <button class="btn btn-accent" id="command-dossier-btn">Generate Dossier</button>
         </div>
       </div>
 
@@ -64,7 +64,7 @@
         <input class="form-input" id="command-fir-id" placeholder="FIR ID e.g. FIR00001" />
         <input class="form-input" id="command-offender-id" placeholder="Offender ID e.g. OFF00001" />
         <input class="form-input" id="command-district" placeholder="District e.g. Mysuru" />
-        <button class="btn btn-primary" onclick="loadCommandWorkspace()">Load Workspace</button>
+        <button class="btn btn-primary" id="command-load-btn">Load Workspace</button>
       </div>
 
       <div class="command-demo-rail" id="command-demo-rail">
@@ -121,9 +121,19 @@
           <div class="command-ai-box">
             <div id="command-ai-summary" class="command-ai-summary"></div>
             <div class="flex gap-sm mt-md">
-              <button class="btn btn-secondary" onclick="askCommandAI()">Ask AI About This Case</button>
-              <button class="btn btn-outline" onclick="speakCommandSummary()">Speak Summary</button>
+              <button class="btn btn-secondary" id="command-ai-btn">Ask AI About This Case</button>
+              <button class="btn btn-outline" id="command-speak-btn">Speak Summary</button>
             </div>
+          </div>
+        </section>
+
+        <section class="card">
+          <div class="card-header">
+            <span class="card-title">Dossier PDF & QR Verification</span>
+            <span class="text-muted text-sm">Generated report access</span>
+          </div>
+          <div id="command-dossier-result" class="command-dossier-result">
+            Generate a dossier to create the PDF and QR verification link.
           </div>
         </section>
       </div>

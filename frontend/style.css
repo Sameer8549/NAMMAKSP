@@ -870,12 +870,82 @@ h1, h2, h3, h4, h5, h6 {
   font-size: 13px;
 }
 
+.command-ai-summary.is-loading {
+  opacity: .65;
+  pointer-events: none;
+}
+
+.command-summary-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-md);
+}
+
+.command-summary-card {
+  min-height: 148px;
+  padding: var(--space-md);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface);
+}
+
+.command-summary-card span,
+.command-report-ready span {
+  display: block;
+  margin-bottom: 6px;
+  color: var(--color-text-muted);
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.command-summary-card strong,
+.command-report-ready strong {
+  display: block;
+  color: var(--color-text);
+  font-size: 15px;
+  line-height: 1.35;
+}
+
+.command-summary-card p,
+.command-report-ready p {
+  margin: 8px 0 0;
+  color: var(--color-text-muted);
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+.command-demo-focus {
+  border-color: rgba(214, 42, 42, .45) !important;
+  box-shadow: 0 0 0 3px rgba(214, 42, 42, .12), var(--shadow-md);
+  transition: border-color .2s ease, box-shadow .2s ease;
+}
+
+.command-dossier-result {
+  min-height: 76px;
+  color: var(--color-text-muted);
+  font-size: 14px;
+}
+
+.command-report-ready {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-md);
+  padding: var(--space-md);
+  border: 1px solid rgba(32,117,117,.25);
+  border-radius: var(--radius-sm);
+  background: rgba(32,117,117,.07);
+}
+
 @media (max-width: 1100px) {
   .advanced-intel-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .ops-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .command-search-band { grid-template-columns: 1fr 1fr; }
   .command-kpi-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .command-layout { grid-template-columns: 1fr; }
+  .command-summary-grid { grid-template-columns: 1fr; }
+  .command-report-ready { align-items: stretch; flex-direction: column; }
 }
 
 @media (max-width: 720px) {

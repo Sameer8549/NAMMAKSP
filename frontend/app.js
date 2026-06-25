@@ -2638,6 +2638,7 @@ function deactivateUser(name) { showToast(`Deactivate user: backend integration 
 // ═══════════════════════════════════════════════════════════════════════════════
 
 let _commandWorkspace = null;
+let _commandDemoTimerIds = [];
 
 async function initCommandCenter() {
   const params = new URLSearchParams(location.search);
@@ -2650,7 +2651,25 @@ async function initCommandCenter() {
   if (firInput) firInput.value = fir;
   if (offenderInput) offenderInput.value = offender;
   if (districtInput) districtInput.value = district;
+  wireCommandCenterActions();
   await loadCommandWorkspace();
+}
+
+function wireCommandCenterActions() {
+  const bind = (id, handler) => {
+    const el = document.getElementById(id);
+    if (!el || el.dataset.commandBound) return;
+    el.dataset.commandBound = 'true';
+    el.addEventListener('click', (event) => {
+      event.preventDefault();
+      handler();
+    });
+  };
+  bind('command-load-btn', loadCommandWorkspace);
+  bind('command-demo-btn', startCommandDemo);
+  bind('command-dossier-btn', generateCommandDossier);
+  bind('command-ai-btn', askCommandAI);
+  bind('command-speak-btn', speakCommandSummary);
 }
 
 async function loadCommandWorkspace() {
@@ -2682,6 +2701,7 @@ function renderCommandWorkspace(data) {
   const c = data.case || {};
   const o = data.offender || {};
   const confidence = data.confidence || {};
+  const summarySections = buildCommandSummarySections(data);
   const setHtml = (id, html) => { const el = document.getElementById(id); if (el) el.innerHTML = html; };
   const setText = (id, text) => { const el = document.getElementById(id); if (el) el.textContent = text; };
 
@@ -2749,11 +2769,52 @@ function renderCommandWorkspace(data) {
   `);
 
   setHtml('command-ai-summary', `
-    <strong>AI Case Summary</strong>
-    <p>${escapeHTML(data.ai_summary || 'No AI summary available.')}</p>
-    <strong>Recommended prevention action</strong>
-    <p>${escapeHTML((data.recommendations || '').slice(0, 700))}</p>
+    <div class="command-summary-grid">
+      ${summarySections.map(section => `
+        <div class="command-summary-card">
+          <span>${escapeHTML(section.label)}</span>
+          <strong>${escapeHTML(section.title)}</strong>
+          <p>${escapeHTML(section.body)}</p>
+        </div>
+      `).join('')}
+    </div>
   `);
+
+  setHtml('command-dossier-result', 'Generate a dossier to create the PDF and QR verification link.');
+}
+
+function buildCommandSummarySections(data) {
+  const meta = data.workspace || {};
+  const c = data.case || {};
+  const o = data.offender || {};
+  const leads = data.leads || [];
+  const evidence = data.evidence_refs || [];
+  const alerts = data.alerts || [];
+  const recommendations = String(data.recommendations || '').replace(/\s+/g, ' ').trim();
+  return [
+    {
+      label: 'Case summary',
+      title: c.crime_type || meta.fir_id || 'Investigation workspace',
+      body: data.ai_summary || 'The workspace has been loaded with case, offender, evidence, network and prevention signals.'
+    },
+    {
+      label: 'Priority lead',
+      title: leads[0]?.action || 'Evidence-backed follow-up',
+      body: leads[0]?.reason || 'Review linked FIRs, offender history and available evidence references before field action.'
+    },
+    {
+      label: 'Evidence trail',
+      title: `${evidence.length} referenced records`,
+      body: evidence.length
+        ? evidence.slice(0, 3).map(e => `${e.type || 'Record'} ${e.id || ''}: ${e.label || e.source || 'dataset reference'}`).join(' | ')
+        : 'No evidence references were returned for this workspace.'
+    },
+    {
+      label: 'Prevention action',
+      title: alerts.length ? `${alerts.length} warning signal(s)` : 'Operational recommendation',
+      body: recommendations.slice(0, 420) || 'Use patrol, network and offender risk signals to decide the next prevention action.'
+    }
+  ];
 }
 
 function commandKpi(label, value, detail) {
@@ -2765,15 +2826,33 @@ function commandPin(label, value) {
 }
 
 function commandIntelRow(label, value) {
-  return `<div class="command-row"><div><strong>${escapeHTML(label)}</strong><span>${value}</span></div></div>`;
+  return `<div class="command-row"><div><strong>${escapeHTML(label)}</strong><span>${escapeHTML(value)}</span></div></div>`;
 }
 
-function askCommandAI() {
+async function askCommandAI() {
+  if (!_commandWorkspace) await loadCommandWorkspace();
   if (!_commandWorkspace) return;
   const meta = _commandWorkspace.workspace || {};
+  const summaryEl = document.getElementById('command-ai-summary');
   const q = `Analyze investigation workspace ${meta.fir_id || meta.offender_id || meta.district}. Give evidence-backed next leads, network links, prevention actions, and confidence caveats.`;
-  sessionStorage.setItem('cl_prefill_chat', q);
-  location.href = 'chat.html';
+  try {
+    if (summaryEl) summaryEl.classList.add('is-loading');
+    const data = await apiFetch('/api/chat', {
+      method: 'POST',
+      body: JSON.stringify({
+        message: q,
+        session_id: `command_${Date.now()}`,
+        language: localStorage.getItem('cl_lang') === 'kn' ? 'kn-IN' : 'en-US'
+      })
+    });
+    _commandWorkspace.ai_summary = data?.response || _commandWorkspace.ai_summary;
+    renderCommandWorkspace(_commandWorkspace);
+    showToast('AI command summary refreshed', 'success');
+  } catch (err) {
+    showToast('AI command summary failed: ' + err.message, 'error');
+  } finally {
+    if (summaryEl) summaryEl.classList.remove('is-loading');
+  }
 }
 
 async function speakCommandSummary() {
@@ -2795,12 +2874,25 @@ async function speakCommandSummary() {
 }
 
 function startCommandDemo() {
-  document.querySelectorAll('.command-demo-step').forEach((el, idx) => {
-    el.classList.toggle('active', idx === 0);
-    setTimeout(() => {
+  _commandDemoTimerIds.forEach(id => clearTimeout(id));
+  _commandDemoTimerIds = [];
+  const steps = Array.from(document.querySelectorAll('.command-demo-step'));
+  const panels = [
+    document.getElementById('command-case-board')?.closest('.card'),
+    document.getElementById('command-evidence')?.closest('.card'),
+    document.getElementById('command-timeline')?.closest('.card'),
+    document.getElementById('command-leads')?.closest('.card'),
+    document.getElementById('command-dossier-result')?.closest('.card')
+  ];
+  steps.forEach((el, idx) => {
+    const timerId = setTimeout(() => {
       document.querySelectorAll('.command-demo-step').forEach(x => x.classList.remove('active'));
       el.classList.add('active');
+      panels.forEach(panel => panel?.classList.remove('command-demo-focus'));
+      panels[idx]?.classList.add('command-demo-focus');
+      panels[idx]?.scrollIntoView({ behavior: 'smooth', block: 'center' });
     }, idx * 900);
+    _commandDemoTimerIds.push(timerId);
   });
   showToast('Datathon demo flow started', 'success');
 }
@@ -2808,20 +2900,41 @@ function startCommandDemo() {
 async function generateCommandDossier() {
   if (!_commandWorkspace) await loadCommandWorkspace();
   const meta = _commandWorkspace?.workspace || {};
+  const btn = document.getElementById('command-dossier-btn');
+  const resultEl = document.getElementById('command-dossier-result');
   try {
+    if (btn) btn.disabled = true;
+    if (resultEl) resultEl.innerHTML = '<div class="advanced-intel-loading">Generating dossier PDF and QR verification link...</div>';
     showToast('Generating full investigation dossier...', 'info');
-    const res = await fetch(`${API_BASE}/api/reports/dossier`, {
+    const res = await fetch(`${API_BASE}/api/reports/dossier?metadata=true`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${getToken()}` },
       body: JSON.stringify({ fir_id: meta.fir_id, offender_id: meta.offender_id, district: meta.district })
     });
     if (!res.ok) throw new Error((await res.json().catch(() => ({}))).detail || 'Dossier failed');
-    const blob = await res.blob();
-    const filename = res.headers.get('content-disposition')?.split('filename=')[1]?.replace(/['"]/g, '') || 'investigation_dossier.pdf';
-    triggerFileDownload(blob, filename);
-    showToast('Investigation dossier generated', 'success');
+    const report = await res.json();
+    if (resultEl) {
+      resultEl.innerHTML = `
+        <div class="command-report-ready">
+          <div>
+            <span>Generated PDF</span>
+            <strong>${escapeHTML(report.filename || 'investigation_dossier.pdf')}</strong>
+            <p>QR verification opens this same report from the secure report route.</p>
+          </div>
+          <div class="flex gap-sm">
+            <a class="btn btn-primary" href="${escapeHTML(report.pdf_url)}" target="_blank" rel="noopener">Open PDF</a>
+            <a class="btn btn-outline" href="${escapeHTML(report.qr_url || report.pdf_url)}" target="_blank" rel="noopener">Test QR Link</a>
+          </div>
+        </div>
+      `;
+    }
+    if (report.pdf_url) window.open(report.pdf_url, '_blank', 'noopener');
+    showToast('Investigation dossier generated with QR link', 'success');
   } catch (err) {
+    if (resultEl) resultEl.innerHTML = `<div class="ops-muted">Dossier failed: ${escapeHTML(err.message)}</div>`;
     showToast('Failed to generate dossier: ' + err.message, 'error');
+  } finally {
+    if (btn) btn.disabled = false;
   }
 }
 
@@ -4328,6 +4441,11 @@ window.closeNetworkPanel = closeNetworkPanel;
 window.viewFIR = viewFIR;
 window.loadReportArchive = loadReportArchive;
 window.filterFIRTable = filterFIRTable;
+window.loadCommandWorkspace = loadCommandWorkspace;
+window.startCommandDemo = startCommandDemo;
+window.generateCommandDossier = generateCommandDossier;
+window.askCommandAI = askCommandAI;
+window.speakCommandSummary = speakCommandSummary;
 
 
 // ─── GLOBAL INIT ─────────────────────────────────────────────────────────────

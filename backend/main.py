@@ -12,6 +12,7 @@ import uuid
 from pathlib import Path
 from datetime import datetime
 from typing import Optional
+from urllib.parse import quote
 
 import uvicorn
 from fastapi import FastAPI, HTTPException, Query, BackgroundTasks, Depends, Header, UploadFile, File, Request
@@ -63,6 +64,10 @@ BASE_DIR    = Path(__file__).parent.parent
 FRONTEND_DIR = BASE_DIR / "frontend"
 REPORTS_DIR  = BASE_DIR / "reports"
 REPORTS_DIR.mkdir(parents=True, exist_ok=True)
+PUBLIC_REPORT_BASE_URL = os.getenv(
+    "PUBLIC_REPORT_BASE_URL",
+    "https://namma-ksp-50043229029.development.catalystappsail.in"
+).rstrip("/")
 
 app = FastAPI(
     title="NAMMA KSP",
@@ -1243,7 +1248,12 @@ async def generate_recommendations_report_endpoint(request: RecommendationsRepor
 
 
 @app.post("/api/reports/dossier")
-async def generate_dossier_report_endpoint(request: DossierReportRequest, http_request: Request, user: dict = Depends(get_current_user)):
+async def generate_dossier_report_endpoint(
+    request: DossierReportRequest,
+    http_request: Request,
+    metadata: bool = Query(False),
+    user: dict = Depends(get_current_user)
+):
     """Generate the one-click combined investigation workspace dossier."""
     try:
         workspace = await _build_workspace_brief(request.fir_id, request.offender_id, request.district)
@@ -1256,10 +1266,20 @@ async def generate_dossier_report_endpoint(request: DossierReportRequest, http_r
             f"Investigation dossier {Path(pdf_path).name}",
             _client_ip(http_request)
         )
+        filename = Path(pdf_path).name
+        report_url = f"{PUBLIC_REPORT_BASE_URL}/api/reports/qr/{quote(filename)}"
+        if metadata:
+            return {
+                "filename": filename,
+                "pdf_url": report_url,
+                "qr_url": report_url,
+                "subject": subject,
+                "report_type": "investigation-dossier"
+            }
         return FileResponse(
             path=pdf_path,
             media_type="application/pdf",
-            filename=Path(pdf_path).name
+            filename=filename
         )
     except HTTPException:
         raise
