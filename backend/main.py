@@ -12,7 +12,6 @@ import uuid
 from pathlib import Path
 from datetime import datetime
 from typing import Optional
-from urllib.parse import quote
 
 import uvicorn
 from fastapi import FastAPI, HTTPException, Query, BackgroundTasks, Depends, Header, UploadFile, File, Request
@@ -49,7 +48,7 @@ from network   import get_network_data, get_shared_offender_network
 from ai_service import chat, generate_case_summary, get_investigation_recommendations, clear_session
 from report    import (
     generate_case_report, generate_district_report, generate_chat_log_report,
-    generate_recommendations_report, generate_investigation_dossier
+    generate_recommendations_report
 )
 
 # ─── Logging ─────────────────────────────────────────────────────────────────
@@ -64,10 +63,6 @@ BASE_DIR    = Path(__file__).parent.parent
 FRONTEND_DIR = BASE_DIR / "frontend"
 REPORTS_DIR  = BASE_DIR / "reports"
 REPORTS_DIR.mkdir(parents=True, exist_ok=True)
-PUBLIC_REPORT_BASE_URL = os.getenv(
-    "PUBLIC_REPORT_BASE_URL",
-    "https://namma-ksp-50043229029.development.catalystappsail.in"
-).rstrip("/")
 
 app = FastAPI(
     title="NAMMA KSP",
@@ -146,12 +141,6 @@ class NetworkReportRequest(BaseModel):
 class RecommendationsReportRequest(BaseModel):
     district: Optional[str] = None
     crime_type: Optional[str] = None
-
-class DossierReportRequest(BaseModel):
-    fir_id: Optional[str] = None
-    offender_id: Optional[str] = None
-    district: Optional[str] = None
-
 
 class LoginRequest(BaseModel):
     username: str
@@ -272,175 +261,6 @@ async def _record_forecast_alerts(user: dict | None = None) -> dict:
         actor
     )
     return {"forecast": forecast, "recorded_alerts": len(warnings)}
-
-
-async def _build_workspace_brief(
-    fir_id: Optional[str] = None,
-    offender_id: Optional[str] = None,
-    district: Optional[str] = None
-) -> dict:
-    """Assemble the full investigation workspace context for a case/offender/district."""
-    fir = None
-    offender = None
-    related_cases = []
-    normalized_fir = fir_id.upper().strip() if fir_id else ""
-    normalized_offender = offender_id.upper().strip() if offender_id else ""
-
-    if normalized_fir:
-        fir = await get_fir_detail(normalized_fir)
-        if not fir:
-            raise HTTPException(status_code=404, detail=f"FIR {normalized_fir} not found")
-        related_cases = await get_related_cases(normalized_fir)
-        if not normalized_offender:
-            normalized_offender = fir.get("offender_id") or ""
-        if not district:
-            district = fir.get("district")
-
-    if normalized_offender:
-        offender = await get_offender_profile(normalized_offender)
-        if not offender:
-            raise HTTPException(status_code=404, detail=f"Offender {normalized_offender} not found")
-        if not district:
-            district = offender.get("district")
-        if not fir and offender.get("fir_history"):
-            normalized_fir = offender["fir_history"][0].get("fir_id", "")
-            if normalized_fir:
-                fir = await get_fir_detail(normalized_fir)
-                related_cases = await get_related_cases(normalized_fir)
-
-    if not fir and not offender and district:
-        district_firs = await search_firs(district=district, limit=1)
-        if district_firs:
-            normalized_fir = district_firs[0]["fir_id"]
-            fir = await get_fir_detail(normalized_fir)
-            related_cases = await get_related_cases(normalized_fir)
-            normalized_offender = fir.get("offender_id") if fir else ""
-            offender = await get_offender_profile(normalized_offender) if normalized_offender else None
-
-    if not fir and not offender:
-        sample = await search_firs(limit=1)
-        if not sample:
-            raise HTTPException(status_code=404, detail="No case records available")
-        normalized_fir = sample[0]["fir_id"]
-        fir = await get_fir_detail(normalized_fir)
-        related_cases = await get_related_cases(normalized_fir)
-        normalized_offender = fir.get("offender_id") if fir else ""
-        offender = await get_offender_profile(normalized_offender) if normalized_offender else None
-        district = fir.get("district") if fir else district
-
-    case_summary = {}
-    try:
-        if normalized_fir:
-            case_summary = await generate_case_summary(normalized_fir)
-    except Exception:
-        case_summary = {"summary": "AI case summary unavailable for this workspace."}
-
-    recommendations = {}
-    try:
-        recommendations = await get_investigation_recommendations(
-            district=district,
-            crime_type=fir.get("crime_type") if fir else None
-        )
-    except Exception:
-        recommendations = {"recommendations": "Recommendations unavailable."}
-
-    network = {}
-    if normalized_offender:
-        try:
-            network = await get_shared_offender_network(normalized_offender)
-        except Exception:
-            network = {}
-
-    financial = []
-    if normalized_fir:
-        financial = await fetch_all(
-            """
-            SELECT transaction_id, amount, channel, district, risk_flag,
-                   sender_account, receiver_account, transaction_date
-            FROM financial_transactions
-            WHERE fir_id = ?
-            ORDER BY amount DESC
-            LIMIT 8
-            """,
-            (normalized_fir,)
-        )
-
-    alerts = await list_alert_events(5)
-    explanation = await get_explainable_intelligence()
-
-    timeline = []
-    if offender and offender.get("fir_history"):
-        timeline = sorted(offender["fir_history"], key=lambda x: x.get("date") or "")[:12]
-    elif fir:
-        timeline = [{"fir_id": fir.get("fir_id"), "date": fir.get("date"), "crime_type": fir.get("crime_type"), "status": fir.get("status")}]
-
-    evidence_refs = []
-    if fir:
-        evidence_refs.extend([
-            {"type": "FIR", "id": fir.get("fir_id"), "label": fir.get("crime_type"), "source": "firs"},
-            {"type": "Location", "id": fir.get("location_id"), "label": f"{fir.get('district')} / {fir.get('police_station')}", "source": "locations"},
-        ])
-    if offender:
-        evidence_refs.append({"type": "Offender", "id": offender.get("offender_id"), "label": offender.get("name"), "source": "offenders"})
-    for item in related_cases[:5]:
-        evidence_refs.append({"type": "Related FIR", "id": item.get("fir_id"), "label": item.get("relation"), "source": "relationships"})
-    for item in financial[:5]:
-        evidence_refs.append({"type": "Financial", "id": item.get("transaction_id"), "label": item.get("risk_flag"), "source": "financial_transactions"})
-
-    confidence = {
-        "overall": 92 if financial else 84,
-        "basis": [
-            {"label": "FIR dataset", "status": "verified", "score": 100},
-            {"label": "Offender/victim linkage", "status": "verified" if offender else "partial", "score": 90 if offender else 55},
-            {"label": "Financial evidence", "status": "uploaded" if financial else "not linked to selected FIR", "score": 92 if financial else 45},
-            {"label": "AI inference", "status": "explainable", "score": 78},
-        ]
-    }
-
-    leads = []
-    if related_cases:
-        leads.append({"priority": "High", "action": "Review related FIR cluster", "reason": f"{len(related_cases)} related case links found"})
-    if offender and offender.get("risk_category") in ("High", "Medium"):
-        leads.append({"priority": offender.get("risk_category"), "action": "Prioritize offender activity review", "reason": f"Risk score {offender.get('risk_score', 'N/A')}/100"})
-    if financial:
-        leads.append({"priority": "High", "action": "Trace suspicious transaction accounts", "reason": f"{len(financial)} linked financial records"})
-    if district:
-        leads.append({"priority": "Medium", "action": "Compare district hotspot pattern", "reason": f"District focus: {district}"})
-    leads.append({"priority": "Medium", "action": "Generate dossier and share with supervisor", "reason": "Consolidates evidence, AI reasoning, and recommended next steps"})
-
-    return {
-        "workspace": {
-            "title": f"Investigation Workspace {normalized_fir or normalized_offender or district or ''}".strip(),
-            "fir_id": normalized_fir,
-            "offender_id": normalized_offender,
-            "district": district,
-            "generated_at": datetime.now().isoformat(timespec="seconds"),
-        },
-        "case": fir,
-        "offender": offender,
-        "timeline": timeline,
-        "related_cases": related_cases,
-        "network": {
-            "metrics": network.get("metrics", {}),
-            "nodes": len(network.get("graph", {}).get("nodes", [])) if isinstance(network.get("graph"), dict) else 0,
-            "edges": len(network.get("graph", {}).get("edges", [])) if isinstance(network.get("graph"), dict) else 0,
-        },
-        "financial_links": financial,
-        "alerts": alerts,
-        "ai_summary": case_summary.get("summary") or case_summary.get("analysis") or "No AI summary available.",
-        "recommendations": recommendations.get("recommendations", ""),
-        "evidence_refs": evidence_refs,
-        "confidence": confidence,
-        "leads": leads,
-        "explainability": explanation.get("evidence_trails", []),
-        "demo_script": [
-            "Open Command Center and load a FIR/offender.",
-            "Show case board, evidence trail, network metrics, timeline, confidence score and leads.",
-            "Ask voice/AI query using the selected case context.",
-            "Generate the one-click investigation dossier PDF with QR.",
-            "Open audit/system pages to show governance and Catalyst deployment readiness.",
-        ]
-    }
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -878,29 +698,6 @@ async def offender_network(offender_id: str):
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
-# INVESTIGATION COMMAND CENTER
-# ═══════════════════════════════════════════════════════════════════════════════
-
-@app.get("/api/workspace/brief")
-async def workspace_brief(
-    fir_id: Optional[str] = Query(None),
-    offender_id: Optional[str] = Query(None),
-    district: Optional[str] = Query(None),
-    http_request: Request = None,
-    user: dict = Depends(get_current_user)
-):
-    """Complete investigation workspace payload for a FIR/offender/district."""
-    brief = await _build_workspace_brief(fir_id, offender_id, district)
-    await log_audit(
-        user.get("username"), user.get("role"),
-        "WORKSPACE_VIEW", "command-center",
-        f"Viewed workspace FIR={brief['workspace'].get('fir_id')} offender={brief['workspace'].get('offender_id')}",
-        _client_ip(http_request) if http_request else ""
-    )
-    return brief
-
-
-# ═══════════════════════════════════════════════════════════════════════════════
 # AI CHATBOT ENDPOINTS
 # ═══════════════════════════════════════════════════════════════════════════════
 
@@ -1245,47 +1042,6 @@ async def generate_recommendations_report_endpoint(request: RecommendationsRepor
         media_type="application/pdf",
         filename=Path(pdf_path).name
     )
-
-
-@app.post("/api/reports/dossier")
-async def generate_dossier_report_endpoint(
-    request: DossierReportRequest,
-    http_request: Request,
-    metadata: bool = Query(False),
-    user: dict = Depends(get_current_user)
-):
-    """Generate the one-click combined investigation workspace dossier."""
-    try:
-        workspace = await _build_workspace_brief(request.fir_id, request.offender_id, request.district)
-        pdf_path = await generate_investigation_dossier(workspace)
-        subject = workspace.get("workspace", {}).get("fir_id") or workspace.get("workspace", {}).get("offender_id") or "workspace"
-        await _archive_report(pdf_path, "investigation-dossier", subject, user)
-        await log_audit(
-            user.get("username"), user.get("role"),
-            "REPORT_GENERATE", "reports/dossier",
-            f"Investigation dossier {Path(pdf_path).name}",
-            _client_ip(http_request)
-        )
-        filename = Path(pdf_path).name
-        report_url = f"{PUBLIC_REPORT_BASE_URL}/api/reports/qr/{quote(filename)}"
-        if metadata:
-            return {
-                "filename": filename,
-                "pdf_url": report_url,
-                "qr_url": report_url,
-                "subject": subject,
-                "report_type": "investigation-dossier"
-            }
-        return FileResponse(
-            path=pdf_path,
-            media_type="application/pdf",
-            filename=filename
-        )
-    except HTTPException:
-        raise
-    except Exception as e:
-        logger.error("Investigation dossier generation failed: %s", e)
-        raise HTTPException(status_code=500, detail=f"Dossier generation failed: {e}")
 
 
 @app.get("/api/reports/list")
