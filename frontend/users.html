@@ -66,6 +66,23 @@
         This page is accessible to Admin accounts only. User actions are logged for audit purposes.
       </div>
 
+      <div class="card mb-lg">
+        <div class="card-header">
+          <span class="card-title">Catalyst Operations Status</span>
+          <button class="btn btn-outline btn-sm" onclick="runDailyIntelligenceRefresh()">Run Refresh</button>
+        </div>
+        <div class="ops-grid" id="system-status-grid">
+          <div class="advanced-intel-loading">Loading system status...</div>
+        </div>
+      </div>
+
+      <div class="card mb-lg">
+        <div class="card-header"><span class="card-title">Early-Warning Alerts</span><span class="text-muted text-sm">Persistent forecast signals</span></div>
+        <div id="early-warning-list" class="ops-list">
+          <div class="advanced-intel-loading">Loading alerts...</div>
+        </div>
+      </div>
+
       <div class="card">
         <div class="card-header"><span class="card-title">System Users</span><span class="text-muted text-sm">3 accounts registered</span></div>
         <div class="table-wrapper">

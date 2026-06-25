@@ -29,7 +29,11 @@ import mimetypes
 mimetypes.init()
 mimetypes.add_type("application/pdf", ".pdf")
 
-from database  import init_db, get_db_stats, log_audit
+from database  import (
+    init_db, get_db_stats, log_audit, fetch_one,
+    record_report_archive, list_report_archive, record_alert_event,
+    list_alert_events, record_job_run, list_job_runs
+)
 from analytics import (
     get_overview_stats, get_crime_type_distribution, get_monthly_trends,
     get_district_stats, get_district_top_crime, get_hotspot_data,
@@ -202,6 +206,58 @@ async def health():
     return {"status": "ok", "database": stats, "version": "1.0.0"}
 
 
+def _client_ip(request: Request) -> str:
+    forwarded = request.headers.get("x-forwarded-for", "")
+    if forwarded:
+        return forwarded.split(",")[0].strip()
+    return request.client.host if request.client else ""
+
+
+def _report_storage_mode() -> str:
+    return "catalyst-file-store-ready" if os.getenv("CATALYST_REPORTS_FOLDER_ID") else "local-appsail"
+
+
+async def _archive_report(
+    pdf_path: str,
+    report_type: str,
+    subject: str,
+    user: dict | None = None
+) -> None:
+    path = Path(pdf_path)
+    size_kb = round(path.stat().st_size / 1024, 1) if path.exists() else 0
+    await record_report_archive(
+        filename=path.name,
+        report_type=report_type,
+        subject=subject,
+        size_kb=size_kb,
+        storage_mode=_report_storage_mode(),
+        storage_uri=f"/api/reports/download/{path.name}",
+        generated_by=(user or {}).get("username", ""),
+        status="ready" if path.exists() else "missing"
+    )
+
+
+async def _record_forecast_alerts(user: dict | None = None) -> dict:
+    forecast = await get_crime_forecast()
+    warnings = forecast.get("early_warnings", [])
+    for warning in warnings:
+        district = warning.get("district") or warning.get("area") or ""
+        signal = warning.get("signal") or warning.get("crime_type") or "Forecast hotspot lift"
+        detail = warning.get("detail") or warning.get("recommended_action") or str(warning)
+        if warning.get("increase_percent") is not None:
+            signal = f"{signal}: {warning.get('increase_percent')}% increase"
+        severity = warning.get("severity") or warning.get("alert_level") or "High"
+        await record_alert_event(severity, signal, district, detail)
+    actor = (user or {}).get("username", "system")
+    await record_job_run(
+        "daily-intelligence-refresh",
+        "success",
+        f"Recorded {len(warnings)} early-warning signals",
+        actor
+    )
+    return {"forecast": forecast, "recorded_alerts": len(warnings)}
+
+
 # ═══════════════════════════════════════════════════════════════════════════════
 # ANALYTICS ENDPOINTS
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -273,9 +329,10 @@ async def analytics_financial_links():
 
 
 @app.get("/api/analytics/forecast")
-async def analytics_forecast():
+async def analytics_forecast(user: dict = Depends(get_current_user)):
     """Explainable crime forecast and early-warning signals."""
-    return await get_crime_forecast()
+    result = await _record_forecast_alerts(user)
+    return result["forecast"]
 
 
 @app.get("/api/analytics/explainability")
@@ -285,9 +342,101 @@ async def analytics_explainability():
 
 
 @app.get("/api/analytics/advanced-intelligence")
-async def analytics_advanced_intelligence():
+async def analytics_advanced_intelligence(user: dict = Depends(get_current_user)):
     """Combined advanced intelligence summary for dashboard/demo."""
-    return await get_advanced_intelligence_summary()
+    result = await get_advanced_intelligence_summary()
+    warnings = result.get("forecast", {}).get("early_warnings", [])
+    for warning in warnings:
+        district = warning.get("district") or warning.get("area") or ""
+        signal = warning.get("signal") or warning.get("crime_type") or "Advanced intelligence warning"
+        detail = warning.get("detail") or warning.get("recommended_action") or str(warning)
+        if warning.get("increase_percent") is not None:
+            signal = f"{signal}: {warning.get('increase_percent')}% increase"
+        severity = warning.get("severity") or warning.get("alert_level") or "High"
+        await record_alert_event(severity, signal, district, detail)
+    await log_audit(
+        user.get("username"), user.get("role"),
+        "ADVANCED_INTEL_VIEW", "analytics",
+        f"Viewed advanced intelligence with {len(warnings)} warnings", ""
+    )
+    return result
+
+
+@app.get("/api/alerts/early-warning")
+async def early_warning_alerts(limit: int = Query(25, ge=1, le=100), user: dict = Depends(get_current_user)):
+    """Persistent early-warning events generated from forecast/advanced intelligence."""
+    return await list_alert_events(limit)
+
+
+@app.post("/api/jobs/daily-intelligence-refresh")
+async def daily_intelligence_refresh(user: dict = Depends(require_admin)):
+    """Manual/Catalyst Cron-compatible refresh for forecast alerts and operational ledger."""
+    try:
+        result = await _record_forecast_alerts(user)
+        await log_audit(
+            user.get("username"), user.get("role"),
+            "JOB_RUN", "daily-intelligence-refresh",
+            f"Recorded {result['recorded_alerts']} early-warning signals", ""
+        )
+        return {
+            "status": "success",
+            "job": "daily-intelligence-refresh",
+            "recorded_alerts": result["recorded_alerts"],
+            "forecast": result["forecast"].get("summary", {})
+        }
+    except Exception as e:
+        await record_job_run("daily-intelligence-refresh", "failed", str(e), user.get("username", ""))
+        raise
+
+
+@app.get("/api/system/status")
+async def system_status(admin_user: dict = Depends(require_admin)):
+    """Admin operations snapshot for Catalyst deployment readiness."""
+    stats = await get_db_stats()
+    report_count = stats.get("report_archive", 0)
+    latest_report = await fetch_one("""
+        SELECT filename, report_type, created_at, storage_mode
+        FROM report_archive
+        ORDER BY id DESC
+        LIMIT 1
+    """)
+    latest_audit = await fetch_one("""
+        SELECT timestamp, username, action, resource
+        FROM audit_logs
+        ORDER BY id DESC
+        LIMIT 1
+    """)
+    open_alert = await fetch_one("SELECT COUNT(*) AS cnt FROM alert_events WHERE status = 'open'")
+    latest_job = await fetch_one("""
+        SELECT started_at, job_name, status, detail
+        FROM job_runs
+        ORDER BY id DESC
+        LIMIT 1
+    """)
+    reports_on_disk = len(list(REPORTS_DIR.glob("*.pdf"))) if REPORTS_DIR.exists() else 0
+    return {
+        "runtime": {
+            "platform": "Zoho Catalyst AppSail" if os.getenv("X_ZOHO_CATALYST_LISTEN_PORT") else "Local development",
+            "storage_mode": _report_storage_mode(),
+            "reports_on_disk": reports_on_disk,
+            "report_archive_rows": report_count,
+            "catalyst_file_store_configured": bool(os.getenv("CATALYST_REPORTS_FOLDER_ID")),
+        },
+        "database": stats,
+        "alerts": {
+            "open": open_alert["cnt"] if open_alert else 0,
+            "latest": (await list_alert_events(1))[0] if stats.get("alert_events", 0) else None,
+        },
+        "reports": {
+            "latest": latest_report,
+        },
+        "audit": {
+            "latest": latest_audit,
+        },
+        "jobs": {
+            "latest": latest_job,
+        }
+    }
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -503,7 +652,7 @@ async def offender_network(offender_id: str):
 # ═══════════════════════════════════════════════════════════════════════════════
 
 @app.post("/api/chat")
-async def chat_endpoint(request: ChatRequest):
+async def chat_endpoint(request: ChatRequest, http_request: Request, user: dict = Depends(get_current_user)):
     """
     Conversational crime intelligence chatbot.
     Maintains session context across multiple turns.
@@ -511,6 +660,12 @@ async def chat_endpoint(request: ChatRequest):
     session_id = request.session_id or str(uuid.uuid4())
     try:
         result = await chat(session_id, request.message, request.language)
+        await log_audit(
+            user.get("username"), user.get("role"),
+            "AI_CHAT_QUERY", "chat",
+            f"Session {session_id}; language={request.language}; chars={len(request.message)}",
+            _client_ip(http_request)
+        )
         return result
     except Exception as e:
         logger.error("Chat error: %s", e)
@@ -606,7 +761,7 @@ async def audio_transcribe_endpoint(
 
 
 @app.post("/api/chat/export")
-async def export_chat_endpoint(request: ExportChatRequest):
+async def export_chat_endpoint(request: ExportChatRequest, http_request: Request, user: dict = Depends(get_current_user)):
     """
     Generate and download a PDF investigation dossier for a chat session.
     """
@@ -615,6 +770,13 @@ async def export_chat_endpoint(request: ExportChatRequest):
     try:
         msg_list = [{"role": m.role, "content": m.content} for m in request.messages]
         pdf_path = await generate_chat_log_report(request.session_id, msg_list)
+        await _archive_report(pdf_path, "chat", request.session_id, user)
+        await log_audit(
+            user.get("username"), user.get("role"),
+            "REPORT_GENERATE", "reports/chat",
+            f"Chat export {Path(pdf_path).name}",
+            _client_ip(http_request)
+        )
         return FileResponse(
             path=pdf_path,
             media_type="application/pdf",
@@ -626,12 +788,18 @@ async def export_chat_endpoint(request: ExportChatRequest):
 
 
 @app.get("/api/ai/case-summary/{fir_id}")
-async def ai_case_summary(fir_id: str):
+async def ai_case_summary(fir_id: str, http_request: Request, user: dict = Depends(get_current_user)):
     """AI-generated investigation summary for a specific FIR."""
     try:
         result = await generate_case_summary(fir_id.upper())
         if "error" in result:
             raise HTTPException(status_code=404, detail=result["error"])
+        await log_audit(
+            user.get("username"), user.get("role"),
+            "AI_CASE_SUMMARY", "ai",
+            f"Generated summary for {fir_id.upper()}",
+            _client_ip(http_request)
+        )
         return result
     except HTTPException:
         raise
@@ -658,7 +826,7 @@ async def ai_recommendations(
 # ═══════════════════════════════════════════════════════════════════════════════
 
 @app.post("/api/reports/case")
-async def generate_report(request: ReportRequest):
+async def generate_report(request: ReportRequest, http_request: Request, user: dict = Depends(get_current_user)):
     """Generate and download a PDF investigation report for a FIR."""
     fir_id = request.fir_id.upper()
 
@@ -677,6 +845,13 @@ async def generate_report(request: ReportRequest):
 
     try:
         pdf_path = await generate_case_report(fir_id, case_data, ai_summary)
+        await _archive_report(pdf_path, "case", fir_id, user)
+        await log_audit(
+            user.get("username"), user.get("role"),
+            "REPORT_GENERATE", "reports/case",
+            f"Case report for {fir_id}: {Path(pdf_path).name}",
+            _client_ip(http_request)
+        )
     except Exception as e:
         logger.error("PDF generation error: %s", e)
         raise HTTPException(status_code=500, detail=f"PDF generation failed: {e}")
@@ -689,7 +864,7 @@ async def generate_report(request: ReportRequest):
 
 
 @app.post("/api/reports/district")
-async def generate_district_report_endpoint(request: DistrictReportRequest):
+async def generate_district_report_endpoint(request: DistrictReportRequest, http_request: Request, user: dict = Depends(get_current_user)):
     """Generate and download a PDF district crime report."""
     from analytics import get_district_stats
 
@@ -705,6 +880,13 @@ async def generate_district_report_endpoint(request: DistrictReportRequest):
 
     try:
         pdf_path = await generate_district_report(district, district_stats, ai_insights)
+        await _archive_report(pdf_path, "district", district, user)
+        await log_audit(
+            user.get("username"), user.get("role"),
+            "REPORT_GENERATE", "reports/district",
+            f"District report for {district}: {Path(pdf_path).name}",
+            _client_ip(http_request)
+        )
     except Exception as e:
         logger.error("District report error: %s", e)
         raise HTTPException(status_code=500, detail=str(e))
@@ -717,7 +899,7 @@ async def generate_district_report_endpoint(request: DistrictReportRequest):
 
 
 @app.post("/api/reports/offender")
-async def generate_offender_report_endpoint(request: OffenderReportRequest):
+async def generate_offender_report_endpoint(request: OffenderReportRequest, http_request: Request, user: dict = Depends(get_current_user)):
     """Generate and download a PDF offender profile dossier."""
     offender_id = request.offender_id.upper()
     
@@ -729,6 +911,13 @@ async def generate_offender_report_endpoint(request: OffenderReportRequest):
     try:
         from report import generate_offender_report
         pdf_path = await generate_offender_report(offender_id, data)
+        await _archive_report(pdf_path, "offender", offender_id, user)
+        await log_audit(
+            user.get("username"), user.get("role"),
+            "REPORT_GENERATE", "reports/offender",
+            f"Offender report for {offender_id}: {Path(pdf_path).name}",
+            _client_ip(http_request)
+        )
     except Exception as e:
         logger.error("Offender report generation failed: %s", e)
         raise HTTPException(status_code=500, detail=str(e))
@@ -741,7 +930,7 @@ async def generate_offender_report_endpoint(request: OffenderReportRequest):
 
 
 @app.post("/api/reports/network")
-async def generate_network_report_endpoint(request: NetworkReportRequest):
+async def generate_network_report_endpoint(request: NetworkReportRequest, http_request: Request, user: dict = Depends(get_current_user)):
     """Generate and download a PDF report containing the criminal network graph."""
     try:
         import base64
@@ -752,6 +941,14 @@ async def generate_network_report_endpoint(request: NetworkReportRequest):
         
         from report import generate_network_pdf_report
         pdf_path = await generate_network_pdf_report(img_bytes, request.district, request.crime_type)
+        subject = " / ".join([v for v in [request.district, request.crime_type] if v]) or "network"
+        await _archive_report(pdf_path, "network", subject, user)
+        await log_audit(
+            user.get("username"), user.get("role"),
+            "REPORT_GENERATE", "reports/network",
+            f"Network report {Path(pdf_path).name}",
+            _client_ip(http_request)
+        )
         
         return FileResponse(
             path=pdf_path,
@@ -764,7 +961,7 @@ async def generate_network_report_endpoint(request: NetworkReportRequest):
 
 
 @app.post("/api/reports/recommendations")
-async def generate_recommendations_report_endpoint(request: RecommendationsReportRequest):
+async def generate_recommendations_report_endpoint(request: RecommendationsReportRequest, http_request: Request, user: dict = Depends(get_current_user)):
     """Generate and download a PDF containing AI recommendations."""
     district = request.district
     crime_type = request.crime_type
@@ -778,6 +975,14 @@ async def generate_recommendations_report_endpoint(request: RecommendationsRepor
 
     try:
         pdf_path = await generate_recommendations_report(district, crime_type, recommendations)
+        subject = " / ".join([v for v in [district, crime_type] if v]) or "statewide"
+        await _archive_report(pdf_path, "recommendations", subject, user)
+        await log_audit(
+            user.get("username"), user.get("role"),
+            "REPORT_GENERATE", "reports/recommendations",
+            f"Recommendations report {Path(pdf_path).name}",
+            _client_ip(http_request)
+        )
     except Exception as e:
         logger.error("Recommendations report PDF generation error: %s", e)
         raise HTTPException(status_code=500, detail=f"PDF generation failed: {e}")
@@ -791,21 +996,29 @@ async def generate_recommendations_report_endpoint(request: RecommendationsRepor
 
 @app.get("/api/reports/list")
 
-async def list_reports():
+async def list_reports(user: dict = Depends(get_current_user)):
     """List all generated PDF reports."""
-    reports = []
+    reports = await list_report_archive(100)
+    seen = {r["filename"] for r in reports}
     if REPORTS_DIR.exists():
         for f in sorted(REPORTS_DIR.glob("*.pdf"), reverse=True):
-            reports.append({
-                "filename": f.name,
-                "size_kb":  round(f.stat().st_size / 1024, 1),
-                "created":  f.stat().st_mtime
-            })
+            if f.name not in seen:
+                reports.append({
+                    "filename": f.name,
+                    "report_type": "legacy",
+                    "subject": "",
+                    "size_kb":  round(f.stat().st_size / 1024, 1),
+                    "created":  f.stat().st_mtime,
+                    "created_at": None,
+                    "storage_mode": "local-appsail",
+                    "storage_uri": f"/api/reports/download/{f.name}",
+                    "status": "ready",
+                })
     return reports
 
 
 @app.get("/api/reports/download/{filename}")
-async def download_report_file(filename: str):
+async def download_report_file(filename: str, http_request: Request, user: dict = Depends(get_current_user)):
     """
     Serve a generated PDF report file with guaranteed application/pdf content-type
     and Content-Disposition: attachment so browsers download it instead of displaying it.
@@ -817,6 +1030,12 @@ async def download_report_file(filename: str):
     pdf_path = REPORTS_DIR / filename
     if not pdf_path.exists():
         raise HTTPException(status_code=404, detail=f"Report '{filename}' not found")
+    await log_audit(
+        user.get("username"), user.get("role"),
+        "REPORT_DOWNLOAD", "reports",
+        f"Downloaded {filename}",
+        _client_ip(http_request)
+    )
     
     return FileResponse(
         path=str(pdf_path),

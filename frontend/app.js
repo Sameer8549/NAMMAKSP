@@ -695,6 +695,7 @@ async function initDashboardCharts() {
     if (districts)  renderDistrictCards(districts);
     if (recentFIRs) renderFIRTable(recentFIRs);
     if (advancedIntel) renderAdvancedIntelligence(advancedIntel);
+    loadDashboardOperations();
   } catch (err) {
     showToast('Failed to load dashboard data: ' + err.message, 'error');
     console.error(err);
@@ -875,6 +876,61 @@ function renderAdvancedIntelligence(data) {
     </div>
   `;
   translatePageUI();
+}
+
+async function loadDashboardOperations() {
+  const grid = document.getElementById('dashboard-ops-grid');
+  if (!grid) return;
+  try {
+    const status = await apiFetch('/api/system/status');
+    if (!status) return;
+    renderOperationsGrid(grid, status);
+  } catch (err) {
+    grid.innerHTML = `<div class="ops-muted">Operations status is available to Admin users.</div>`;
+  }
+}
+
+function renderOperationsGrid(container, status) {
+  const runtime = status.runtime || {};
+  const database = status.database || {};
+  const alerts = status.alerts || {};
+  const reports = status.reports || {};
+  const jobs = status.jobs || {};
+  const latestReport = reports.latest;
+  const latestJob = jobs.latest;
+
+  container.innerHTML = `
+    <div class="ops-card">
+      <div class="ops-label">Runtime</div>
+      <div class="ops-value">${escapeHTML(runtime.platform || 'Local development')}</div>
+      <div class="ops-detail">${runtime.catalyst_file_store_configured ? 'Catalyst File Store configured' : 'Local AppSail report storage'}</div>
+    </div>
+    <div class="ops-card">
+      <div class="ops-label">Report Archive</div>
+      <div class="ops-value">${Number(runtime.report_archive_rows || 0).toLocaleString()}</div>
+      <div class="ops-detail">${escapeHTML(latestReport?.filename || 'No archived report yet')}</div>
+    </div>
+    <div class="ops-card">
+      <div class="ops-label">Open Alerts</div>
+      <div class="ops-value">${Number(alerts.open || 0).toLocaleString()}</div>
+      <div class="ops-detail">${escapeHTML(alerts.latest?.district || 'No active warning')}</div>
+    </div>
+    <div class="ops-card">
+      <div class="ops-label">Last Job</div>
+      <div class="ops-value">${escapeHTML(latestJob?.status || 'Not run')}</div>
+      <div class="ops-detail">${escapeHTML(latestJob?.job_name || 'daily-intelligence-refresh')} · ${escapeHTML(formatAuditTimestamp(latestJob?.started_at || ''))}</div>
+    </div>
+    <div class="ops-card">
+      <div class="ops-label">Datasets</div>
+      <div class="ops-value">${Number(database.firs || 0).toLocaleString()}</div>
+      <div class="ops-detail">FIR rows · ${Number(database.financial_transactions || 0)} financial · ${Number(database.socio_economic_indicators || 0)} socio-economic</div>
+    </div>
+    <div class="ops-card">
+      <div class="ops-label">Audit Events</div>
+      <div class="ops-value">${Number(database.audit_logs || 0).toLocaleString()}</div>
+      <div class="ops-detail">${escapeHTML(status.audit?.latest?.action || 'No audit event')}</div>
+    </div>
+  `;
 }
 
 function renderFIRTable(firs) {
@@ -2232,15 +2288,19 @@ async function loadReportsList() {
       return;
     }
     tbody.innerHTML = data.map(r => {
-      const date = new Date(r.created * 1000).toLocaleDateString('en-IN');
+      const dateValue = r.created_at ? new Date((r.created_at.includes('T') ? r.created_at : r.created_at.replace(' ', 'T') + 'Z')) : new Date((r.created || 0) * 1000);
+      const date = Number.isNaN(dateValue.getTime()) ? '—' : dateValue.toLocaleDateString('en-IN');
+      const reportType = r.report_type ? r.report_type.replace(/_/g, ' ') : 'Generated Report';
+      const owner = r.generated_by || getUsername();
+      const status = r.status || 'ready';
       return `
         <tr>
           <td class="report-id">${r.filename.replace('.pdf','')}</td>
           <td>${r.filename}</td>
-          <td>Generated Report</td>
+          <td>${escapeHTML(reportType)}${r.subject ? `<div class="text-muted text-sm">${escapeHTML(r.subject)}</div>` : ''}</td>
           <td>${date}</td>
-          <td>${getUsername()}</td>
-          <td><span class="badge badge-ready">Ready</span></td>
+          <td>${escapeHTML(owner)}</td>
+          <td><span class="badge badge-ready">${escapeHTML(status)}</span></td>
           <td>
             <button class="btn btn-outline btn-sm" onclick="downloadReport('${r.filename}')">
               <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
@@ -2368,11 +2428,14 @@ async function downloadReport(filename) {
 // ═══════════════════════════════════════════════════════════════════════════════
 
 async function initUsersPage() {
-  await Promise.all([loadUsersList(), loadAuditLogs()]);
+  await Promise.all([loadUsersList(), loadAuditLogs(), loadSystemStatus(), loadEarlyWarningAlerts()]);
 
   if (window._auditRefreshTimer) clearInterval(window._auditRefreshTimer);
   window._auditRefreshTimer = setInterval(() => {
-    if (document.visibilityState === 'visible') loadAuditLogs({ silent: true });
+    if (document.visibilityState === 'visible') {
+      loadAuditLogs({ silent: true });
+      loadSystemStatus({ silent: true });
+    }
   }, 15000);
 }
 
@@ -2419,6 +2482,55 @@ async function loadAuditLogs({ silent = false } = {}) {
     }).join('');
   } catch (err) {
     if (!silent) showToast('Failed to load audit log: ' + err.message, 'error');
+  }
+}
+
+async function loadSystemStatus({ silent = false } = {}) {
+  const grid = document.getElementById('system-status-grid');
+  if (!grid) return;
+  try {
+    const status = await apiFetch('/api/system/status');
+    if (!status) return;
+    renderOperationsGrid(grid, status);
+  } catch (err) {
+    grid.innerHTML = `<div class="ops-muted">Failed to load system status.</div>`;
+    if (!silent) showToast('Failed to load system status: ' + err.message, 'error');
+  }
+}
+
+async function loadEarlyWarningAlerts({ silent = false } = {}) {
+  const list = document.getElementById('early-warning-list');
+  if (!list) return;
+  try {
+    const alerts = await apiFetch('/api/alerts/early-warning?limit=8');
+    if (!alerts) return;
+    if (!alerts.length) {
+      list.innerHTML = '<div class="ops-muted">No forecast alerts recorded yet. Run refresh to generate the latest warning ledger.</div>';
+      return;
+    }
+    list.innerHTML = alerts.map(alert => `
+      <div class="ops-alert">
+        <div>
+          <div class="ops-alert-title">${escapeHTML(alert.signal || 'Early warning')}</div>
+          <div class="ops-alert-detail">${escapeHTML(alert.district || 'Statewide')} · ${escapeHTML(formatAuditTimestamp(alert.created_at))}</div>
+          <div class="ops-alert-detail">${escapeHTML(alert.detail || '')}</div>
+        </div>
+        <span class="badge ${alert.severity === 'High' ? 'badge-high' : 'badge-medium'}">${escapeHTML(alert.severity || 'Medium')}</span>
+      </div>
+    `).join('');
+  } catch (err) {
+    list.innerHTML = '<div class="ops-muted">Failed to load early-warning alerts.</div>';
+    if (!silent) showToast('Failed to load alerts: ' + err.message, 'error');
+  }
+}
+
+async function runDailyIntelligenceRefresh() {
+  try {
+    const result = await apiFetch('/api/jobs/daily-intelligence-refresh', { method: 'POST' });
+    showToast(`Refresh complete: ${result.recorded_alerts || 0} alerts recorded`, 'success');
+    await Promise.all([loadSystemStatus(), loadEarlyWarningAlerts(), loadAuditLogs()]);
+  } catch (err) {
+    showToast('Refresh failed: ' + err.message, 'error');
   }
 }
 
