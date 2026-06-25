@@ -1321,6 +1321,15 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 /* 26. OFFENDER PROFILE */
+.offender-profile-summary-grid {
+  align-items: start;
+}
+
+.offender-profile-identity-card {
+  align-self: start;
+  min-height: 0;
+}
+
 .offender-avatar {
   width: 80px;
   height: 80px;
