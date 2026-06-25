@@ -439,6 +439,51 @@ async def system_status(admin_user: dict = Depends(require_admin)):
     }
 
 
+@app.get("/api/system/summary")
+async def system_summary(user: dict = Depends(get_current_user)):
+    """Role-safe operations summary for investigator dashboards."""
+    stats = await get_db_stats()
+    open_alert = await fetch_one("SELECT COUNT(*) AS cnt FROM alert_events WHERE status = 'open'")
+    latest_report = await fetch_one("""
+        SELECT filename, report_type, created_at, storage_mode
+        FROM report_archive
+        ORDER BY id DESC
+        LIMIT 1
+    """)
+    latest_job = await fetch_one("""
+        SELECT started_at, job_name, status
+        FROM job_runs
+        ORDER BY id DESC
+        LIMIT 1
+    """)
+    return {
+        "runtime": {
+            "platform": "Zoho Catalyst AppSail" if os.getenv("X_ZOHO_CATALYST_LISTEN_PORT") else "Local development",
+            "storage_mode": _report_storage_mode(),
+            "reports_on_disk": len(list(REPORTS_DIR.glob("*.pdf"))) if REPORTS_DIR.exists() else 0,
+            "report_archive_rows": stats.get("report_archive", 0),
+            "catalyst_file_store_configured": bool(os.getenv("CATALYST_REPORTS_FOLDER_ID")),
+        },
+        "database": {
+            "firs": stats.get("firs", 0),
+            "financial_transactions": stats.get("financial_transactions", 0),
+            "socio_economic_indicators": stats.get("socio_economic_indicators", 0),
+            "report_archive": stats.get("report_archive", 0),
+            "alert_events": stats.get("alert_events", 0),
+        },
+        "alerts": {
+            "open": open_alert["cnt"] if open_alert else 0,
+            "latest": (await list_alert_events(1))[0] if stats.get("alert_events", 0) else None,
+        },
+        "reports": {
+            "latest": latest_report,
+        },
+        "jobs": {
+            "latest": latest_job,
+        }
+    }
+
+
 # ═══════════════════════════════════════════════════════════════════════════════
 # AUTHENTICATION ENDPOINTS
 # ═══════════════════════════════════════════════════════════════════════════════

@@ -2045,6 +2045,17 @@ h1, h2, h3, h4, h5, h6 {
   margin-top: var(--space-md);
 }
 
+.login-role-note {
+  margin: 2px 0 var(--space-md);
+  padding: 10px 12px;
+  border: 1px solid rgba(42, 127, 127, 0.18);
+  border-radius: var(--radius-md);
+  background: rgba(42, 127, 127, 0.08);
+  color: var(--color-secondary);
+  font-size: 12px;
+  line-height: 1.45;
+}
+
 @media (max-width: 768px) {
   .login-page {
     grid-template-columns: 1fr;

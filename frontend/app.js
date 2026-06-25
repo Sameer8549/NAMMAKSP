@@ -424,9 +424,8 @@ async function handleLogin(e) {
   const errEl = document.getElementById('login-error');
   const username = document.getElementById('username').value.trim();
   const password = document.getElementById('password').value;
-  const role     = document.getElementById('role').value;
 
-  if (!username || !password || !role) {
+  if (!username || !password) {
     showLoginError('Please fill in all fields.'); return;
   }
 
@@ -448,11 +447,6 @@ async function handleLogin(e) {
 
     const json = await data.json();
 
-    // Verify role matches
-    if (json.role !== role) {
-      throw new Error(`This account is not registered as ${role}. It is ${json.role}.`);
-    }
-
     setSession(json.token, json.username, json.role);
     location.href = 'dashboard.html';
   } catch (err) {
@@ -469,14 +463,13 @@ function showLoginError(msg) {
 
 function fillDemo(type) {
   const creds = {
-    admin:       { u: 'admin',   p: 'admin123',   r: 'Admin' },
-    investigator:{ u: 'officer', p: 'officer123',  r: 'Investigator' }
+    admin:       { u: 'admin',   p: 'admin123' },
+    investigator:{ u: 'officer', p: 'officer123' }
   };
   const c = creds[type];
   if (!c) return;
   document.getElementById('username').value = c.u;
   document.getElementById('password').value = c.p;
-  document.getElementById('role').value     = c.r;
 }
 
 // ─── Logout ───────────────────────────────────────────────────────────────────
@@ -882,11 +875,11 @@ async function loadDashboardOperations() {
   const grid = document.getElementById('dashboard-ops-grid');
   if (!grid) return;
   try {
-    const status = await apiFetch('/api/system/status');
+    const status = await apiFetch('/api/system/summary');
     if (!status) return;
     renderOperationsGrid(grid, status);
   } catch (err) {
-    grid.innerHTML = `<div class="ops-muted">Operations status is available to Admin users.</div>`;
+    grid.innerHTML = `<div class="ops-muted">Operations status could not be loaded.</div>`;
   }
 }
 
