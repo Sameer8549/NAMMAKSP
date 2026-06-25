@@ -688,6 +688,7 @@ async function initDashboardCharts() {
     if (districts)  renderDistrictCards(districts);
     if (recentFIRs) renderFIRTable(recentFIRs);
     if (advancedIntel) renderAdvancedIntelligence(advancedIntel);
+    renderStrategicBriefing({ overview, trends, crimeTypes, districts, recentFIRs, advancedIntel });
     loadDashboardOperations();
   } catch (err) {
     showToast('Failed to load dashboard data: ' + err.message, 'error');
@@ -869,6 +870,151 @@ function renderAdvancedIntelligence(data) {
     </div>
   `;
   translatePageUI();
+}
+
+function renderStrategicBriefing({ overview, trends, crimeTypes, districts, recentFIRs, advancedIntel }) {
+  const container = document.getElementById('strategic-briefing');
+  if (!container) return;
+
+  const forecast = advancedIntel?.forecast?.summary || {};
+  const warnings = advancedIntel?.forecast?.early_warnings || [];
+  const socio = advancedIntel?.sociological?.summary || {};
+  const socialDistricts = advancedIntel?.sociological?.district_social_risk || [];
+  const financial = advancedIntel?.financial?.summary || {};
+  const clusters = advancedIntel?.financial?.clusters || [];
+  const evidence = advancedIntel?.explainable?.evidence_trails || [];
+  const priorityDistrict = warnings[0]?.district || socialDistricts[0]?.district || districts?.[0]?.district || 'Statewide';
+  const dominantCrime = crimeTypes?.[0]?.crime_type || recentFIRs?.[0]?.crime_type || 'mixed crime patterns';
+  const activeCases = Number(overview?.open_cases || 0);
+  const totalFirs = Number(overview?.total_firs || 0);
+  const openRate = totalFirs ? Math.round((activeCases / totalFirs) * 100) : 0;
+  const forecastValue = Number(forecast.next_month_forecast || 0);
+  const trendDirection = forecast.trend_direction || 'Stable';
+  const clusterScore = Number(clusters[0]?.link_score || 0);
+  const warningLevel = warnings[0]?.alert_level || (forecastValue > 0 ? trendDirection : 'Stable');
+  const posture = computeStrategicPosture({ warnings, openRate, clusterScore, socialRisk: socialDistricts[0]?.social_risk_index });
+  const monthlyLift = computeRecentTrendLift(trends || []);
+  const evidenceConfidence = evidence.length >= 4 ? 'Strong' : evidence.length >= 2 ? 'Moderate' : 'Developing';
+  const chatQuery = [
+    `Prepare an evidence-backed operational briefing for ${priorityDistrict}.`,
+    `Focus on ${dominantCrime}, ${warningLevel} early warning, ${openRate}% active-case pressure, financial link score ${clusterScore}, and recommended prevention actions.`
+  ].join(' ');
+
+  const decisionCards = [
+    {
+      label: 'Risk posture',
+      value: posture.label,
+      detail: posture.detail,
+      tone: posture.tone
+    },
+    {
+      label: 'Priority district',
+      value: priorityDistrict,
+      detail: `${warningLevel} warning · ${monthlyLift >= 0 ? '+' : ''}${monthlyLift}% recent momentum`,
+      tone: warningLevel === 'High' ? 'danger' : 'primary'
+    },
+    {
+      label: 'Dominant pattern',
+      value: dominantCrime,
+      detail: `${socio.dominant_age_band || 'Unknown age band'} · ${socio.dominant_gender || 'mixed demographic'}`,
+      tone: 'accent'
+    },
+    {
+      label: 'Financial signal',
+      value: `${financial.suspicious_clusters || 0} clusters`,
+      detail: `${financial.candidate_cases || 0} candidate cases · top score ${clusterScore}`,
+      tone: clusterScore >= 80 ? 'danger' : 'secondary'
+    }
+  ];
+
+  const actions = buildStrategicActions({ priorityDistrict, dominantCrime, warnings, clusters, activeCases, evidenceConfidence });
+
+  container.innerHTML = `
+    <div class="strategic-briefing-main">
+      <div class="strategic-posture ${posture.tone}">
+        <span>Operational posture</span>
+        <strong>${escapeHTML(posture.label)}</strong>
+        <p>${escapeHTML(posture.detail)}</p>
+      </div>
+      <div class="strategic-decision-grid">
+        ${decisionCards.map(card => `
+          <div class="strategic-decision ${card.tone}">
+            <span>${escapeHTML(card.label)}</span>
+            <strong>${escapeHTML(card.value)}</strong>
+            <p>${escapeHTML(card.detail)}</p>
+          </div>
+        `).join('')}
+      </div>
+    </div>
+    <div class="strategic-action-row">
+      ${actions.map(action => `
+        <div class="strategic-action">
+          <span>${escapeHTML(action.priority)}</span>
+          <strong>${escapeHTML(action.title)}</strong>
+          <p>${escapeHTML(action.detail)}</p>
+        </div>
+      `).join('')}
+    </div>
+    <div class="strategic-evidence-row">
+      <div>
+        <span>Evidence confidence</span>
+        <strong>${escapeHTML(evidenceConfidence)}</strong>
+        <p>${evidence.length || 0} explainability trails · ${Number(financial.candidate_cases || 0).toLocaleString()} financial/cyber-adjacent candidates · ${Number(socialDistricts.length || 0)} socio-economic district profiles.</p>
+      </div>
+      <div class="strategic-links">
+        <a class="btn btn-primary btn-sm" href="chat.html?q=${encodeURIComponent(chatQuery)}">Ask AI</a>
+        <a class="btn btn-outline btn-sm" href="heatmap.html?district=${encodeURIComponent(priorityDistrict)}">Heatmap</a>
+        <a class="btn btn-outline btn-sm" href="network.html">Network</a>
+        <a class="btn btn-accent btn-sm" href="reports.html">Report</a>
+      </div>
+    </div>
+  `;
+  translatePageUI();
+}
+
+function computeStrategicPosture({ warnings, openRate, clusterScore, socialRisk }) {
+  const highWarning = warnings.some(w => (w.alert_level || w.severity || '').toLowerCase() === 'high');
+  const score = (highWarning ? 35 : 0) + Math.min(openRate, 35) + Math.min(clusterScore / 3, 30) + Math.min(Number(socialRisk || 0) / 8, 15);
+  if (score >= 75) {
+    return { label: 'Critical watch', tone: 'danger', detail: 'Multiple signals indicate immediate supervisor review and focused field coordination.' };
+  }
+  if (score >= 48) {
+    return { label: 'Elevated', tone: 'accent', detail: 'Risk signals are converging; prioritize district review and linked offender monitoring.' };
+  }
+  return { label: 'Controlled', tone: 'primary', detail: 'Current signals are explainable and manageable with routine intelligence follow-up.' };
+}
+
+function computeRecentTrendLift(trends) {
+  if (!trends.length) return 0;
+  const recent = trends.slice(-3).reduce((sum, row) => sum + Number(row.count || 0), 0) / Math.min(3, trends.length);
+  const priorSet = trends.slice(-6, -3);
+  const prior = priorSet.length ? priorSet.reduce((sum, row) => sum + Number(row.count || 0), 0) / priorSet.length : recent;
+  if (!prior) return 0;
+  return Math.round(((recent - prior) / prior) * 100);
+}
+
+function buildStrategicActions({ priorityDistrict, dominantCrime, warnings, clusters, activeCases, evidenceConfidence }) {
+  const topCluster = clusters[0];
+  const topWarning = warnings[0];
+  return [
+    {
+      priority: topWarning?.alert_level || 'Priority 1',
+      title: `Stabilize ${priorityDistrict}`,
+      detail: topWarning?.recommended_action || `Review hotspot patrol posture and recent ${dominantCrime} FIR clusters.`
+    },
+    {
+      priority: topCluster ? 'Priority 2' : 'Priority 3',
+      title: topCluster ? 'Trace linked accounts' : 'Review repeat-offender graph',
+      detail: topCluster
+        ? `Top financial/cyber-adjacent link ${topCluster.account || topCluster.offender_id || 'cluster'} scored ${topCluster.link_score || 0}.`
+        : 'Use offender and relationship graph to identify repeat links before escalation.'
+    },
+    {
+      priority: evidenceConfidence,
+      title: 'Document evidence trail',
+      detail: `${Number(activeCases || 0).toLocaleString()} active cases should retain clear data references for supervisor review.`
+    }
+  ];
 }
 
 async function loadDashboardOperations() {
