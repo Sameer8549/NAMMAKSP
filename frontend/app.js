@@ -2912,7 +2912,21 @@ async function generateCommandDossier() {
       body: JSON.stringify({ fir_id: meta.fir_id, offender_id: meta.offender_id, district: meta.district })
     });
     if (!res.ok) throw new Error((await res.json().catch(() => ({}))).detail || 'Dossier failed');
-    const report = await res.json();
+    const contentType = res.headers.get('content-type') || '';
+    let report = null;
+    if (contentType.includes('application/json')) {
+      report = await res.json();
+    } else {
+      const blob = await res.blob();
+      const disposition = res.headers.get('content-disposition') || '';
+      const filename = parseDownloadFilename(disposition) || `investigation_dossier_${Date.now()}.pdf`;
+      triggerFileDownload(blob, filename);
+      report = {
+        filename,
+        pdf_url: `${API_BASE}/api/reports/qr/${encodeURIComponent(filename)}`,
+        qr_url: `${API_BASE}/api/reports/qr/${encodeURIComponent(filename)}`
+      };
+    }
     if (resultEl) {
       resultEl.innerHTML = `
         <div class="command-report-ready">
@@ -2936,6 +2950,14 @@ async function generateCommandDossier() {
   } finally {
     if (btn) btn.disabled = false;
   }
+}
+
+function parseDownloadFilename(disposition) {
+  if (!disposition) return '';
+  const utfMatch = disposition.match(/filename\*=UTF-8''([^;]+)/i);
+  if (utfMatch) return decodeURIComponent(utfMatch[1].replace(/['"]/g, '').trim());
+  const plainMatch = disposition.match(/filename="?([^";]+)"?/i);
+  return plainMatch ? plainMatch[1].trim() : '';
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
