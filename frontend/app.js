@@ -404,6 +404,7 @@ function authGuard() {
     }
 
     applyUserUI();
+    injectCommandCenterNav();
     initSidebar();
     initHeaderActions();
     highlightActiveNav();
@@ -517,6 +518,23 @@ function initAdminGating() {
     showToast('Admin access required', 'error');
     setTimeout(() => location.href = 'dashboard.html', 1500);
   }
+}
+
+function injectCommandCenterNav() {
+  const nav = document.querySelector('.sidebar-nav');
+  if (!nav || nav.querySelector('[data-page="command.html"]')) return;
+  const reportsLink = nav.querySelector('[data-page="reports.html"]');
+  const item = document.createElement('a');
+  item.href = 'command.html';
+  item.className = 'nav-item';
+  item.dataset.page = 'command.html';
+  item.innerHTML = `
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <path d="M12 2l7 4v6c0 5-3 9-7 10-4-1-7-5-7-10V6z"/>
+      <path d="M9 12l2 2 4-5"/>
+    </svg><span class="nav-label">Command Center</span>`;
+  if (reportsLink) reportsLink.insertAdjacentElement('afterend', item);
+  else nav.appendChild(item);
 }
 
 function highlightActiveNav() {
@@ -1152,9 +1170,13 @@ function initChat() {
   const params = new URLSearchParams(window.location.search);
   const autoQuery = params.get('q');
   const firId = params.get('fir');
+  const storedQuery = sessionStorage.getItem('cl_prefill_chat');
+  if (storedQuery) sessionStorage.removeItem('cl_prefill_chat');
   
   let queryText = '';
-  if (autoQuery) {
+  if (storedQuery) {
+    queryText = storedQuery;
+  } else if (autoQuery) {
     queryText = autoQuery;
   } else if (firId) {
     queryText = `Summarize FIR case ${firId} and analyze its connections.`;
@@ -2612,6 +2634,198 @@ function activateUser(name)   { showToast(`Activate user: backend integration ne
 function deactivateUser(name) { showToast(`Deactivate user: backend integration needed`, 'info'); }
 
 // ═══════════════════════════════════════════════════════════════════════════════
+// INVESTIGATION COMMAND CENTER
+// ═══════════════════════════════════════════════════════════════════════════════
+
+let _commandWorkspace = null;
+
+async function initCommandCenter() {
+  const params = new URLSearchParams(location.search);
+  const fir = params.get('fir') || 'FIR00001';
+  const offender = params.get('offender') || '';
+  const district = params.get('district') || '';
+  const firInput = document.getElementById('command-fir-id');
+  const offenderInput = document.getElementById('command-offender-id');
+  const districtInput = document.getElementById('command-district');
+  if (firInput) firInput.value = fir;
+  if (offenderInput) offenderInput.value = offender;
+  if (districtInput) districtInput.value = district;
+  await loadCommandWorkspace();
+}
+
+async function loadCommandWorkspace() {
+  const loading = document.getElementById('command-loading');
+  const workspaceEl = document.getElementById('command-workspace');
+  const fir = document.getElementById('command-fir-id')?.value?.trim();
+  const offender = document.getElementById('command-offender-id')?.value?.trim();
+  const district = document.getElementById('command-district')?.value?.trim();
+  const qs = new URLSearchParams();
+  if (fir) qs.set('fir_id', fir);
+  if (offender) qs.set('offender_id', offender);
+  if (district) qs.set('district', district);
+
+  if (loading) loading.style.display = '';
+  if (workspaceEl) workspaceEl.style.display = 'none';
+  try {
+    _commandWorkspace = await apiFetch(`/api/workspace/brief?${qs.toString()}`);
+    renderCommandWorkspace(_commandWorkspace);
+    if (workspaceEl) workspaceEl.style.display = '';
+  } catch (err) {
+    showToast('Failed to load command workspace: ' + err.message, 'error');
+  } finally {
+    if (loading) loading.style.display = 'none';
+  }
+}
+
+function renderCommandWorkspace(data) {
+  const meta = data.workspace || {};
+  const c = data.case || {};
+  const o = data.offender || {};
+  const confidence = data.confidence || {};
+  const setHtml = (id, html) => { const el = document.getElementById(id); if (el) el.innerHTML = html; };
+  const setText = (id, text) => { const el = document.getElementById(id); if (el) el.textContent = text; };
+
+  setText('command-generated-at', formatAuditTimestamp(meta.generated_at || ''));
+  setHtml('command-kpis', `
+    ${commandKpi('FIR', meta.fir_id || 'N/A', c.crime_type || 'Loaded case')}
+    ${commandKpi('Offender', meta.offender_id || 'N/A', o.name || 'Linked profile')}
+    ${commandKpi('Network', `${data.network?.nodes || 0} nodes`, `${data.network?.edges || 0} edges`)}
+    ${commandKpi('Confidence', `${confidence.overall || 0}/100`, 'Evidence-backed')}
+  `);
+
+  setHtml('command-case-board', `
+    <div class="command-case-head">
+      <div class="command-avatar">${escapeHTML((o.name || c.offender_name || 'NK').split(' ').map(x => x[0]).join('').slice(0,2).toUpperCase())}</div>
+      <div>
+        <div class="command-case-title">${escapeHTML(c.crime_type || 'Investigation Workspace')}</div>
+        <div class="command-case-sub">${escapeHTML(c.district || meta.district || 'Karnataka')} · ${escapeHTML(c.police_station || 'Police Station')} · ${escapeHTML(c.status || 'Active')}</div>
+      </div>
+    </div>
+    <div class="command-pin-grid">
+      ${commandPin('Victim', c.victim_name || 'N/A')}
+      ${commandPin('Accused', o.name || c.offender_name || 'N/A')}
+      ${commandPin('Location', `${c.latitude || '-'}, ${c.longitude || '-'}`)}
+      ${commandPin('Prior FIRs', o.previous_firs ?? c.previous_firs ?? 'N/A')}
+      ${commandPin('Financial Links', (data.financial_links || []).length)}
+      ${commandPin('Related Cases', (data.related_cases || []).length)}
+    </div>
+  `);
+
+  setHtml('command-confidence', `
+    <div class="command-score-ring"><span>${confidence.overall || 0}</span><small>/100</small></div>
+    <div class="command-list">
+      ${(confidence.basis || []).map(item => `
+        <div class="command-row">
+          <div><strong>${escapeHTML(item.label)}</strong><span>${escapeHTML(item.status)}</span></div>
+          <b>${escapeHTML(item.score)}</b>
+        </div>`).join('')}
+    </div>
+  `);
+
+  setHtml('command-evidence', (data.evidence_refs || []).map(e => `
+    <div class="command-row">
+      <div><strong>${escapeHTML(e.type)} · ${escapeHTML(e.id || '-')}</strong><span>${escapeHTML(e.label || '')}</span></div>
+      <b>${escapeHTML(e.source || '')}</b>
+    </div>`).join('') || '<div class="ops-muted">No evidence references found.</div>');
+
+  setHtml('command-leads', (data.leads || []).map(lead => `
+    <div class="command-row">
+      <div><strong>${escapeHTML(lead.action)}</strong><span>${escapeHTML(lead.reason)}</span></div>
+      <span class="badge ${lead.priority === 'High' ? 'badge-high' : 'badge-medium'}">${escapeHTML(lead.priority)}</span>
+    </div>`).join(''));
+
+  setHtml('command-timeline', (data.timeline || []).map(item => `
+    <div class="command-timeline-item">
+      <div class="command-timeline-date">${escapeHTML(item.date || '-')}</div>
+      <div><strong>${escapeHTML(item.fir_id || '-')}</strong><span>${escapeHTML(item.crime_type || '')} · ${escapeHTML(item.status || '')}</span></div>
+    </div>`).join('') || '<div class="ops-muted">No timeline records found.</div>');
+
+  const alerts = (data.alerts || []).slice(0, 3).map(a => `${a.severity}: ${a.district || 'Statewide'}`).join('<br>');
+  setHtml('command-intel', `
+    ${commandIntelRow('Network graph', `${data.network?.nodes || 0} nodes / ${data.network?.edges || 0} edges`)}
+    ${commandIntelRow('Financial intelligence', `${(data.financial_links || []).length} linked transactions`)}
+    ${commandIntelRow('Early warnings', alerts || 'No active warnings')}
+    ${commandIntelRow('Role dashboard', `${getRole() || 'Investigator'} workflow active`)}
+  `);
+
+  setHtml('command-ai-summary', `
+    <strong>AI Case Summary</strong>
+    <p>${escapeHTML(data.ai_summary || 'No AI summary available.')}</p>
+    <strong>Recommended prevention action</strong>
+    <p>${escapeHTML((data.recommendations || '').slice(0, 700))}</p>
+  `);
+}
+
+function commandKpi(label, value, detail) {
+  return `<div class="command-kpi"><span>${escapeHTML(label)}</span><strong>${escapeHTML(value)}</strong><small>${escapeHTML(detail)}</small></div>`;
+}
+
+function commandPin(label, value) {
+  return `<div class="command-pin"><span>${escapeHTML(label)}</span><strong>${escapeHTML(String(value ?? 'N/A'))}</strong></div>`;
+}
+
+function commandIntelRow(label, value) {
+  return `<div class="command-row"><div><strong>${escapeHTML(label)}</strong><span>${value}</span></div></div>`;
+}
+
+function askCommandAI() {
+  if (!_commandWorkspace) return;
+  const meta = _commandWorkspace.workspace || {};
+  const q = `Analyze investigation workspace ${meta.fir_id || meta.offender_id || meta.district}. Give evidence-backed next leads, network links, prevention actions, and confidence caveats.`;
+  sessionStorage.setItem('cl_prefill_chat', q);
+  location.href = 'chat.html';
+}
+
+async function speakCommandSummary() {
+  if (!_commandWorkspace) return;
+  const text = (_commandWorkspace.ai_summary || '').slice(0, 900);
+  if (!text) return;
+  try {
+    const res = await fetch(`${API_BASE}/api/tts`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${getToken()}` },
+      body: JSON.stringify({ text, language: localStorage.getItem('cl_lang') === 'kn' ? 'kn' : 'en' })
+    });
+    if (!res.ok) throw new Error('TTS failed');
+    const blob = await res.blob();
+    new Audio(URL.createObjectURL(blob)).play();
+  } catch (err) {
+    showToast('Voice summary failed: ' + err.message, 'error');
+  }
+}
+
+function startCommandDemo() {
+  document.querySelectorAll('.command-demo-step').forEach((el, idx) => {
+    el.classList.toggle('active', idx === 0);
+    setTimeout(() => {
+      document.querySelectorAll('.command-demo-step').forEach(x => x.classList.remove('active'));
+      el.classList.add('active');
+    }, idx * 900);
+  });
+  showToast('Datathon demo flow started', 'success');
+}
+
+async function generateCommandDossier() {
+  if (!_commandWorkspace) await loadCommandWorkspace();
+  const meta = _commandWorkspace?.workspace || {};
+  try {
+    showToast('Generating full investigation dossier...', 'info');
+    const res = await fetch(`${API_BASE}/api/reports/dossier`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${getToken()}` },
+      body: JSON.stringify({ fir_id: meta.fir_id, offender_id: meta.offender_id, district: meta.district })
+    });
+    if (!res.ok) throw new Error((await res.json().catch(() => ({}))).detail || 'Dossier failed');
+    const blob = await res.blob();
+    const filename = res.headers.get('content-disposition')?.split('filename=')[1]?.replace(/['"]/g, '') || 'investigation_dossier.pdf';
+    triggerFileDownload(blob, filename);
+    showToast('Investigation dossier generated', 'success');
+  } catch (err) {
+    showToast('Failed to generate dossier: ' + err.message, 'error');
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
 // PAGE ROUTER — called on DOMContentLoaded for each page
 // ═══════════════════════════════════════════════════════════════════════════════
 
@@ -2653,6 +2867,9 @@ document.addEventListener('DOMContentLoaded', async () => {
       break;
     case 'reports.html':
       initReportsPage();
+      break;
+    case 'command.html':
+      initCommandCenter();
       break;
     case 'users.html':
       initUsersPage();

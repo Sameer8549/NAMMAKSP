@@ -950,3 +950,121 @@ async def generate_recommendations_report(district: str = None, crime_type: str 
     logger.info("AI Recommendations report generated: %s", pdf_path)
     return str(pdf_path)
 
+
+async def generate_investigation_dossier(workspace: dict) -> str:
+    """Generate a combined investigation workspace dossier PDF. Returns path to PDF."""
+    meta = workspace.get("workspace", {})
+    case = workspace.get("case") or {}
+    offender = workspace.get("offender") or {}
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    subject = meta.get("fir_id") or meta.get("offender_id") or meta.get("district") or "workspace"
+    safe_subject = re.sub(r"[^A-Za-z0-9_-]+", "_", str(subject)).strip("_") or "workspace"
+    pdf_path = REPORTS_DIR / f"dossier_{safe_subject}_{timestamp}.pdf"
+    styles = _styles()
+
+    doc = _doc(pdf_path, f"Investigation Dossier — {subject}")
+    story = []
+
+    story += _header_block(
+        serial_no=f"DOSSIER-{safe_subject}",
+        doc_type_en="Investigation Case Workspace Dossier",
+        doc_type_kn="ತನಿಖಾ ಪ್ರಕರಣ ಕಾರ್ಯಕ್ಷೇತ್ರ ವರದಿ",
+        sub_title="[NAMMA KSP Command Center]",
+        qr_data=_report_qr_url(pdf_path)
+    )
+
+    story += _meta_bar(
+        styles,
+        f"<b>FIR:</b> {meta.get('fir_id') or 'N/A'}",
+        f"<b>Offender:</b> {meta.get('offender_id') or 'N/A'}",
+        f"<b>Generated:</b> {datetime.now().strftime('%d/%m/%Y %H:%M')}"
+    )
+
+    story += _section(styles, "1. Case Board / ಪ್ರಕರಣ ಕಾರ್ಯಕ್ಷೇತ್ರ")
+    story.append(_kv_table([
+        ("FIR ID / ಎಫ್.ಐ.ಆರ್", case.get("fir_id") or meta.get("fir_id")),
+        ("Crime Type / ಅಪರಾಧ", case.get("crime_type")),
+        ("District / ಜಿಲ್ಲೆ", case.get("district") or meta.get("district")),
+        ("Police Station / ಠಾಣೆ", case.get("police_station") or case.get("loc_station")),
+        ("Status / ಸ್ಥಿತಿ", case.get("status")),
+        ("Incident Date / ದಿನಾಂಕ", case.get("date")),
+        ("Accused / ಆರೋಪಿ", offender.get("name") or case.get("offender_name")),
+        ("Risk / ಅಪಾಯ", offender.get("risk_category") or case.get("risk_category")),
+    ]))
+
+    story += _section(styles, "2. AI Case Summary / ಕೃತಕ ಬುದ್ಧಿಮತ್ತೆ ಸಾರಾಂಶ")
+    story += _ai_box(styles, workspace.get("ai_summary") or "No AI summary available.")
+
+    leads = workspace.get("leads") or []
+    if leads:
+        story += _section(styles, "3. Investigator Decision Support / ತನಿಖಾ ಮುಂದಿನ ಕ್ರಮಗಳು")
+        rows = [(lead.get("priority"), lead.get("action"), lead.get("reason")) for lead in leads[:8]]
+        story.append(_std_table(
+            ["Priority", "Recommended Lead / ಶಿಫಾರಸು", "Reason / ಕಾರಣ"],
+            rows,
+            [3.0*cm, 6.5*cm, 8.5*cm]
+        ))
+
+    timeline = workspace.get("timeline") or []
+    if timeline:
+        story += _section(styles, "4. Crime Story Timeline / ಅಪರಾಧ ಕಾಲರೇಖೆ")
+        rows = [
+            (item.get("date"), item.get("fir_id"), item.get("crime_type"), item.get("status"))
+            for item in timeline[:12]
+        ]
+        story.append(_std_table(
+            ["Date", "FIR ID", "Crime Type", "Status"],
+            rows,
+            [3.0*cm, 3.2*cm, 7.0*cm, 4.8*cm]
+        ))
+
+    evidence = workspace.get("evidence_refs") or []
+    if evidence:
+        story += _section(styles, "5. Evidence Trail / ಸಾಕ್ಷ್ಯ ಮೂಲಗಳು")
+        rows = [(e.get("type"), e.get("id"), e.get("label"), e.get("source")) for e in evidence[:14]]
+        story.append(_std_table(
+            ["Type", "ID", "Evidence", "Dataset"],
+            rows,
+            [3.0*cm, 3.5*cm, 7.0*cm, 4.5*cm]
+        ))
+
+    confidence = workspace.get("confidence") or {}
+    confidence_rows = [
+        (item.get("label"), item.get("status"), item.get("score"))
+        for item in confidence.get("basis", [])
+    ]
+    if confidence_rows:
+        story += _section(styles, "6. Data Confidence / ಡೇಟಾ ವಿಶ್ವಾಸಾರ್ಹತೆ")
+        story.append(Paragraph(f"Overall confidence score: <b>{confidence.get('overall', 0)}/100</b>", styles["body"]))
+        story.append(Spacer(1, 0.1*cm))
+        story.append(_std_table(
+            ["Signal", "Status", "Score"],
+            confidence_rows,
+            [7.0*cm, 7.0*cm, 4.0*cm]
+        ))
+
+    network = workspace.get("network") or {}
+    financial = workspace.get("financial_links") or []
+    story += _section(styles, "7. Network & Financial Intelligence / ಜಾಲ ಮತ್ತು ಹಣಕಾಸು ವಿಶ್ಲೇಷಣೆ")
+    story.append(_kv_table([
+        ("Network Nodes", network.get("nodes", 0)),
+        ("Network Edges", network.get("edges", 0)),
+        ("Financial Links", len(financial)),
+        ("Related Cases", len(workspace.get("related_cases") or [])),
+    ]))
+
+    recommendations = workspace.get("recommendations") or ""
+    if recommendations:
+        story += _section(styles, "8. Prevention Recommendations / ತಡೆಗಟ್ಟುವ ಶಿಫಾರಸುಗಳು")
+        story += _ai_box(styles, recommendations)
+
+    story += _section(styles, "9. Datathon Demo Flow / ಪ್ರದರ್ಶನ ಕ್ರಮ")
+    for step in workspace.get("demo_script", [])[:6]:
+        story.append(Paragraph(f"• {step}", styles["body"]))
+        story.append(Spacer(1, 2))
+
+    story += _disclaimer_block()
+    doc.build(story, canvasmaker=NumberedCanvas)
+    logger.info("Investigation dossier generated: %s", pdf_path)
+    return str(pdf_path)
+
