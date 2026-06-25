@@ -4295,8 +4295,8 @@ function loadBookmarkedMessage(idx) {
 }
 
 function escapeHTML(str) {
-  if (!str) return '';
-  return str.replace(/[&<>'"]/g, 
+  if (str === null || str === undefined) return '';
+  return String(str).replace(/[&<>'"]/g, 
     tag => ({
       '&': '&amp;',
       '<': '&lt;',
