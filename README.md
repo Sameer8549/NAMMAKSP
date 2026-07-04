@@ -8,21 +8,33 @@ NAMMA KSP is a deployed Zoho Catalyst prototype that turns FIRs, offender histor
 
 ## Website Screenshots
 
-| Login and Access | Intelligence Dashboard |
-|---|---|
-| ![NAMMA KSP login](docs/screenshots/01-login.png) | ![NAMMA KSP dashboard](docs/screenshots/02-dashboard-strategic-briefing.png) |
+### Login and Automatic Role Detection
 
-| AI Chat | Crime Heatmap |
-|---|---|
-| ![AI crime assistant](docs/screenshots/03-ai-chat.png) | ![Crime heatmap](docs/screenshots/04-crime-heatmap.png) |
+![NAMMA KSP login](docs/screenshots/01-login.png)
 
-| Criminal Network | Offender Intelligence |
-|---|---|
-| ![Criminal network analysis](docs/screenshots/05-network-analysis.png) | ![Offender intelligence profiles](docs/screenshots/06-offender-profiles.png) |
+### Intelligence Dashboard
 
-| Investigation Reports |
-|---|
-| ![Investigation reports](docs/screenshots/07-reports.png) |
+![NAMMA KSP dashboard](docs/screenshots/02-dashboard-strategic-briefing.png)
+
+### AI Crime Assistant
+
+![AI crime assistant](docs/screenshots/03-ai-chat.png)
+
+### Crime Heatmap
+
+![Crime heatmap](docs/screenshots/04-crime-heatmap.png)
+
+### Criminal Network Analysis
+
+![Criminal network analysis](docs/screenshots/05-network-analysis.png)
+
+### Offender Intelligence
+
+![Offender intelligence profiles](docs/screenshots/06-offender-profiles.png)
+
+### Investigation Reports
+
+![Investigation reports](docs/screenshots/07-reports.png)
 
 ## Why This Project Exists
 
