@@ -671,6 +671,8 @@ function initParticleNetwork(canvasId) {
 // DASHBOARD
 // ═══════════════════════════════════════════════════════════════════════════════
 
+let _dashboardContext = null;
+
 async function initDashboardCharts() {
   try {
     const [overview, trends, crimeTypes, districts, recentFIRs, advancedIntel] = await Promise.all([
@@ -681,6 +683,8 @@ async function initDashboardCharts() {
       apiFetch('/api/firs?limit=10'),
       apiFetch('/api/analytics/advanced-intelligence')
     ]);
+
+    _dashboardContext = { overview, trends, crimeTypes, districts, recentFIRs, advancedIntel };
 
     if (overview) renderKPIs(overview);
     if (trends)   renderBarChart(trends);
@@ -1040,32 +1044,172 @@ function openDashboardInsight(topic) {
   if (!drawer || !overlay || !body) return;
   drawer.classList.add('open');
   overlay.classList.add('open');
-  const cleanTopic = String(topic || 'intelligence').replace(/-/g, ' ');
-  if (title) title.textContent = cleanTopic.replace(/\b\w/g, c => c.toUpperCase());
-  if (subtitle) subtitle.textContent = 'Related intelligence evidence and next actions';
-  body.innerHTML = `
-    <div class="detail-section">
-      <h3>Why this matters</h3>
-      <p>This dashboard signal links live FIR trends, offender patterns, socio-demographic indicators, financial/cyber-adjacent links, forecasting and explainability evidence.</p>
-    </div>
-    <div class="detail-kpi-grid">
-      <div class="detail-kpi"><span>Evidence</span><strong>Live APIs</strong></div>
-      <div class="detail-kpi"><span>Coverage</span><strong>10/10</strong></div>
-      <div class="detail-kpi"><span>Use Case</span><strong>Decision Support</strong></div>
-      <div class="detail-kpi"><span>Action</span><strong>Investigate</strong></div>
-    </div>
-    <div class="detail-section">
-      <h3>Recommended Drilldown</h3>
-      <p>Use Heatmap for location pressure, Network for relationships, AI Chat for natural language investigation, and Reports for PDF evidence packaging.</p>
-    </div>
-    <div class="detail-action-row">
-      <a class="btn btn-primary btn-sm" href="chat.html?q=${encodeURIComponent(`Explain ${cleanTopic} using evidence trails and recommend investigation actions`)}">Ask AI</a>
-      <a class="btn btn-outline btn-sm" href="heatmap.html">Heatmap</a>
-      <a class="btn btn-outline btn-sm" href="network.html">Network</a>
-      <a class="btn btn-accent btn-sm" href="reports.html">Reports</a>
-    </div>
-  `;
+  const panel = buildDashboardInsightPanel(topic);
+  if (title) title.textContent = panel.title;
+  if (subtitle) subtitle.textContent = panel.subtitle;
+  body.innerHTML = panel.html;
   translatePageUI();
+}
+
+function buildDashboardInsightPanel(topic) {
+  const ctx = _dashboardContext || {};
+  const advancedIntel = ctx.advancedIntel || {};
+  const overview = ctx.overview || {};
+  const trends = ctx.trends || [];
+  const crimeTypes = ctx.crimeTypes || [];
+  const districts = ctx.districts || [];
+  const recentFIRs = ctx.recentFIRs || [];
+  const forecast = advancedIntel.forecast?.summary || {};
+  const warnings = advancedIntel.forecast?.early_warnings || [];
+  const socio = advancedIntel.sociological?.summary || {};
+  const socialDistricts = advancedIntel.sociological?.district_social_risk || [];
+  const financial = advancedIntel.financial?.summary || {};
+  const clusters = advancedIntel.financial?.clusters || [];
+  const evidence = advancedIntel.explainable?.evidence_trails || [];
+  const governance = advancedIntel.governance || {};
+  const priorityDistrict = warnings[0]?.district || socialDistricts[0]?.district || districts[0]?.district || 'Statewide';
+  const dominantCrime = crimeTypes[0]?.crime_type || recentFIRs[0]?.crime_type || 'mixed crime patterns';
+  const activeCases = Number(overview.open_cases || 0);
+  const totalFirs = Number(overview.total_firs || 0);
+  const openRate = totalFirs ? Math.round((activeCases / totalFirs) * 100) : 0;
+  const clusterScore = Number(clusters[0]?.link_score || 0);
+  const posture = computeStrategicPosture({ warnings, openRate, clusterScore, socialRisk: socialDistricts[0]?.social_risk_index });
+  const monthlyLift = computeRecentTrendLift(trends);
+  const evidenceConfidence = evidence.length >= 4 ? 'Strong' : evidence.length >= 2 ? 'Moderate' : 'Developing';
+  const actions = buildStrategicActions({ priorityDistrict, dominantCrime, warnings, clusters, activeCases, evidenceConfidence });
+  const key = String(topic || '').toLowerCase();
+
+  const list = rows => `<div class="detail-section"><h3>Evidence</h3>${rows.map(row => `<div class="detail-evidence-row"><span>${escapeHTML(row[0])}</span><strong>${escapeHTML(row[1])}</strong></div>`).join('')}</div>`;
+  const bars = rows => `<div class="detail-section"><h3>Breakdown</h3>${rows.map(row => `<div class="detail-bar-row"><span>${escapeHTML(row.label)}</span><strong>${escapeHTML(row.value)}</strong><div><i style="width:${Math.max(6, Math.min(100, row.percent || 0))}%"></i></div></div>`).join('')}</div>`;
+  const actionsHtml = query => `<div class="detail-action-row">
+    <a class="btn btn-primary btn-sm" href="chat.html?q=${encodeURIComponent(query)}">Ask AI</a>
+    <a class="btn btn-outline btn-sm" href="heatmap.html?district=${encodeURIComponent(priorityDistrict)}">Heatmap</a>
+    <a class="btn btn-outline btn-sm" href="network.html?district=${encodeURIComponent(priorityDistrict)}">Network</a>
+    <a class="btn btn-accent btn-sm" href="reports.html">Reports</a>
+  </div>`;
+
+  if (key === 'forecast') {
+    return {
+      title: 'Forecast & Early Warning',
+      subtitle: 'Next-month forecast, alert districts and validation metrics',
+      html: `
+        <div class="detail-kpi-grid">
+          <div class="detail-kpi"><span>Next Month</span><strong>${Number(forecast.next_month_forecast || 0).toLocaleString()}</strong></div>
+          <div class="detail-kpi"><span>Trend</span><strong>${escapeHTML(forecast.trend_direction || 'Stable')}</strong></div>
+          <div class="detail-kpi"><span>Backtest</span><strong>${forecast.validation?.backtest_months || 0} months</strong></div>
+          <div class="detail-kpi"><span>MAE</span><strong>${forecast.validation?.mae ?? 'N/A'}</strong></div>
+        </div>
+        ${list((warnings.length ? warnings : [{ district: 'Statewide', alert_level: 'Stable', recommended_action: 'Continue routine monitoring.' }]).slice(0, 5).map(w => [w.district || 'Statewide', `${w.alert_level || w.severity || 'Stable'} · ${w.recommended_action || w.detail || 'Monitor trend'}`]))}
+        <div class="detail-section"><h3>Operational Use</h3><p>Use this to identify where patrol planning, supervisor review, and prevention messaging should shift before the next reporting cycle.</p></div>
+        ${actionsHtml(`Explain forecast and early warning signals for ${priorityDistrict}`)}
+      `
+    };
+  }
+
+  if (key === 'socio' || key === 'dominant-pattern') {
+    return {
+      title: key === 'socio' ? 'Socio-Demographic Insight' : 'Dominant Pattern',
+      subtitle: 'Age, gender, district social risk and dominant crime behavior',
+      html: `
+        <div class="detail-kpi-grid">
+          <div class="detail-kpi"><span>Age Band</span><strong>${escapeHTML(socio.dominant_age_band || 'N/A')}</strong></div>
+          <div class="detail-kpi"><span>Gender</span><strong>${escapeHTML(socio.dominant_gender || 'N/A')}</strong></div>
+          <div class="detail-kpi"><span>Top Crime</span><strong>${escapeHTML(dominantCrime)}</strong></div>
+          <div class="detail-kpi"><span>District Profiles</span><strong>${socialDistricts.length}</strong></div>
+        </div>
+        ${bars(socialDistricts.slice(0, 5).map(d => ({ label: d.district || 'District', value: Math.round(d.social_risk_index || 0), percent: d.social_risk_index || 0 })))}
+        <div class="detail-section"><h3>Interpretation</h3><p>The dominant pattern connects crime type, offender demographics and social-risk district pressure so investigators can prioritize prevention and outreach.</p></div>
+        ${actionsHtml(`Explain socio-demographic crime pattern for ${priorityDistrict} and ${dominantCrime}`)}
+      `
+    };
+  }
+
+  if (key === 'financial' || key === 'financial-signal' || key === 'trace-linked-accounts') {
+    return {
+      title: 'Financial Link Analysis',
+      subtitle: 'Suspicious clusters, candidate cases and money-trail style links',
+      html: `
+        <div class="detail-kpi-grid">
+          <div class="detail-kpi"><span>Clusters</span><strong>${financial.suspicious_clusters || 0}</strong></div>
+          <div class="detail-kpi"><span>Candidates</span><strong>${Number(financial.candidate_cases || 0).toLocaleString()}</strong></div>
+          <div class="detail-kpi"><span>Top Score</span><strong>${clusterScore}</strong></div>
+          <div class="detail-kpi"><span>Source</span><strong>${escapeHTML(financial.data_source || 'FIR links')}</strong></div>
+        </div>
+        ${list((clusters.length ? clusters : [{ account: 'No active cluster', link_score: 0, evidence: 'No suspicious transaction cluster above threshold.' }]).slice(0, 5).map(c => [c.account || c.offender_id || 'Cluster', `score ${c.link_score || 0} · ${c.evidence || c.detail || c.district || 'linked FIR evidence'}`]))}
+        <div class="detail-section"><h3>Investigation Lead</h3><p>Prioritize high-score clusters for cyber cell review, shared offender checks and linked FIR timeline reconstruction.</p></div>
+        ${actionsHtml(`Trace financial and cyber-adjacent links with score ${clusterScore}`)}
+      `
+    };
+  }
+
+  if (key === 'governance' || key === 'document-evidence-trail') {
+    return {
+      title: 'Explainability & Governance',
+      subtitle: 'Evidence trails, roles, audit readiness and accountable AI output',
+      html: `
+        <div class="detail-kpi-grid">
+          <div class="detail-kpi"><span>Evidence Trails</span><strong>${evidence.length}</strong></div>
+          <div class="detail-kpi"><span>Roles</span><strong>${(governance.roles || ['Admin','Investigator']).length}</strong></div>
+          <div class="detail-kpi"><span>Audit</span><strong>${escapeHTML(governance.audit_level || 'Prototype')}</strong></div>
+          <div class="detail-kpi"><span>Coverage</span><strong>10/10</strong></div>
+        </div>
+        ${list((evidence.length ? evidence : [{ claim: 'Dashboard intelligence', source: 'Live analytics APIs' }]).slice(0, 5).map(e => [e.claim || e.metric || 'Evidence', e.source || e.reference || e.detail || 'Analytics source']))}
+        <div class="detail-section"><h3>Governance Use</h3><p>Use this panel when judges ask how AI conclusions can be traced back to records, APIs and role-based user access.</p></div>
+        ${actionsHtml('Prepare explainable AI and governance evidence for demo')}
+      `
+    };
+  }
+
+  if (key === 'risk-posture') {
+    return {
+      title: 'Risk Posture',
+      subtitle: 'Combined warning, open-case, financial and socio-risk signal',
+      html: `
+        <div class="detail-kpi-grid">
+          <div class="detail-kpi"><span>Posture</span><strong>${escapeHTML(posture.label)}</strong></div>
+          <div class="detail-kpi"><span>Open Rate</span><strong>${openRate}%</strong></div>
+          <div class="detail-kpi"><span>Financial Score</span><strong>${clusterScore}</strong></div>
+          <div class="detail-kpi"><span>Momentum</span><strong>${monthlyLift >= 0 ? '+' : ''}${monthlyLift}%</strong></div>
+        </div>
+        <div class="detail-section"><h3>Reason</h3><p>${escapeHTML(posture.detail)}</p></div>
+        ${list([['Priority district', priorityDistrict], ['Dominant pattern', dominantCrime], ['Active cases', Number(activeCases).toLocaleString()], ['Evidence confidence', evidenceConfidence]])}
+        ${actionsHtml(`Explain operational risk posture for ${priorityDistrict}`)}
+      `
+    };
+  }
+
+  if (key === 'priority-district' || key.startsWith('stabilize-')) {
+    return {
+      title: `Priority District: ${priorityDistrict}`,
+      subtitle: 'District requiring the first operational review',
+      html: `
+        <div class="detail-kpi-grid">
+          <div class="detail-kpi"><span>District</span><strong>${escapeHTML(priorityDistrict)}</strong></div>
+          <div class="detail-kpi"><span>Warning</span><strong>${escapeHTML(warnings[0]?.alert_level || 'Stable')}</strong></div>
+          <div class="detail-kpi"><span>Momentum</span><strong>${monthlyLift >= 0 ? '+' : ''}${monthlyLift}%</strong></div>
+          <div class="detail-kpi"><span>Top Pattern</span><strong>${escapeHTML(dominantCrime)}</strong></div>
+        </div>
+        <div class="detail-section"><h3>Recommended Action</h3><p>${escapeHTML(actions[0]?.detail || `Review hotspot patrol posture in ${priorityDistrict}.`)}</p></div>
+        ${actionsHtml(`Prepare operational action plan for ${priorityDistrict}`)}
+      `
+    };
+  }
+
+  return {
+    title: 'Strategic Action',
+    subtitle: 'Selected briefing item and direct operational next steps',
+    html: `
+      <div class="detail-kpi-grid">
+        <div class="detail-kpi"><span>Priority</span><strong>${escapeHTML(priorityDistrict)}</strong></div>
+        <div class="detail-kpi"><span>Pattern</span><strong>${escapeHTML(dominantCrime)}</strong></div>
+        <div class="detail-kpi"><span>Cases</span><strong>${Number(activeCases).toLocaleString()}</strong></div>
+        <div class="detail-kpi"><span>Evidence</span><strong>${escapeHTML(evidenceConfidence)}</strong></div>
+      </div>
+      ${list(actions.map(a => [a.title, `${a.priority} · ${a.detail}`]))}
+      <div class="detail-section"><h3>Decision Support</h3><p>This action is linked to the same dashboard evidence: forecasts, FIR pressure, crime type distribution, offender/network leads and report generation.</p></div>
+      ${actionsHtml(`Explain strategic action ${String(topic || '').replace(/-/g, ' ')} with evidence`)}
+    `
+  };
 }
 
 function closeDashboardAnalytics() {
@@ -3632,8 +3776,15 @@ let _firTableData = [];
 let _firFilter    = 'all';
 let _firSort      = { col: null, dir: 'asc' };
 
+function normalizeFIRStatus(status) {
+  const raw = String(status || '').trim().toLowerCase();
+  if (!raw) return '';
+  if (raw === 'investigating' || raw === 'under investigation') return 'under investigation';
+  return raw;
+}
+
 function filterFIRTable(btn, status) {
-  _firFilter = status;
+  _firFilter = normalizeFIRStatus(status);
   document.querySelectorAll('.fir-chip').forEach(b => b.classList.remove('active'));
   if (btn) btn.classList.add('active');
   _renderFIRTable();
@@ -3643,7 +3794,7 @@ function _renderFIRTable() {
   const tbody = document.getElementById('fir-table-body');
   if (!tbody || !_firTableData.length) return;
   let rows = _firTableData;
-  if (_firFilter !== 'all') rows = rows.filter(r => (r.status||'').toLowerCase() === _firFilter.toLowerCase());
+  if (_firFilter !== 'all') rows = rows.filter(r => normalizeFIRStatus(r.status) === _firFilter);
   tbody.innerHTML = rows.map(r => `
     <tr onclick="openFIRDrawer(${JSON.stringify(JSON.stringify(r))})" style="cursor:pointer">
       <td><span class="fir-id">${r.fir_id||''}</span></td>

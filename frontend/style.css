@@ -915,6 +915,33 @@ h1, h2, h3, h4, h5, h6 {
   line-height: 1.55;
 }
 
+.detail-evidence-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 0;
+  border-top: 1px solid var(--color-border);
+  color: var(--color-text);
+  font-size: 13px;
+}
+
+.detail-evidence-row:first-of-type {
+  border-top: 0;
+  padding-top: 0;
+}
+
+.detail-evidence-row span {
+  color: var(--color-text);
+  font-weight: 600;
+}
+
+.detail-evidence-row strong {
+  color: var(--color-text-muted);
+  font-weight: 500;
+  text-align: right;
+  max-width: 58%;
+}
+
 .detail-bar-row {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
