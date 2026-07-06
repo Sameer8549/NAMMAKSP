@@ -3789,14 +3789,14 @@ function _renderFIRTable() {
   let rows = _firTableData;
   if (_firFilter !== 'all') rows = rows.filter(r => normalizeFIRStatus(r.status) === _firFilter);
   tbody.innerHTML = rows.map(r => `
-    <tr onclick="openFIRDrawer(${JSON.stringify(JSON.stringify(r))})" style="cursor:pointer">
+    <tr onclick="viewFIR('${String(r.fir_id || '').replace(/'/g, "\\'")}')" style="cursor:pointer">
       <td><span class="fir-id">${r.fir_id||''}</span></td>
       <td>${r.crime_type||''}</td>
       <td>${r.district||''}</td>
       <td>${r.date_filed ? r.date_filed.slice(0,10) : ''}</td>
       <td>${r.accused_name||'—'}</td>
       <td><span class="badge badge-${(r.status||'open').toLowerCase().replace(' ','-')}">${r.status||'Open'}</span></td>
-      <td><button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();openFIRDrawer(${JSON.stringify(JSON.stringify(r))})">View</button></td>
+      <td><button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();viewFIR('${String(r.fir_id || '').replace(/'/g, "\\'")}')">View</button></td>
     </tr>`).join('') || `<tr><td colspan="7" style="text-align:center;padding:24px;color:var(--color-text-muted)">No FIRs found for this filter.</td></tr>`;
 }
 
