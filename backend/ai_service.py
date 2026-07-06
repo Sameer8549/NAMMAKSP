@@ -17,6 +17,12 @@ from analytics import (
     search_firs, get_fir_detail, get_related_cases,
     get_district_stats, get_offender_profile, get_high_risk_offenders
 )
+from sarvam_service import (
+    SarvamError,
+    is_sarvam_configured,
+    translate_text,
+    transcribe_audio as sarvam_transcribe_audio,
+)
 
 load_dotenv()
 logger = logging.getLogger(__name__)
@@ -306,16 +312,19 @@ If the selected language is Kannada, write in clean, grammatically correct Kanna
 
     # Check if we requested Kannada but response has no Kannada characters
     if language == "kn-IN" and not any('\u0c80' <= c <= '\u0cff' for c in ai_reply):
-        logger.info("Response was in English but Kannada was requested. Translating response...")
+        logger.info("Response was in English but Kannada was requested. Translating response with Sarvam...")
         try:
-            translation_prompt = f"Translate the following English text to clean, natural, grammatically correct Kannada script. Return ONLY the translated Kannada text, preserving the sections and markdown formatting. Do not include any explanations.\n\nText:\n{ai_reply}"
-            translation_response = _groq_client.chat.completions.create(
-                model=MODEL,
-                messages=[{"role": "user", "content": translation_prompt}],
-                max_tokens=2000,
-                temperature=0.2,
-            )
-            ai_reply = translation_response.choices[0].message.content
+            if is_sarvam_configured():
+                ai_reply = await translate_text(ai_reply, target_language_code="kn-IN", source_language_code="en-IN")
+            else:
+                translation_prompt = f"Translate the following English text to clean, natural, grammatically correct Kannada script. Return ONLY the translated Kannada text, preserving the sections and markdown formatting. Do not include any explanations.\n\nText:\n{ai_reply}"
+                translation_response = _groq_client.chat.completions.create(
+                    model=MODEL,
+                    messages=[{"role": "user", "content": translation_prompt}],
+                    max_tokens=2000,
+                    temperature=0.2,
+                )
+                ai_reply = translation_response.choices[0].message.content
         except Exception as te:
             logger.error("Failed to translate English response to Kannada: %s", te)
 
@@ -485,13 +494,16 @@ def get_session_history(session_id: str) -> list[dict]:
 
 async def transcribing_audio(content: bytes, filename: str, language: str = None) -> str:
     """
-    Transcribe audio bytes using Groq Whisper model.
+    Transcribe audio bytes using Sarvam Saaras, with Groq Whisper as fallback.
     """
     import asyncio
     from functools import partial
     from typing import Optional
 
     try:
+        if is_sarvam_configured():
+            return await sarvam_transcribe_audio(content, filename, language)
+
         ext = filename.split(".")[-1].lower() if "." in filename else "webm"
         content_type = f"audio/{ext}" if ext in ["webm", "mp3", "wav", "m4a", "ogg"] else "audio/webm"
         
@@ -510,6 +522,6 @@ async def transcribing_audio(content: bytes, filename: str, language: str = None
         )
         return response.text.strip()
     except Exception as e:
-        logger.error("Groq Whisper transcription failed: %s", e)
+        logger.error("Audio transcription failed: %s", e)
         raise e
 

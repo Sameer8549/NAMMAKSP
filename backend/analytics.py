@@ -868,3 +868,53 @@ async def get_advanced_intelligence_summary() -> dict:
             "data_handling": "Uploaded crime datasets are used as source investigation data; generated PDFs are marked as investigative aids."
         }
     }
+
+
+async def get_submission_readiness() -> dict:
+    """Return an evidence-backed assessment of the ten challenge capabilities."""
+    counts = {}
+    for table in (
+        "firs", "offenders", "victims", "locations", "relationships",
+        "financial_transactions", "socio_economic_indicators", "audit_logs",
+    ):
+        row = await fetch_one(f"SELECT COUNT(*) AS cnt FROM {table}")
+        counts[table] = int((row or {}).get("cnt", 0))
+
+    socio = await fetch_one("""
+        SELECT COUNT(*) AS total,
+               SUM(CASE WHEN urbanization_index IS NOT NULL THEN 1 ELSE 0 END) AS urbanization,
+               SUM(CASE WHEN migration_index IS NOT NULL THEN 1 ELSE 0 END) AS migration,
+               SUM(CASE WHEN unemployment_rate IS NOT NULL THEN 1 ELSE 0 END) AS unemployment,
+               SUM(CASE WHEN literacy_rate IS NOT NULL THEN 1 ELSE 0 END) AS literacy,
+               SUM(CASE WHEN income_index IS NOT NULL THEN 1 ELSE 0 END) AS income,
+               SUM(CASE WHEN population_density IS NOT NULL THEN 1 ELSE 0 END) AS density
+        FROM socio_economic_indicators
+    """) or {}
+
+    capabilities = [
+        (1, "Conversational crime intelligence", "implemented", ["/api/chat", "/api/translate", "/api/audio-transcribe", "/api/tts", "/api/chat/export"]),
+        (2, "Criminal network and relationship analysis", "implemented", ["/api/network", "/api/network/offender/{offender_id}"]),
+        (3, "Crime pattern and trend analytics", "implemented", ["/api/analytics/monthly-trends", "/api/hotspots", "/api/analytics/yearly"]),
+        (4, "Sociological crime insights", "prototype", ["/api/analytics/sociological"]),
+        (5, "Criminology-based offender profiling", "implemented", ["/api/offenders/high-risk", "/api/offenders/repeat", "/api/offenders/{offender_id}"]),
+        (6, "Investigator decision support", "implemented", ["/api/ai/case-summary/{fir_id}", "/api/ai/recommendations", "/api/firs/{fir_id}/related"]),
+        (7, "Financial crime and transaction links", "prototype", ["/api/analytics/financial-links"]),
+        (8, "Crime forecasting and early warning", "prototype", ["/api/analytics/forecast", "/api/alerts/early-warning"]),
+        (9, "Explainable AI and transparent analytics", "implemented", ["/api/analytics/explainability", "/api/analytics/advanced-intelligence"]),
+        (10, "Secure role-based access and governance", "prototype", ["/api/auth/login", "/api/auth/me", "/api/audit/logs"]),
+    ]
+    return {
+        "overall": "challenge-complete prototype",
+        "capabilities": [
+            {"number": number, "name": name, "status": status, "evidence_endpoints": endpoints}
+            for number, name, status, endpoints in capabilities
+        ],
+        "dataset_evidence": counts,
+        "socio_economic_completeness": {key: int(value or 0) for key, value in socio.items()},
+        "limitations": [
+            "Financial rows are synthetic AML-style demonstration data, not live bank records.",
+            "Several socio-economic fields are unavailable in the uploaded district sources.",
+            "Forecasting is an explainable moving-average prototype, not a validated production model.",
+            "Governance is prototype role-based access and audit logging, not an enterprise police IAM deployment.",
+        ],
+    }

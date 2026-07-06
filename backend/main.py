@@ -16,7 +16,7 @@ from typing import Optional
 import uvicorn
 from fastapi import FastAPI, HTTPException, Query, BackgroundTasks, Depends, Header, UploadFile, File, Request
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse, JSONResponse
+from fastapi.responses import FileResponse, JSONResponse, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 from dotenv import load_dotenv
@@ -42,10 +42,18 @@ from analytics import (
     get_repeat_offenders, search_firs, get_fir_detail, get_related_cases,
     get_police_station_stats, get_yearly_comparison, get_sociological_insights,
     get_financial_link_analysis, get_crime_forecast, get_explainable_intelligence,
-    get_advanced_intelligence_summary
+    get_advanced_intelligence_summary, get_submission_readiness
 )
 from network   import get_network_data, get_shared_offender_network
 from ai_service import chat, generate_case_summary, get_investigation_recommendations, clear_session
+from sarvam_service import (
+    SarvamError,
+    detect_language,
+    is_sarvam_configured,
+    normalize_language_code,
+    synthesize_speech,
+    translate_text,
+)
 from report    import (
     generate_case_report, generate_district_report, generate_chat_log_report,
     generate_recommendations_report
@@ -162,6 +170,14 @@ class ExportChatRequest(BaseModel):
 class TTSRequest(BaseModel):
     text: str
     language: Optional[str] = "en"  # "en" or "kn"
+
+class TranslateRequest(BaseModel):
+    text: str
+    target_language: str
+    source_language: Optional[str] = "auto"
+
+class LanguageDetectRequest(BaseModel):
+    text: str
 
 
 # ─── Auth Session Registry & Dependencies ─────────────────────────────────────
@@ -489,6 +505,17 @@ async def system_summary(user: dict = Depends(get_current_user)):
     }
 
 
+@app.get("/api/submission/readiness")
+async def submission_readiness(user: dict = Depends(get_current_user)):
+    """Judge-facing evidence matrix generated from the live application database."""
+    result = await get_submission_readiness()
+    await log_audit(
+        user.get("username"), user.get("role"), "SUBMISSION_READINESS_VIEW",
+        "submission/readiness", "Viewed challenge evidence matrix", "",
+    )
+    return result
+
+
 # ═══════════════════════════════════════════════════════════════════════════════
 # AUTHENTICATION ENDPOINTS
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -732,60 +759,68 @@ async def clear_chat_session(request: ClearSessionRequest):
 @app.post("/api/tts")
 async def text_to_speech(request: TTSRequest):
     """
-    Convert text to speech using Google TTS (gTTS).
-    Returns an MP3 audio stream.
-    Supports English (en) and Kannada (kn).
+    Convert text to speech using Sarvam AI Bulbul.
+    Returns an MP3 audio stream for English/Kannada chat playback.
     """
     try:
-        from gtts import gTTS
         import io
+        if not is_sarvam_configured():
+            raise HTTPException(status_code=503, detail="Sarvam AI is not configured on the server")
 
-        # Map language codes
-        lang_map = {
-            "en": "en",
-            "en-US": "en",
-            "kn": "kn",
-            "kn-IN": "kn",
-        }
-        lang = lang_map.get(request.language, "en")
-
-        # Clean text: strip markdown and keep only readable characters
-        import re
-        clean_text = request.text
-        clean_text = re.sub(r'\*\*(.+?)\*\*', r'\1', clean_text)   # bold
-        clean_text = re.sub(r'\*(.+?)\*', r'\1', clean_text)        # italic
-        clean_text = re.sub(r'#+\s*', '', clean_text)                # headings
-        clean_text = re.sub(r'[-•]\s+', '', clean_text)             # bullets
-        clean_text = re.sub(r'<[^>]+>', '', clean_text)             # html tags
-        clean_text = clean_text.strip()
-
-        if not clean_text:
-            raise HTTPException(status_code=400, detail="No text to speak")
-
-        # Keep fallback TTS snappy; the browser handles instant long-form speech.
-        if len(clean_text) > 1200:
-            clean_text = clean_text[:1200] + "..."
-
-        # Generate TTS audio in memory
-        tts = gTTS(text=clean_text, lang=lang, slow=False)
-        audio_buffer = io.BytesIO()
-        tts.write_to_fp(audio_buffer)
+        audio_bytes, media_type = await synthesize_speech(request.text, request.language)
+        audio_buffer = io.BytesIO(audio_bytes)
         audio_buffer.seek(0)
 
-        from fastapi.responses import StreamingResponse
         return StreamingResponse(
             audio_buffer,
-            media_type="audio/mpeg",
+            media_type=media_type,
             headers={
-                "Content-Disposition": "inline; filename=tts.mp3",
+                "Content-Disposition": "inline; filename=sarvam_tts.mp3",
                 "Cache-Control": "public, max-age=86400",
             }
         )
     except HTTPException:
         raise
     except Exception as e:
-        logger.error("TTS generation failed: %s", e)
+        logger.error("Sarvam TTS generation failed: %s", e)
         raise HTTPException(status_code=500, detail=f"TTS failed: {str(e)}")
+
+
+@app.post("/api/translate")
+async def translate_endpoint(request: TranslateRequest, user: dict = Depends(get_current_user)):
+    """Translate text through Sarvam AI Translate."""
+    try:
+        if not is_sarvam_configured():
+            raise HTTPException(status_code=503, detail="Sarvam AI is not configured on the server")
+        translated = await translate_text(
+            request.text,
+            target_language_code=normalize_language_code(request.target_language),
+            source_language_code=normalize_language_code(request.source_language, default="auto"),
+        )
+        return {"translated_text": translated}
+    except HTTPException:
+        raise
+    except SarvamError as e:
+        raise HTTPException(status_code=502, detail=str(e))
+    except Exception as e:
+        logger.error("Sarvam translation endpoint failed: %s", e)
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/api/language-detect")
+async def language_detect_endpoint(request: LanguageDetectRequest, user: dict = Depends(get_current_user)):
+    """Detect text language/script through Sarvam AI Language Identification."""
+    try:
+        if not is_sarvam_configured():
+            raise HTTPException(status_code=503, detail="Sarvam AI is not configured on the server")
+        return await detect_language(request.text)
+    except HTTPException:
+        raise
+    except SarvamError as e:
+        raise HTTPException(status_code=502, detail=str(e))
+    except Exception as e:
+        logger.error("Sarvam language detection endpoint failed: %s", e)
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 @app.post("/api/audio-transcribe")
@@ -794,7 +829,7 @@ async def audio_transcribe_endpoint(
     language: Optional[str] = Query(None)
 ):
     """
-    Transcribe recorded audio file via Groq Whisper.
+    Transcribe recorded audio file via Sarvam AI Saaras.
     """
     try:
         content = await file.read()

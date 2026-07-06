@@ -5,7 +5,7 @@
  * Every page calls the FastAPI server at API_BASE.
  */
 
-// TTS is handled server-side via gTTS (/api/tts) — no browser voice packs needed
+// TTS/STT/translation are handled server-side through Sarvam AI where configured.
 
 // ─── Config ───────────────────────────────────────────────────────────────────
 const LOCAL_API_BASE = 'http://127.0.0.1:8000';
@@ -2895,7 +2895,7 @@ document.head.appendChild(style);
 
 
 // ─── Text-to-Speech (TTS) ─────────────────────────────────────────────────────
-// Uses instant browser speech first, with server gTTS as a fallback.
+// Uses Sarvam server speech first, with browser speech as a fallback.
 let _ttsAudio = null;
 let _ttsAbortController = null;
 let currentlySpeakingBubble = null;
@@ -2922,8 +2922,13 @@ async function readAloud(text, langCode, buttonEl) {
   buttonEl.classList.add('speaking');
   currentlySpeakingBubble = buttonEl;
 
-  if (startBrowserSpeech(spokenText, langCode, buttonEl)) return;
-  await startServerSpeech(spokenText, langCode, buttonEl);
+  const serverSpoke = await startServerSpeech(spokenText, langCode, buttonEl, { silentFallback: true });
+  if (!serverSpoke) {
+    setSpeechButtonStop(buttonEl);
+    buttonEl.classList.add('speaking');
+    currentlySpeakingBubble = buttonEl;
+    startBrowserSpeech(spokenText, langCode, buttonEl);
+  }
 }
 
 function prepareSpeechText(text) {
@@ -2973,7 +2978,7 @@ function startBrowserSpeech(text, langCode, buttonEl) {
   return true;
 }
 
-async function startServerSpeech(text, langCode, buttonEl) {
+async function startServerSpeech(text, langCode, buttonEl, options = {}) {
   try {
     const langMap = { 'en': 'en', 'en-US': 'en', 'en-IN': 'en', 'kn': 'kn', 'kn-IN': 'kn' };
     const ttsLang = langMap[langCode] || 'en';
@@ -3014,16 +3019,18 @@ async function startServerSpeech(text, langCode, buttonEl) {
       showToast('Audio playback failed', 'error');
     };
 
-    audio.play();
+    await audio.play();
+    return true;
 
   } catch (err) {
-    if (err.name === 'AbortError') return;
+    if (err.name === 'AbortError') return true;
     console.error('TTS failed:', err);
     resetSpeechButton(buttonEl);
     currentlySpeakingBubble = null;
     _ttsAudio = null;
     _ttsMode = null;
-    showToast(`Text-to-speech failed: ${err.message}`, 'error');
+    if (!options.silentFallback) showToast(`Text-to-speech failed: ${err.message}`, 'error');
+    return false;
   }
 }
 
