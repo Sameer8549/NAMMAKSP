@@ -1321,20 +1321,13 @@ function renderFIRTable(firs) {
   const tbody = document.getElementById('fir-table-body');
   if (!tbody || !firs?.length) return;
 
-  _firTableData = firs;
+  _firTableData = firs.map(f => ({
+    ...f,
+    date_filed: f.date_filed || f.date || '',
+    accused_name: f.accused_name || f.offender_name || ''
+  }));
 
-  const statusClass = s => s === 'Open' ? 'badge-open' : s === 'Closed' ? 'badge-closed' : 'badge-investigating';
-
-  tbody.innerHTML = firs.map(f => `
-    <tr>
-      <td class="fir-id">${f.fir_id}</td>
-      <td>${f.crime_type}</td>
-      <td>${f.district}</td>
-      <td>${f.date}</td>
-      <td>${f.offender_name || '—'}</td>
-      <td><span class="badge ${statusClass(f.status)}">${f.status}</span></td>
-      <td><button class="btn btn-outline btn-sm" onclick="viewFIR('${f.fir_id}')">View</button></td>
-    </tr>`).join('');
+  _renderFIRTable();
   translatePageUI();
 }
 
