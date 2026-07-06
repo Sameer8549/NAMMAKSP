@@ -10,6 +10,7 @@ from collections import defaultdict
 from statistics import mean
 
 from database import fetch_all, fetch_one
+from catalyst_services import get_catalyst_service_matrix
 
 logger = logging.getLogger(__name__)
 
@@ -933,6 +934,7 @@ async def get_submission_readiness() -> dict:
         (9, "Explainable AI and transparent analytics", "implemented", ["/api/analytics/explainability", "/api/analytics/advanced-intelligence"]),
         (10, "Secure role-based access and governance", "prototype", ["/api/auth/login", "/api/auth/me", "/api/audit/logs"]),
     ]
+    catalyst = get_catalyst_service_matrix()
     return {
         "overall": "challenge-complete prototype",
         "capabilities": [
@@ -941,10 +943,12 @@ async def get_submission_readiness() -> dict:
         ],
         "dataset_evidence": counts,
         "socio_economic_completeness": {key: int(value or 0) for key, value in socio.items()},
+        "catalyst_services": catalyst,
         "limitations": [
             "Financial rows are synthetic AML-style demonstration data, not live bank records.",
             "Several socio-economic fields are unavailable in the uploaded district sources.",
             "Forecasting is an explainable moving-average prototype, not a validated production model.",
-            "Governance is prototype role-based access and audit logging, not an enterprise police IAM deployment.",
+            "Catalyst Authentication is intentionally excluded; login remains prototype role-based access.",
+            "Some Catalyst managed services are adapter-ready and require Catalyst console provisioning before replacing local fallbacks.",
         ],
     }

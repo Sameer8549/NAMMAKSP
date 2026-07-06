@@ -56,6 +56,7 @@ from sarvam_service import (
     synthesize_speech,
     translate_text,
 )
+from catalyst_services import get_catalyst_service_matrix
 from report    import (
     generate_case_report, generate_district_report, generate_chat_log_report,
     generate_recommendations_report
@@ -193,7 +194,11 @@ SESSION_TTL_SECONDS = int(os.getenv("SESSION_TTL_SECONDS", "28800"))
 LOGIN_WINDOW_SECONDS = 300
 LOGIN_MAX_ATTEMPTS = 5
 
-PUBLIC_API_PATHS = {"/api/health", "/api/auth/login"}
+PUBLIC_API_PATHS = {
+    "/api/health",
+    "/api/auth/login",
+    "/api/internal/cron/daily-intelligence-refresh",
+}
 PUBLIC_API_PREFIXES = ("/api/reports/qr/",)
 
 @app.middleware("http")
@@ -425,6 +430,28 @@ async def daily_intelligence_refresh(user: dict = Depends(require_admin)):
         raise
 
 
+@app.api_route("/api/internal/cron/daily-intelligence-refresh", methods=["GET", "POST"])
+async def cron_daily_intelligence_refresh(key: str = Query("")):
+    """Catalyst Cron target protected by a shared cron key."""
+    expected = os.getenv("CATALYST_CRON_KEY", "namma-ksp-cron")
+    if not expected or key != expected:
+        raise HTTPException(status_code=403, detail="Invalid cron key")
+    cron_user = {"username": "catalyst-cron", "role": "System"}
+    result = await _record_forecast_alerts(cron_user)
+    await log_audit(
+        "catalyst-cron", "System",
+        "JOB_RUN", "daily-intelligence-refresh",
+        f"Catalyst Cron recorded {result['recorded_alerts']} early-warning signals", ""
+    )
+    return {
+        "status": "success",
+        "job": "daily-intelligence-refresh",
+        "trigger": "Catalyst Cron",
+        "recorded_alerts": result["recorded_alerts"],
+        "forecast": result["forecast"].get("summary", {}),
+    }
+
+
 @app.get("/api/system/status")
 async def system_status(admin_user: dict = Depends(require_admin)):
     """Admin operations snapshot for Catalyst deployment readiness."""
@@ -450,6 +477,7 @@ async def system_status(admin_user: dict = Depends(require_admin)):
         LIMIT 1
     """)
     reports_on_disk = len(list(REPORTS_DIR.glob("*.pdf"))) if REPORTS_DIR.exists() else 0
+    catalyst = get_catalyst_service_matrix()
     return {
         "runtime": {
             "platform": "Zoho Catalyst AppSail" if os.getenv("X_ZOHO_CATALYST_LISTEN_PORT") else "Local development",
@@ -471,7 +499,8 @@ async def system_status(admin_user: dict = Depends(require_admin)):
         },
         "jobs": {
             "latest": latest_job,
-        }
+        },
+        "catalyst_services": catalyst,
     }
 
 
@@ -492,6 +521,7 @@ async def system_summary(user: dict = Depends(get_current_user)):
         ORDER BY id DESC
         LIMIT 1
     """)
+    catalyst = get_catalyst_service_matrix()
     return {
         "runtime": {
             "platform": "Zoho Catalyst AppSail" if os.getenv("X_ZOHO_CATALYST_LISTEN_PORT") else "Local development",
@@ -516,8 +546,19 @@ async def system_summary(user: dict = Depends(get_current_user)):
         },
         "jobs": {
             "latest": latest_job,
-        }
+        },
+        "catalyst_services": catalyst["summary"],
     }
+
+
+@app.get("/api/catalyst/services")
+async def catalyst_services(user: dict = Depends(get_current_user)):
+    """Zoho Catalyst service usage matrix, excluding Catalyst Authentication by request."""
+    await log_audit(
+        user.get("username"), user.get("role"), "CATALYST_SERVICES_VIEW",
+        "catalyst/services", "Viewed Catalyst service usage matrix", "",
+    )
+    return get_catalyst_service_matrix()
 
 
 @app.get("/api/submission/readiness")

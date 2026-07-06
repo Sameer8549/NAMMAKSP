@@ -1280,6 +1280,8 @@ function renderOperationsGrid(container, status) {
   const alerts = status.alerts || {};
   const reports = status.reports || {};
   const jobs = status.jobs || {};
+  const catalyst = status.catalyst_services || {};
+  const catalystSummary = catalyst.summary || catalyst;
   const latestReport = reports.latest;
   const latestJob = jobs.latest;
 
@@ -1288,6 +1290,11 @@ function renderOperationsGrid(container, status) {
       <div class="ops-label">Runtime</div>
       <div class="ops-value">${escapeHTML(runtime.platform || 'Local development')}</div>
       <div class="ops-detail">${runtime.catalyst_file_store_configured ? 'Catalyst File Store configured' : 'Local AppSail report storage'}</div>
+    </div>
+    <div class="ops-card">
+      <div class="ops-label">Catalyst Services</div>
+      <div class="ops-value">${Number(catalystSummary.active_or_ready || 0)} / ${Number(catalystSummary.total_requested_without_auth || 25)}</div>
+      <div class="ops-detail">${Number(catalystSummary.console_required || 0)} console-required · ${Number(catalystSummary.fallback_mode || 0)} fallback mode</div>
     </div>
     <div class="ops-card">
       <div class="ops-label">Report Archive</div>

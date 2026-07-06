@@ -182,6 +182,12 @@ http://127.0.0.1:8000/
 | Backend API | Catalyst AppSail |
 | Runtime | Python 3.12 |
 
+Zoho Catalyst service coverage, excluding Catalyst Authentication by design, is documented in [`docs/CATALYST_SERVICES.md`](docs/CATALYST_SERVICES.md). The live app also exposes a service evidence matrix at:
+
+```text
+GET /api/catalyst/services
+```
+
 Frontend:
 
 ```text
@@ -216,6 +222,7 @@ https://namma-ksp-50043229029.development.catalystappsail.in
 | `POST` | `/api/reports/offender` | Offender dossier PDF. |
 | `POST` | `/api/reports/network` | Network analysis PDF. |
 | `GET` | `/api/reports/list` | Generated report archive. |
+| `GET` | `/api/catalyst/services` | Zoho Catalyst service usage matrix excluding Authentication. |
 | `GET` | `/api/docs` | FastAPI Swagger documentation. |
 
 ## Impact
