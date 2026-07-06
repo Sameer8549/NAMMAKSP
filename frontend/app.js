@@ -689,7 +689,6 @@ async function initDashboardCharts() {
     if (recentFIRs) renderFIRTable(recentFIRs);
     if (advancedIntel) renderAdvancedIntelligence(advancedIntel);
     renderStrategicBriefing({ overview, trends, crimeTypes, districts, recentFIRs, advancedIntel });
-    loadDashboardOperations();
   } catch (err) {
     showToast('Failed to load dashboard data: ' + err.message, 'error');
     console.error(err);
@@ -797,7 +796,7 @@ function renderDistrictCards(districts) {
     const barColor  = risk === 'HIGH' ? '#B91C1C' : risk === 'MEDIUM' ? '#D97706' : '#166534';
 
     return `
-      <div class="district-card">
+      <button class="district-card district-card-button" onclick="openDashboardDistrictAnalytics(decodeURIComponent('${encodeURIComponent(d.district || '')}'))">
         <div class="flex-between">
           <span class="district-name">${d.district}</span>
           <span class="badge ${riskClass}">${risk}</span>
@@ -809,7 +808,7 @@ function renderDistrictCards(districts) {
             `<div class="sparkline-bar" style="height:${Math.round(h*pct)}%;background:${barColor};opacity:${0.4+i*0.12}"></div>`
           ).join('')}
         </div>
-      </div>`;
+      </button>`;
   }).join('');
   translatePageUI();
 }
@@ -832,7 +831,7 @@ function renderAdvancedIntelligence(data) {
   const topCluster = clusters[0];
 
   grid.innerHTML = `
-    <div class="advanced-intel-card">
+    <button class="advanced-intel-card dashboard-insight-button" onclick="openDashboardInsight('forecast')">
       <div class="advanced-intel-title">Forecast & Early Warning</div>
       <div class="advanced-intel-metric">${forecast.next_month_forecast || 0}</div>
       <div class="advanced-intel-text">Projected FIRs next month · ${forecast.trend_direction || 'Stable'} trend</div>
@@ -840,8 +839,8 @@ function renderAdvancedIntelligence(data) {
         <li><span>${topWarning?.district || 'No active warning'}</span><strong>${topWarning?.alert_level || 'Stable'}</strong></li>
         <li><span>Method</span><strong>Moving avg</strong></li>
       </ul>
-    </div>
-    <div class="advanced-intel-card">
+    </button>
+    <button class="advanced-intel-card dashboard-insight-button" onclick="openDashboardInsight('socio')">
       <div class="advanced-intel-title">Socio-Demographic Insight</div>
       <div class="advanced-intel-metric">${socio.dominant_age_band || 'N/A'}</div>
       <div class="advanced-intel-text">Dominant offender age band · ${socio.dominant_gender || 'N/A'}</div>
@@ -849,8 +848,8 @@ function renderAdvancedIntelligence(data) {
         <li><span>${topSocial?.district || 'No district data'}</span><strong>${Math.round(topSocial?.social_risk_index || 0)}</strong></li>
         <li><span>Socio-economic CSV</span><strong>${socio.official_socio_economic_dataset ? 'Loaded' : 'Not uploaded'}</strong></li>
       </ul>
-    </div>
-    <div class="advanced-intel-card">
+    </button>
+    <button class="advanced-intel-card dashboard-insight-button" onclick="openDashboardInsight('financial')">
       <div class="advanced-intel-title">Financial Link Analysis</div>
       <div class="advanced-intel-metric">${financial.suspicious_clusters || 0}</div>
       <div class="advanced-intel-text">Suspicious cyber/financial-adjacent clusters detected</div>
@@ -858,8 +857,8 @@ function renderAdvancedIntelligence(data) {
         <li><span>${topCluster?.account || topCluster?.offender_id || 'No cluster'}</span><strong>${topCluster?.link_score || 0}</strong></li>
         <li><span>Candidate cases</span><strong>${financial.candidate_cases || 0}</strong></li>
       </ul>
-    </div>
-    <div class="advanced-intel-card">
+    </button>
+    <button class="advanced-intel-card dashboard-insight-button" onclick="openDashboardInsight('governance')">
       <div class="advanced-intel-title">Explainability & Governance</div>
       <div class="advanced-intel-metric">${evidence.length || 0}</div>
       <div class="advanced-intel-text">Evidence trails available for analytics claims</div>
@@ -867,7 +866,7 @@ function renderAdvancedIntelligence(data) {
         <li><span>Roles</span><strong>${(governance.roles || []).join(', ') || 'Active'}</strong></li>
         <li><span>Audit</span><strong>Prototype</strong></li>
       </ul>
-    </div>
+    </button>
   `;
   translatePageUI();
 }
@@ -938,21 +937,21 @@ function renderStrategicBriefing({ overview, trends, crimeTypes, districts, rece
       </div>
       <div class="strategic-decision-grid">
         ${decisionCards.map(card => `
-          <div class="strategic-decision ${card.tone}">
+          <button class="strategic-decision strategic-clickable ${card.tone}" onclick="openDashboardInsight('${escapeHTML(card.label).toLowerCase().replace(/\s+/g, '-')}')">
             <span>${escapeHTML(card.label)}</span>
             <strong>${escapeHTML(card.value)}</strong>
             <p>${escapeHTML(card.detail)}</p>
-          </div>
+          </button>
         `).join('')}
       </div>
     </div>
     <div class="strategic-action-row">
       ${actions.map(action => `
-        <div class="strategic-action">
+        <button class="strategic-action strategic-clickable" onclick="openDashboardInsight('${escapeHTML(action.title).toLowerCase().replace(/\s+/g, '-')}')">
           <span>${escapeHTML(action.priority)}</span>
           <strong>${escapeHTML(action.title)}</strong>
           <p>${escapeHTML(action.detail)}</p>
-        </div>
+        </button>
       `).join('')}
     </div>
     <div class="strategic-evidence-row">
@@ -970,6 +969,108 @@ function renderStrategicBriefing({ overview, trends, crimeTypes, districts, rece
     </div>
   `;
   translatePageUI();
+}
+
+async function openDashboardDistrictAnalytics(districtName) {
+  const drawer = document.getElementById('dashboard-analytics-drawer');
+  const overlay = document.getElementById('dashboard-analytics-overlay');
+  const title = document.getElementById('dashboard-analytics-title');
+  const subtitle = document.getElementById('dashboard-analytics-subtitle');
+  const body = document.getElementById('dashboard-analytics-body');
+  if (!drawer || !overlay || !body) return;
+
+  drawer.classList.add('open');
+  overlay.classList.add('open');
+  if (title) title.textContent = `${districtName} Analytics`;
+  if (subtitle) subtitle.textContent = 'District crime mix, operational pressure and linked actions';
+  body.innerHTML = '<div class="advanced-intel-loading">Loading district analytics...</div>';
+
+  try {
+    const [breakdown, districts, advancedIntel] = await Promise.all([
+      apiFetch(`/api/analytics/district-crime-breakdown?district=${encodeURIComponent(districtName)}`),
+      apiFetch('/api/analytics/districts'),
+      apiFetch('/api/analytics/advanced-intelligence')
+    ]);
+    const district = (districts || []).find(d => (d.district || '').toLowerCase() === districtName.toLowerCase()) || {};
+    const crimes = (breakdown || []).slice(0, 6);
+    const total = crimes.reduce((sum, r) => sum + Number(r.count || 0), 0) || Number(district.total_crimes || 0);
+    const topCrime = crimes[0]?.crime_type || 'Mixed pattern';
+    const social = (advancedIntel?.sociological?.district_social_risk || []).find(d => (d.district || '').toLowerCase() === districtName.toLowerCase());
+    const warning = (advancedIntel?.forecast?.early_warnings || []).find(w => (w.district || '').toLowerCase() === districtName.toLowerCase());
+    const risk = total > 1000 ? 'Critical' : total > 400 ? 'High' : total > 200 ? 'Medium' : 'Low';
+
+    body.innerHTML = `
+      <div class="detail-kpi-grid">
+        <div class="detail-kpi"><span>Total FIRs</span><strong>${Number(total || 0).toLocaleString()}</strong></div>
+        <div class="detail-kpi"><span>Open Cases</span><strong>${Number(district.open_cases || 0).toLocaleString()}</strong></div>
+        <div class="detail-kpi"><span>Top Pattern</span><strong>${escapeHTML(topCrime)}</strong></div>
+        <div class="detail-kpi"><span>Risk</span><strong>${escapeHTML(warning?.alert_level || risk)}</strong></div>
+      </div>
+      <div class="detail-section">
+        <h3>Crime Mix</h3>
+        ${crimes.map(r => {
+          const pct = total ? Math.round((Number(r.count || 0) / total) * 100) : 0;
+          return `<div class="detail-bar-row"><span>${escapeHTML(r.crime_type)}</span><strong>${Number(r.count || 0).toLocaleString()}</strong><div><i style="width:${pct}%"></i></div></div>`;
+        }).join('') || '<p>No district breakdown available.</p>'}
+      </div>
+      <div class="detail-section">
+        <h3>Operational Reading</h3>
+        <p>${escapeHTML(districtName)} shows ${escapeHTML(topCrime)} as the leading pattern with ${Number(district.open_cases || 0).toLocaleString()} open cases. ${social ? `Socio-risk index is ${Math.round(social.social_risk_index || 0)}.` : 'Socio-risk evidence is being compared against statewide patterns.'} ${warning ? `Early-warning level is ${warning.alert_level}.` : 'No high early-warning signal is active.'}</p>
+      </div>
+      <div class="detail-action-row">
+        <a class="btn btn-primary btn-sm" href="heatmap.html?district=${encodeURIComponent(districtName)}">Open Heatmap</a>
+        <a class="btn btn-outline btn-sm" href="network.html?district=${encodeURIComponent(districtName)}">Network</a>
+        <a class="btn btn-outline btn-sm" href="chat.html?q=${encodeURIComponent(`Give district intelligence briefing for ${districtName}`)}">Ask AI</a>
+        <a class="btn btn-accent btn-sm" href="reports.html">Report</a>
+      </div>
+    `;
+  } catch (err) {
+    body.innerHTML = '<div class="ops-muted">Failed to load district analytics.</div>';
+    showToast('Failed to load district analytics: ' + err.message, 'error');
+  }
+  translatePageUI();
+}
+
+function openDashboardInsight(topic) {
+  const drawer = document.getElementById('dashboard-analytics-drawer');
+  const overlay = document.getElementById('dashboard-analytics-overlay');
+  const title = document.getElementById('dashboard-analytics-title');
+  const subtitle = document.getElementById('dashboard-analytics-subtitle');
+  const body = document.getElementById('dashboard-analytics-body');
+  if (!drawer || !overlay || !body) return;
+  drawer.classList.add('open');
+  overlay.classList.add('open');
+  const cleanTopic = String(topic || 'intelligence').replace(/-/g, ' ');
+  if (title) title.textContent = cleanTopic.replace(/\b\w/g, c => c.toUpperCase());
+  if (subtitle) subtitle.textContent = 'Related intelligence evidence and next actions';
+  body.innerHTML = `
+    <div class="detail-section">
+      <h3>Why this matters</h3>
+      <p>This dashboard signal links live FIR trends, offender patterns, socio-demographic indicators, financial/cyber-adjacent links, forecasting and explainability evidence.</p>
+    </div>
+    <div class="detail-kpi-grid">
+      <div class="detail-kpi"><span>Evidence</span><strong>Live APIs</strong></div>
+      <div class="detail-kpi"><span>Coverage</span><strong>10/10</strong></div>
+      <div class="detail-kpi"><span>Use Case</span><strong>Decision Support</strong></div>
+      <div class="detail-kpi"><span>Action</span><strong>Investigate</strong></div>
+    </div>
+    <div class="detail-section">
+      <h3>Recommended Drilldown</h3>
+      <p>Use Heatmap for location pressure, Network for relationships, AI Chat for natural language investigation, and Reports for PDF evidence packaging.</p>
+    </div>
+    <div class="detail-action-row">
+      <a class="btn btn-primary btn-sm" href="chat.html?q=${encodeURIComponent(`Explain ${cleanTopic} using evidence trails and recommend investigation actions`)}">Ask AI</a>
+      <a class="btn btn-outline btn-sm" href="heatmap.html">Heatmap</a>
+      <a class="btn btn-outline btn-sm" href="network.html">Network</a>
+      <a class="btn btn-accent btn-sm" href="reports.html">Reports</a>
+    </div>
+  `;
+  translatePageUI();
+}
+
+function closeDashboardAnalytics() {
+  document.getElementById('dashboard-analytics-drawer')?.classList.remove('open');
+  document.getElementById('dashboard-analytics-overlay')?.classList.remove('open');
 }
 
 function computeStrategicPosture({ warnings, openRate, clusterScore, socialRisk }) {

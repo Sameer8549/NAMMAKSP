@@ -129,17 +129,6 @@
           </div>
         </div>
       </div>
-      <div class="section">
-        <div class="card">
-          <div class="card-header">
-            <span class="card-title">Catalyst Operations</span>
-            <span class="text-muted text-sm">Storage, alerts, report archive and job ledger</span>
-          </div>
-          <div class="ops-grid" id="dashboard-ops-grid">
-            <div class="advanced-intel-loading">Loading Catalyst operations...</div>
-          </div>
-        </div>
-      </div>
       <div class="section card">
         <div class="card-header"><span class="card-title">Recent FIRs</span><a href="reports.html" class="card-link">View All &rarr;</a></div>
         <div class="fir-filter-chips" id="fir-filter-chips" style="margin-bottom:var(--space-sm)">
@@ -168,6 +157,21 @@
       </div>
     </main>
   </div>
+  <div id="dashboard-analytics-overlay" class="dashboard-analytics-overlay" onclick="closeDashboardAnalytics()"></div>
+  <aside id="dashboard-analytics-drawer" class="dashboard-analytics-drawer" aria-label="Dashboard analytics detail">
+    <div class="dashboard-analytics-header">
+      <div>
+        <h2 id="dashboard-analytics-title">Analytics Detail</h2>
+        <p id="dashboard-analytics-subtitle">Related dashboard intelligence</p>
+      </div>
+      <button class="btn btn-ghost btn-icon" onclick="closeDashboardAnalytics()" aria-label="Close analytics detail">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div id="dashboard-analytics-body" class="dashboard-analytics-body">
+      <div class="advanced-intel-loading">Select a dashboard item to inspect it.</div>
+    </div>
+  </aside>
   <script src="app.js"></script>
   <!-- ── Page Progress Bar ── -->
   <div id="page-progress-bar"></div>
