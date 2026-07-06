@@ -1142,22 +1142,22 @@ function setLanguage(lang) {
   const inputEl = document.getElementById('chat-input');
   
   if (lang === 'en') {
-    if (labelEl) labelEl.innerHTML = '<span class="kan">ಅಪರಾಧ ತನಿಖಾ ಸಹಾಯಕ</span> — English mode';
+    if (labelEl) labelEl.innerHTML = '<span class="kan">ಅಪರಾಧ ತನಿಖಾ ಸಹಾಯಕ</span> — English';
     if (modeDisplay) modeDisplay.textContent = '🇬🇧 English Mode Active';
-    if (inputEl) inputEl.placeholder = 'Type in English or ಕನ್ನಡ ನಲ್ಲಿ ಬರೆಯಿರಿ…';
+    if (inputEl) inputEl.placeholder = 'Ask about FIRs, offenders, hotspots, patterns, or investigation leads...';
   } else {
-    if (labelEl) labelEl.innerHTML = '<span class="kan">ಅಪರಾಧ ತನಿಖಾ ಸಹಾಯಕ</span> — ಕನ್ನಡ ಮೋಡ್';
+    if (labelEl) labelEl.innerHTML = '<span class="kan">ಅಪರಾಧ ತನಿಖಾ ಸಹಾಯಕ</span> — ಕನ್ನಡ';
     if (modeDisplay) modeDisplay.textContent = '💛❤️ Kannada Mode Active';
-    if (inputEl) inputEl.placeholder = 'ಕನ್ನಡ ಅಥವಾ ಇಂಗ್ಲಿಷ್‌ನಲ್ಲಿ ಟೈಪ್ ಮಾಡಿ…';
+    if (inputEl) inputEl.placeholder = 'FIRಗಳು, ಅಪರಾಧಿಗಳು, ಹಾಟ್‌ಸ್ಪಾಟ್‌ಗಳು ಅಥವಾ ತನಿಖಾ ಸುಳಿವುಗಳ ಬಗ್ಗೆ ಕೇಳಿ...';
   }
 
   // Update initial welcome bubble text dynamically to match the chosen language
   const welcomeBubble = document.getElementById('welcome-bubble');
   if (welcomeBubble) {
     if (lang === 'en') {
-      welcomeBubble.innerHTML = `<span class="kan">ನಮಸ್ಕಾರ</span>. I am NAMMA KSP, your bilingual crime intelligence assistant for Karnataka State Police. Ask me anything in <strong>English or ಕನ್ನಡ</strong> — I will respond in your chosen language. You can also use the <strong>microphone</strong> for voice input. What would you like to investigate?`;
+      welcomeBubble.innerHTML = `<span class="kan">ನಮಸ್ಕಾರ</span>. I am your NAMMA KSP investigation assistant. Ask about FIRs, accused persons, victims, hotspots, networks, trends, or report-ready summaries in <strong>English or ಕನ್ನಡ</strong>.`;
     } else {
-      welcomeBubble.innerHTML = `<span class="kan">ನಮಸ್ಕಾರ</span>. ನಾನು ನಮ್ಮ KSP, ಕರ್ನಾಟಕ ರಾಜ್ಯ ಪೊಲೀಸ್‌ಗಾಗಿ ನಿಮ್ಮ ದ್ವಿಭಾಷಾ ಅಪರಾಧ ಗುಪ್ತಚರ ಸಹಾಯಕ. ಇಂಗ್ಲಿಷ್ ಅಥವಾ ಕನ್ನಡದಲ್ಲಿ ನನ್ನನ್ನು ಏನನ್ನಾದರೂ ಕೇಳಿ — ನಾನು ನಿಮ್ಮ ಆಯ್ಕೆಯ ಭಾಷೆಯಲ್ಲಿ ಉತ್ತರಿಸುತ್ತೇನೆ. ಧ್ವನಿ ಇನ್‌ಪುಟ್‌ಗಾಗಿ ನೀವು ಮೈಕ್ರೊಫೋನ್ ಅನ್ನು ಸಹ ಬಳಸಬಹುದು. ನೀವು ಏನನ್ನು ತನಿಖೆ ಮಾಡಲು ಬಯಸುತ್ತೀರಿ?`;
+      welcomeBubble.innerHTML = `<span class="kan">ನಮಸ್ಕಾರ</span>. ನಾನು ನಿಮ್ಮ NAMMA KSP ತನಿಖಾ ಸಹಾಯಕ. FIRಗಳು, ಆರೋಪಿಗಳು, ಬಲಿಪಶುಗಳು, ಹಾಟ್‌ಸ್ಪಾಟ್‌ಗಳು, ನೆಟ್‌ವರ್ಕ್‌ಗಳು, ಪ್ರವೃತ್ತಿಗಳು ಅಥವಾ ವರದಿ ಸಾರಾಂಶಗಳ ಬಗ್ಗೆ ಕೇಳಿ.`;
     }
   }
 }
@@ -1284,7 +1284,16 @@ function initChat() {
   if (!sendBtn || !inputEl) return;
 
   sendBtn.addEventListener('click', sendChatMessage);
-  inputEl.addEventListener('keydown', e => { if (e.key === 'Enter' && !e.shiftKey) sendChatMessage(); });
+  inputEl.addEventListener('keydown', e => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      sendChatMessage();
+    }
+  });
+  inputEl.addEventListener('input', () => {
+    inputEl.style.height = 'auto';
+    inputEl.style.height = Math.min(inputEl.scrollHeight, 132) + 'px';
+  });
 
   // Export button
   const exportBtn = document.getElementById('chat-export-btn');
@@ -1318,6 +1327,32 @@ function initChat() {
   }
 }
 
+function chatAssistantAvatarMarkup() {
+  return '<div class="chat-avatar chat-avatar-emblem"><img src="assets/ksp_emblem_chat.png" alt="" /></div>';
+}
+
+function renderChatWelcome(container) {
+  if (!container) return;
+  container.innerHTML = `
+    <div class="chat-message ai chat-welcome-message">
+      ${chatAssistantAvatarMarkup()}
+      <div>
+        <div class="chat-bubble" id="welcome-bubble"></div>
+        <div class="chat-timestamp" style="display:flex;align-items:center;gap:6px">
+          <span>Ready to assist</span>
+          <button class="chat-speak-btn" onclick="readAloud(this.closest('.chat-message').querySelector('.chat-bubble').innerText, _chatLanguage, this)">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle;margin-right:2px">
+              <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/>
+              <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"/>
+            </svg>
+            Speak
+          </button>
+        </div>
+      </div>
+    </div>`;
+  setLanguage(_chatLanguage);
+}
+
 async function sendChatMessage() {
   const inputEl  = document.getElementById('chat-input');
   const sendBtn  = document.getElementById('chat-send-btn');
@@ -1326,6 +1361,7 @@ async function sendChatMessage() {
   if (!msg || !messages) return;
 
   inputEl.value   = '';
+  inputEl.style.height = 'auto';
   sendBtn.disabled = true;
 
   // Append user bubble
@@ -1347,7 +1383,7 @@ async function sendChatMessage() {
 
     if (data) {
       const reply = data.response || 'No response.';
-      appendChatMessage('ai', reply, messages, data.tokens_used);
+      appendChatMessage('ai', reply, messages);
       _chatHistory.push({ role: 'assistant', content: reply });
       _chatSessionId = data.session_id || _chatSessionId;
     }
@@ -1361,7 +1397,7 @@ async function sendChatMessage() {
 }
 window.sendChatMessage = sendChatMessage;
 
-function appendChatMessage(role, content, container, tokens) {
+function appendChatMessage(role, content, container) {
   const isAI = role === 'ai' || role === 'assistant';
   const username = getUsername() || 'User';
   const initials = username.split(' ').map(w => w[0]).join('').slice(0,2).toUpperCase();
@@ -1375,11 +1411,11 @@ function appendChatMessage(role, content, container, tokens) {
 
   if (isAI) {
     div.innerHTML = `
-      <div class="chat-avatar"><span style="font-size:10px;font-weight:700;color:#2A7F7F">AI</span></div>
+      ${chatAssistantAvatarMarkup()}
       <div>
         <div class="chat-bubble">${formatted}</div>
         <div class="chat-timestamp" style="display:flex;align-items:center;gap:6px">
-          <span>${now}${tokens ? ` · ${tokens} tokens` : ''}</span>
+          <span>${now}</span>
           <button class="chat-speak-btn" onclick="readAloud(this.closest('.chat-message').querySelector('.chat-bubble').innerText, _chatLanguage, this)">
             <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle;margin-right:2px">
               <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/>
@@ -1468,7 +1504,7 @@ function appendTypingIndicator(container) {
   div.id = id;
   div.className = 'chat-message ai';
   div.innerHTML = `
-    <div class="chat-avatar"><span style="font-size:10px;font-weight:700;color:#2A7F7F">AI</span></div>
+    ${chatAssistantAvatarMarkup()}
     <div><div class="chat-bubble typing-bubble">
       <span class="typing-dot"></span><span class="typing-dot"></span><span class="typing-dot"></span>
     </div></div>`;
@@ -1493,7 +1529,7 @@ async function clearChat() {
   _chatHistory   = [];
   _chatSessionId = 'sess_' + Date.now();
   const container = document.getElementById('chat-messages');
-  if (container) container.innerHTML = '';
+  if (container) renderChatWelcome(container);
   showToast('Conversation cleared', 'success');
 }
 

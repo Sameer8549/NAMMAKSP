@@ -140,7 +140,7 @@
       <div class="page-header">
         <div>
           <h1 class="page-title">Crime Intelligence Assistant</h1>
-          <div class="page-subtitle"><span class="kan">ಅಪರಾಧ ತನಿಖಾ ಸಹಾಯಕ</span> &mdash; AI-Powered Bilingual Intelligence Query Interface</div>
+          <div class="page-subtitle"><span class="kan">ಅಪರಾಧ ತನಿಖಾ ಸಹಾಯಕ</span> &mdash; bilingual investigation support workspace</div>
         </div>
         <div class="flex gap-sm" style="align-items:center">
           <!-- Language toggle handled in global header -->
@@ -158,20 +158,23 @@
       <div class="chat-layout">
         <div class="chat-panel">
           <div class="chat-panel-header">
-            <div>
-              <div class="chat-panel-title">Crime Intelligence Assistant</div>
-              <div class="chat-panel-subtitle" id="chat-lang-label"><span class="kan">ಅಪರಾಧ ತನಿಖಾ ಸಹಾಯಕ</span> — English mode</div>
+            <div class="chat-brand-lockup">
+              <img class="chat-emblem" src="assets/ksp_emblem_chat.png" alt="Karnataka State Police" />
+              <div>
+                <div class="chat-panel-title">NAMMA KSP Assistant</div>
+                <div class="chat-panel-subtitle" id="chat-lang-label"><span class="kan">ಅಪರಾಧ ತನಿಖಾ ಸಹಾಯಕ</span> — English</div>
+              </div>
             </div>
-            <div class="ai-status"><div class="ai-status-dot"></div>AI Active · <span id="ai-model-label">llama-3.3-70b</span></div>
+            <div class="chat-assurance"><span></span>Evidence-guided responses</div>
           </div>
 
           <div class="chat-messages" id="chat-messages">
             <div class="chat-message ai">
-              <div class="chat-avatar"><span style="font-size:10px;font-weight:700;color:#2A7F7F">AI</span></div>
+              <div class="chat-avatar chat-avatar-emblem"><img src="assets/ksp_emblem_chat.png" alt="" /></div>
               <div>
                 <div class="chat-bubble" id="welcome-bubble"><span class="kan">ನಮಸ್ಕಾರ</span>. I am NAMMA KSP, your bilingual crime intelligence assistant for Karnataka State Police. Ask me anything in <strong>English or ಕನ್ನಡ</strong> — I will respond in your chosen language. You can also use the <strong>microphone</strong> for voice input. What would you like to investigate?</div>
                 <div class="chat-timestamp" style="display:flex;align-items:center;gap:6px">
-                  <span>Ready</span>
+                  <span>Ready to assist</span>
                   <button class="chat-speak-btn" onclick="readAloud(this.closest('.chat-message').querySelector('.chat-bubble').innerText, _chatLanguage, this)">
                     <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle;margin-right:2px">
                       <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/>
@@ -186,7 +189,7 @@
 
           <!-- Typing Indicator -->
           <div class="typing-indicator" id="typing-indicator" style="display:none">
-            <div class="chat-avatar"><span style="font-size:10px;font-weight:700;color:#2A7F7F">AI</span></div>
+            <div class="chat-avatar chat-avatar-emblem"><img src="assets/ksp_emblem_chat.png" alt="" /></div>
             <div class="typing-dots">
               <div class="typing-dot"></div>
               <div class="typing-dot"></div>
@@ -204,7 +207,7 @@
           <!-- Templates panel removed -->
           <div class="chat-input-bar">
             <div class="chat-input-row">
-              <input class="chat-input" id="chat-input" type="text" placeholder="Type in English or ಕನ್ನಡ ನಲ್ಲಿ ಬರೆಯಿರಿ…" />
+              <textarea class="chat-input" id="chat-input" rows="1" placeholder="Ask about FIRs, offenders, hotspots, patterns, or investigation leads..."></textarea>
               <!-- Voice button -->
               <button class="btn btn-outline btn-icon" id="voice-btn" onclick="toggleVoiceInput()" aria-label="Voice input" title="Click to speak">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -259,7 +262,7 @@
           <div class="context-section">
             <div class="context-section-title">Quick Intelligence</div>
             <div class="quick-stat-row"><span class="quick-stat-label">Voice Input</span><span class="quick-stat-value" id="voice-support-label">Checking…</span></div>
-            <div class="quick-stat-row"><span class="quick-stat-label">AI Model</span><span class="quick-stat-value">llama-3.3-70b</span></div>
+            <div class="quick-stat-row"><span class="quick-stat-label">Response Style</span><span class="quick-stat-value">Evidence-led</span></div>
             <div class="quick-stat-row"><span class="quick-stat-label">Languages</span><span class="quick-stat-value">English + ಕನ್ನಡ</span></div>
           </div>
         </div>
