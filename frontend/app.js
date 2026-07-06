@@ -2715,11 +2715,17 @@ async function runDailyIntelligenceRefresh() {
 
 async function loadUsersList() {
   const tbody = document.getElementById('users-tbody');
+  const countLabel = document.getElementById('users-count-label');
   if (!tbody) return;
 
   try {
     const data = await apiFetch('/api/users');
     if (!data) return;
+
+    if (countLabel) {
+      const accountText = data.length === 1 ? 'account' : 'accounts';
+      countLabel.textContent = `${data.length} ${accountText} registered`;
+    }
 
     tbody.innerHTML = data.map(u => {
       const roleClass = u.role === 'Admin' ? 'badge-admin' : 'badge-investigator';
@@ -2742,6 +2748,7 @@ async function loadUsersList() {
         </tr>`;
     }).join('');
   } catch (err) {
+    if (countLabel) countLabel.textContent = 'Unable to load accounts';
     showToast('Failed to load users: ' + err.message, 'error');
   }
 }
