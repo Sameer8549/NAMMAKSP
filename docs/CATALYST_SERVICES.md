@@ -32,6 +32,10 @@ This endpoint returns every requested Catalyst service except Authentication, in
 | API routing | API Gateway | Active Web Client Hosting routes under `/app/*` |
 | Scheduled job target | Cron | Internal endpoint `/api/internal/cron/daily-intelligence-refresh` |
 | Event publisher | Signals | Publisher `namma_ksp_events`, ID `6060000000021078`, event `early_warning_alert` |
+| Connection service shell | Connections | Custom service `Sarvam AI` / `sarvam_ai` with API-key header parameter |
+| Zia workspace | Zia Services | Zia service shell initialized; OCR/Text Analytics/AutoML menus available |
+| SmartBrowz workspace | SmartBrowz | Dashboard initialized with Headless, Browser Logic, PDF & Screenshot, Templates |
+| Push notification workspace | Push Notifications | Web Push console active with Catalyst SDK enablement code |
 | CI/CD resource | Pipelines | Pipeline `namma_ksp_ci`; GitHub trigger authorization pending |
 
 ## Code-Ready / Console-Ready
@@ -44,16 +48,16 @@ These services have app features and backend evidence points, but require provis
 | NoSQL | chat/session/evidence payload storage |
 | Stratus | generated PDF report archive and QR-linked report downloads |
 | Cache | dashboard analytics, forecast, and search response caching |
-| QuickML | LLM/RAG and no-code ML pipeline handoff |
-| Zia AutoML | offender risk and forecasting model training |
-| Zia Services | OCR/text analytics and speech/translation replacement |
-| SmartBrowz | browser-rendered PDFs, screenshots, and report captures |
-| Connections | OAuth/token management for third-party AI/voice services |
+| QuickML | initialized LLM/RAG and no-code ML pipeline workspace; dataset/model creation requires selected training data and credits |
+| Zia AutoML | initialized Zia workspace; offender risk and forecasting model training requires a trained model |
+| Zia Services | initialized OCR/text analytics workspace; API adapter can replace local evidence parsing |
+| SmartBrowz | initialized browser-rendering workspace; report adapter can replace ReportLab/PDF fallback |
+| Connections | custom Sarvam AI API-key service shell; secret value is not stored in code |
 | Cron / Job Scheduling | daily intelligence refresh endpoint |
 | Signals / Event Functions | publisher `namma_ksp_events`, event `early_warning_alert`, and webhook receiver `/api/internal/signals/early-warning` |
-| Circuits | multi-step report, review, notification, and escalation workflow |
-| Mail | transactional report and alert delivery |
-| Push Notifications | early-warning and high-risk alert notifications |
+| Circuits | app orchestration endpoints are ready; service route currently returns Catalyst 404 in this project console |
+| Mail | transactional report and alert delivery after verified sender/domain setup |
+| Push Notifications | web push console active; app-side user targeting requires Catalyst-authenticated users |
 | Pipelines | automated build and deploy flow |
 
 ## Status Meaning
@@ -75,3 +79,7 @@ These services have app features and backend evidence points, but require provis
 `fallback` means the feature currently runs through local/app-level implementation.
 
 `not-configured` means the service needs a verified sender, third-party authorization, domain ownership, mobile/web push credential, or billing/resource selection before it can be safely activated.
+
+`external-prereq` means Catalyst requires an external asset such as a verified sender/domain before the service can be used.
+
+`unavailable-in-console` means the current Catalyst project route returned a Catalyst 404 even after the service was searched/opened.
