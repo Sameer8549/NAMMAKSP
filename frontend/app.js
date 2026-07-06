@@ -1294,7 +1294,7 @@ function renderOperationsGrid(container, status) {
     <div class="ops-card">
       <div class="ops-label">Catalyst Services</div>
       <div class="ops-value">${Number(catalystSummary.active_or_ready || 0)} / ${Number(catalystSummary.total_requested_without_auth || 25)}</div>
-      <div class="ops-detail">${Number(catalystSummary.console_required || 0)} console-required · ${Number(catalystSummary.fallback_mode || 0)} fallback mode</div>
+      <div class="ops-detail">${Number(catalystSummary.external_setup_required || catalystSummary.console_required || 0)} external setup · ${Number(catalystSummary.fallback_mode || 0)} local fallback</div>
     </div>
     <div class="ops-card">
       <div class="ops-label">Report Archive</div>

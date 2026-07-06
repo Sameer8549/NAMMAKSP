@@ -28,8 +28,11 @@ This endpoint returns every requested Catalyst service except Authentication, in
 | Semi-structured resource | NoSQL | Console table `namma_ksp_evidence` |
 | Object storage resource | Stratus | Console bucket `namma-ksp-reports` |
 | Cache resource | Cache | Console segment `namma_ksp_analytics` |
+| Indexed search | Catalyst Search | Indexed columns on `namma_ksp_firs`; SDK adapter pending |
 | API routing | API Gateway | Active Web Client Hosting routes under `/app/*` |
 | Scheduled job target | Cron | Internal endpoint `/api/internal/cron/daily-intelligence-refresh` |
+| Event publisher | Signals | Publisher `namma_ksp_events`, ID `6060000000021078`, event `early_warning_alert` |
+| CI/CD resource | Pipelines | Pipeline `namma_ksp_ci`; GitHub trigger authorization pending |
 
 ## Code-Ready / Console-Ready
 
@@ -47,7 +50,7 @@ These services have app features and backend evidence points, but require provis
 | SmartBrowz | browser-rendered PDFs, screenshots, and report captures |
 | Connections | OAuth/token management for third-party AI/voice services |
 | Cron / Job Scheduling | daily intelligence refresh endpoint |
-| Signals / Event Functions | report, alert, audit, and high-risk event publishing |
+| Signals / Event Functions | publisher `namma_ksp_events`, event `early_warning_alert`, and webhook receiver `/api/internal/signals/early-warning` |
 | Circuits | multi-step report, review, notification, and escalation workflow |
 | Mail | transactional report and alert delivery |
 | Push Notifications | early-warning and high-risk alert notifications |
@@ -67,4 +70,8 @@ These services have app features and backend evidence points, but require provis
 
 `console-configured` means the Catalyst console workflow has a matching application endpoint or resource target.
 
-`fallback` or `not-configured` means the feature currently runs through local/app-level implementation.
+`console-initialized` means the Catalyst service workspace is enabled and ready for dataset/model/endpoint configuration.
+
+`fallback` means the feature currently runs through local/app-level implementation.
+
+`not-configured` means the service needs a verified sender, third-party authorization, domain ownership, mobile/web push credential, or billing/resource selection before it can be safely activated.

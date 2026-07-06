@@ -186,6 +186,14 @@ class TranslateRequest(BaseModel):
 class LanguageDetectRequest(BaseModel):
     text: str
 
+class CatalystSignalRequest(BaseModel):
+    event: Optional[str] = None
+    severity: Optional[str] = "High"
+    signal: Optional[str] = "Catalyst Signal"
+    district: Optional[str] = ""
+    detail: Optional[str] = ""
+    payload: Optional[dict] = None
+
 
 # ─── Auth Session Registry & Dependencies ─────────────────────────────────────
 ACTIVE_SESSIONS = {}
@@ -198,6 +206,7 @@ PUBLIC_API_PATHS = {
     "/api/health",
     "/api/auth/login",
     "/api/internal/cron/daily-intelligence-refresh",
+    "/api/internal/signals/early-warning",
 }
 PUBLIC_API_PREFIXES = ("/api/reports/qr/",)
 
@@ -449,6 +458,43 @@ async def cron_daily_intelligence_refresh(key: str = Query("")):
         "trigger": "Catalyst Cron",
         "recorded_alerts": result["recorded_alerts"],
         "forecast": result["forecast"].get("summary", {}),
+    }
+
+
+@app.post("/api/internal/signals/early-warning")
+async def catalyst_signal_early_warning(payload: CatalystSignalRequest, key: str = Query("")):
+    """Catalyst Signals webhook target for early-warning intelligence events."""
+    expected = os.getenv("CATALYST_SIGNALS_KEY", "namma-ksp-signals")
+    if not expected or key != expected:
+        raise HTTPException(status_code=403, detail="Invalid signal key")
+
+    raw_payload = payload.payload or {}
+    district = payload.district or raw_payload.get("district") or raw_payload.get("area") or ""
+    signal = payload.signal or raw_payload.get("signal") or raw_payload.get("crime_type") or "Catalyst Signal"
+    payload_dict = payload.model_dump() if hasattr(payload, "model_dump") else payload.dict()
+    detail = payload.detail or raw_payload.get("detail") or raw_payload.get("recommended_action") or str(raw_payload or payload_dict)
+    severity = payload.severity or raw_payload.get("severity") or raw_payload.get("alert_level") or "High"
+
+    await record_alert_event(severity, signal, district, detail)
+    await record_job_run(
+        "signals-early-warning",
+        "success",
+        f"Recorded Catalyst Signal event {payload.event or 'early_warning_alert'}",
+        "catalyst-signals"
+    )
+    await log_audit(
+        "catalyst-signals", "System",
+        "SIGNAL_RECEIVED", "signals/early-warning",
+        f"Recorded {severity} signal for {district or 'statewide'}", ""
+    )
+    return {
+        "status": "success",
+        "event": payload.event or "early_warning_alert",
+        "recorded": {
+            "severity": severity,
+            "signal": signal,
+            "district": district,
+        },
     }
 
 
