@@ -767,7 +767,7 @@ async def get_financial_link_analysis() -> dict:
 
 
 async def get_crime_forecast() -> dict:
-    """Simple explainable short-term forecast and early-warning signals."""
+    """Explainable short-term forecast with rolling-origin validation."""
     monthly = await get_monthly_trends()
     district_rows = await fetch_all("""
         SELECT
@@ -784,6 +784,29 @@ async def get_crime_forecast() -> dict:
     previous = mean([r["count"] for r in monthly[-12:-6]]) if len(monthly) >= 12 else avg_recent
     trend_delta = avg_recent - previous
     next_month = max(0, round(avg_recent + trend_delta * 0.35))
+
+    actuals = [float(r["count"]) for r in monthly]
+    errors = []
+    percentage_errors = []
+    for index in range(6, len(actuals)):
+        history = actuals[:index]
+        recent_window = history[-6:]
+        prior_window = history[-12:-6]
+        baseline = mean(recent_window)
+        prior_mean = mean(prior_window) if prior_window else baseline
+        prediction = max(0, baseline + (baseline - prior_mean) * 0.35)
+        error = abs(actuals[index] - prediction)
+        errors.append(error)
+        if actuals[index] > 0:
+            percentage_errors.append(error / actuals[index])
+    mae = round(mean(errors), 2) if errors else None
+    mape = round(mean(percentage_errors) * 100, 2) if percentage_errors else None
+    residual_spread = (sum(e * e for e in errors) / len(errors)) ** 0.5 if errors else 0
+    prediction_interval = {
+        "lower": max(0, round(next_month - 1.96 * residual_spread)),
+        "upper": max(0, round(next_month + 1.96 * residual_spread)),
+        "confidence": "95% empirical residual interval",
+    }
 
     by_district = defaultdict(list)
     for row in district_rows:
@@ -812,7 +835,14 @@ async def get_crime_forecast() -> dict:
             "next_month_forecast": next_month,
             "recent_monthly_average": round(avg_recent, 1),
             "trend_direction": "Rising" if trend_delta > 0 else "Falling" if trend_delta < 0 else "Stable",
-            "method": "Explainable moving-average forecast using monthly FIR counts and district-level deviation from baseline.",
+            "method": "Explainable six-month moving average with damped trend and rolling-origin backtesting.",
+            "validation": {
+                "backtest_months": len(errors),
+                "mae": mae,
+                "mape_percent": mape,
+                "prediction_interval": prediction_interval,
+                "production_status": "Validated historical prototype; operational calibration is required before deployment decisions.",
+            },
         },
         "early_warnings": warnings[:8],
     }

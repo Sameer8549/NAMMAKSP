@@ -9,6 +9,8 @@ import os
 import sys
 import logging
 import uuid
+import time
+from collections import defaultdict
 from pathlib import Path
 from datetime import datetime
 from typing import Optional
@@ -109,6 +111,10 @@ class NoCacheMiddleware(BaseHTTPMiddleware):
             response.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
             response.headers["Pragma"] = "no-cache"
             response.headers["Expires"] = "0"
+        response.headers["X-Content-Type-Options"] = "nosniff"
+        response.headers["X-Frame-Options"] = "DENY"
+        response.headers["Referrer-Policy"] = "no-referrer"
+        response.headers["Permissions-Policy"] = "camera=(), geolocation=(), payment=()"
         return response
 
 app.add_middleware(NoCacheMiddleware)
@@ -182,6 +188,10 @@ class LanguageDetectRequest(BaseModel):
 
 # ─── Auth Session Registry & Dependencies ─────────────────────────────────────
 ACTIVE_SESSIONS = {}
+LOGIN_ATTEMPTS = defaultdict(list)
+SESSION_TTL_SECONDS = int(os.getenv("SESSION_TTL_SECONDS", "28800"))
+LOGIN_WINDOW_SECONDS = 300
+LOGIN_MAX_ATTEMPTS = 5
 
 PUBLIC_API_PATHS = {"/api/health", "/api/auth/login"}
 PUBLIC_API_PREFIXES = ("/api/reports/qr/",)
@@ -198,7 +208,10 @@ async def require_authenticated_api_session(request: Request, call_next):
     ):
         authorization = request.headers.get("authorization", "")
         token = authorization[7:].strip() if authorization.startswith("Bearer ") else ""
-        if not token or token not in ACTIVE_SESSIONS:
+        session = ACTIVE_SESSIONS.get(token)
+        if not session or session.get("expires_at", 0) <= time.time():
+            if token:
+                ACTIVE_SESSIONS.pop(token, None)
             return JSONResponse(
                 status_code=401,
                 content={"detail": "Authentication required or session expired"},
@@ -210,9 +223,11 @@ async def get_current_user(authorization: Optional[str] = Header(None)):
     if not authorization or not authorization.startswith("Bearer "):
         raise HTTPException(status_code=401, detail="Authorization token required")
     token = authorization.split(" ")[1]
-    if token not in ACTIVE_SESSIONS:
+    session = ACTIVE_SESSIONS.get(token)
+    if not session or session.get("expires_at", 0) <= time.time():
+        ACTIVE_SESSIONS.pop(token, None)
         raise HTTPException(status_code=401, detail="Session expired or invalid")
-    return ACTIVE_SESSIONS[token]
+    return session
 
 async def require_admin(user: dict = Depends(get_current_user)):
     if user.get("role") != "Admin":
@@ -523,17 +538,27 @@ async def submission_readiness(user: dict = Depends(get_current_user)):
 @app.post("/api/auth/login")
 async def login_endpoint(request: LoginRequest, http_request: Request):
     from database import fetch_one, hash_password
+    client_ip = _client_ip(http_request)
+    now = time.time()
+    LOGIN_ATTEMPTS[client_ip] = [t for t in LOGIN_ATTEMPTS[client_ip] if now - t < LOGIN_WINDOW_SECONDS]
+    if len(LOGIN_ATTEMPTS[client_ip]) >= LOGIN_MAX_ATTEMPTS:
+        raise HTTPException(status_code=429, detail="Too many login attempts. Try again in five minutes.")
     pw_hash = hash_password(request.password)
     user = await fetch_one(
         "SELECT username, role FROM users WHERE LOWER(username) = ? AND password_hash = ?",
         (request.username.lower(), pw_hash)
     )
     if not user:
+        LOGIN_ATTEMPTS[client_ip].append(now)
         await log_audit(request.username, None, "LOGIN_FAILED", "auth", "Invalid username or password", http_request.client.host if http_request.client else "")
         raise HTTPException(status_code=401, detail="Invalid username or password")
     
+    LOGIN_ATTEMPTS.pop(client_ip, None)
     token = str(uuid.uuid4())
-    ACTIVE_SESSIONS[token] = {"username": user["username"], "role": user["role"]}
+    ACTIVE_SESSIONS[token] = {
+        "username": user["username"], "role": user["role"],
+        "issued_at": int(now), "expires_at": int(now + SESSION_TTL_SECONDS),
+    }
     await log_audit(user["username"], user["role"], "LOGIN_SUCCESS", "auth", "User signed in", http_request.client.host if http_request.client else "")
     return {
         "token": token,

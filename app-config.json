@@ -1,9 +1,16 @@
 {
-  "command": "uvicorn backend.main:app --host 0.0.0.0 --port $X_ZOHO_CATALYST_LISTEN_PORT",
-  "stack": "python3.10",
+  "command": "python3 start_app.py",
+  "stack": "python_3_12",
+  "build_path": ".",
   "memory": 512,
   "env_variables": {
     "DATA_DIR": "data",
-    "REPORTS_DIR": "reports"
+    "REPORTS_DIR": "reports",
+    "GROQ_MODEL": "llama-3.3-70b-versatile",
+    "SARVAM_BASE_URL": "https://api.sarvam.ai",
+    "SARVAM_STT_MODEL": "saaras:v3",
+    "SARVAM_TTS_MODEL": "bulbul:v3",
+    "SARVAM_TRANSLATE_MODEL": "mayura:v1",
+    "SARVAM_TTS_SPEAKER": "shubh"
   }
 }
