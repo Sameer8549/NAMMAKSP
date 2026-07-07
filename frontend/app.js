@@ -1389,7 +1389,7 @@ function setLanguage(lang) {
   if (lang === 'en') {
     if (labelEl) labelEl.innerHTML = '<span class="kan">ಅಪರಾಧ ತನಿಖಾ ಸಹಾಯಕ</span> — English';
     if (modeDisplay) modeDisplay.textContent = '🇬🇧 English Mode Active';
-    if (inputEl) inputEl.placeholder = 'Ask about FIRs, offenders, hotspots, patterns, or investigation leads...';
+    if (inputEl) inputEl.placeholder = 'Ask NAMMA KSP';
   } else {
     if (labelEl) labelEl.innerHTML = '<span class="kan">ಅಪರಾಧ ತನಿಖಾ ಸಹಾಯಕ</span> — ಕನ್ನಡ';
     if (modeDisplay) modeDisplay.textContent = '💛❤️ Kannada Mode Active';
@@ -1416,6 +1416,7 @@ let audioStream = null;
 async function toggleVoiceInput() {
   const voiceBtn = document.getElementById('voice-btn');
   const indicator = document.getElementById('voice-indicator');
+  const statusTitle = document.getElementById('voice-status-title');
   const statusText = document.getElementById('voice-status-text');
   const inputEl = document.getElementById('chat-input');
 
@@ -1434,7 +1435,10 @@ async function toggleVoiceInput() {
     }
     isRecording = false;
     if (voiceBtn) voiceBtn.classList.remove('recording');
-    if (indicator) indicator.classList.remove('show');
+    if (statusTitle) statusTitle.textContent = 'Understanding';
+    if (statusText) statusText.textContent = 'Converting your voice into a query';
+    if (indicator) indicator.classList.remove('listening');
+    if (indicator) indicator.classList.add('processing');
   } else {
     // Start recording
     try {
@@ -1461,7 +1465,8 @@ async function toggleVoiceInput() {
         const audioBlob = new Blob(audioChunks, { type: mediaRecorder.mimeType || 'audio/webm' });
         if (audioBlob.size === 0) return;
         
-        if (statusText) statusText.textContent = 'Transcribing audio...';
+        if (statusTitle) statusTitle.textContent = 'Understanding';
+        if (statusText) statusText.textContent = 'Converting your voice into a query';
         if (indicator) indicator.classList.add('show');
         
         try {
@@ -1485,6 +1490,8 @@ async function toggleVoiceInput() {
           if (result.text && result.text.trim()) {
             if (inputEl) {
               inputEl.value = result.text.trim();
+              if (statusTitle) statusTitle.textContent = 'Responding';
+              if (statusText) statusText.textContent = result.text.trim();
               showToast('Speech transcribed successfully', 'success');
               sendChatMessage();
             }
@@ -1494,16 +1501,17 @@ async function toggleVoiceInput() {
         } catch (err) {
           showToast('Voice transcription error: ' + err.message, 'error');
         } finally {
-          if (indicator) indicator.classList.remove('show');
+          if (indicator) indicator.classList.remove('show', 'listening', 'processing');
         }
       };
 
       mediaRecorder.start();
       isRecording = true;
       if (voiceBtn) voiceBtn.classList.add('recording');
-      if (statusText) statusText.textContent = 'Listening... Speak now. Click mic again to finish.';
-      if (indicator) indicator.classList.add('show');
-      showToast('Recording started. Speak now.', 'info');
+      if (statusTitle) statusTitle.textContent = 'Listening';
+      if (statusText) statusText.textContent = _chatLanguage === 'kn' ? 'ಕನ್ನಡದಲ್ಲಿ ಸಹಜವಾಗಿ ಮಾತನಾಡಿ' : 'Speak naturally in English or Kannada';
+      if (indicator) indicator.classList.remove('processing');
+      if (indicator) indicator.classList.add('show', 'listening');
     } catch (err) {
       showToast('Could not access microphone: ' + err.message, 'error');
       console.error(err);
@@ -1536,8 +1544,9 @@ function initChat() {
     }
   });
   inputEl.addEventListener('input', () => {
-    inputEl.style.height = 'auto';
-    inputEl.style.height = Math.min(inputEl.scrollHeight, 132) + 'px';
+    inputEl.style.height = '60px';
+    inputEl.style.height = Math.max(60, Math.min(inputEl.scrollHeight, 200)) + 'px';
+    inputEl.style.overflowY = inputEl.scrollHeight > 200 ? 'auto' : 'hidden';
   });
 
   // Export button
@@ -1606,7 +1615,8 @@ async function sendChatMessage() {
   if (!msg || !messages) return;
 
   inputEl.value   = '';
-  inputEl.style.height = 'auto';
+  inputEl.style.height = '60px';
+  inputEl.style.overflowY = 'hidden';
   sendBtn.disabled = true;
 
   // Append user bubble
@@ -1628,9 +1638,13 @@ async function sendChatMessage() {
 
     if (data) {
       const reply = data.response || 'No response.';
-      appendChatMessage('ai', reply, messages);
+      const aiMessage = appendChatMessage('ai', reply, messages);
       _chatHistory.push({ role: 'assistant', content: reply });
       _chatSessionId = data.session_id || _chatSessionId;
+      const speakButton = aiMessage?.querySelector('.chat-speak-btn');
+      if (speakButton) {
+        requestAnimationFrame(() => readAloud(reply, _chatLanguage, speakButton));
+      }
     }
   } catch (err) {
     removeTypingIndicator(typingId, messages);
@@ -1686,46 +1700,55 @@ function appendChatMessage(role, content, container) {
 
 function formatChatContent(text) {
   if (!text) return '';
-  
-  // 1. Split into paragraphs
-  let paras = text.split(/\n\n+/);
-  
-  let formattedParas = paras.map(para => {
-    para = para.trim();
-    if (!para) return '';
-    
-    // Check if it is a list (numbered or bulleted)
-    const lines = para.split('\n');
-    if (lines.length > 1 && lines.every(line => /^\s*(\d+\.|[-•*])\s+/.test(line))) {
-      const isNumbered = /^\s*\d+\.\s+/.test(lines[0]);
-      const listItems = lines.map(line => {
-        const cleanLine = line.replace(/^\s*(\d+\.|[-•*])\s+/, '');
-        return `<li style="margin-bottom:4px;line-height:1.4">${parseInlineMarkdown(cleanLine)}</li>`;
-      }).join('');
-      return isNumbered 
-        ? `<ol style="margin-left:20px;margin-bottom:12px;list-style-type:decimal">${listItems}</ol>` 
-        : `<ul style="margin-left:20px;margin-bottom:12px;list-style-type:disc">${listItems}</ul>`;
+
+  const lines = String(text).replace(/\r/g, '').split('\n');
+  const blocks = [];
+  let paragraph = [];
+  let list = [];
+  let listType = '';
+
+  const flushParagraph = () => {
+    if (!paragraph.length) return;
+    blocks.push(`<p>${paragraph.map(parseInlineMarkdown).join('<br>')}</p>`);
+    paragraph = [];
+  };
+  const flushList = () => {
+    if (!list.length) return;
+    const tag = listType === 'ol' ? 'ol' : 'ul';
+    blocks.push(`<${tag}>${list.map(item => `<li>${parseInlineMarkdown(item)}</li>`).join('')}</${tag}>`);
+    list = [];
+    listType = '';
+  };
+
+  lines.forEach(rawLine => {
+    const line = rawLine.trim();
+    if (!line) { flushParagraph(); flushList(); return; }
+
+    const heading = line.match(/^\*\*(?:\d+\.\s*)?(.+?)\*\*:?$/);
+    if (heading) {
+      flushParagraph(); flushList();
+      blocks.push(`<h3>${parseInlineMarkdown(heading[1])}</h3>`);
+      return;
     }
-    
-    // Check if individual lines contain list items (mixed text + list)
-    let processedLines = lines.map(line => {
-      if (/^\s*(\d+\.|[-•*])\s+/.test(line)) {
-        const cleanLine = line.replace(/^\s*(\d+\.|[-•*])\s+/, '');
-        return `<div style="margin-left:15px;text-indent:-15px;margin-bottom:4px">&bull; ${parseInlineMarkdown(cleanLine)}</div>`;
-      }
-      return parseInlineMarkdown(line) + '<br/>';
-    });
-    
-    // Remove trailing <br/>
-    let joined = processedLines.join('');
-    if (joined.endsWith('<br/>')) {
-      joined = joined.slice(0, -5);
+
+    const numbered = line.match(/^\d+\.\s+(.+)$/);
+    const bulleted = line.match(/^[-•]\s+(.+)$/);
+    if (numbered || bulleted) {
+      flushParagraph();
+      const nextType = numbered ? 'ol' : 'ul';
+      if (listType && listType !== nextType) flushList();
+      listType = nextType;
+      list.push((numbered || bulleted)[1]);
+      return;
     }
-    
-    return `<p style="margin-bottom:10px;line-height:1.5">${joined}</p>`;
+
+    flushList();
+    paragraph.push(line);
   });
-  
-  return formattedParas.join('');
+
+  flushParagraph();
+  flushList();
+  return blocks.join('');
 }
 
 function parseInlineMarkdown(text) {
@@ -3184,15 +3207,23 @@ async function readAloud(text, langCode, buttonEl) {
 }
 
 function prepareSpeechText(text) {
-  return String(text || '')
+  const clean = String(text || '')
     .replace(/<[^>]+>/g, ' ')
     .replace(/\*\*(.+?)\*\*/g, '$1')
     .replace(/\*(.+?)\*/g, '$1')
     .replace(/#+\s*/g, '')
     .replace(/[-•]\s+/g, '')
     .replace(/\s+/g, ' ')
-    .trim()
-    .slice(0, 1200);
+    .trim();
+  if (clean.length <= 520) return clean;
+  const briefing = clean.slice(0, 520);
+  const sentenceEnd = Math.max(
+    briefing.lastIndexOf('. '),
+    briefing.lastIndexOf('? '),
+    briefing.lastIndexOf('! '),
+    briefing.lastIndexOf('। ')
+  );
+  return (sentenceEnd > 280 ? briefing.slice(0, sentenceEnd + 1) : briefing).trim();
 }
 
 function startBrowserSpeech(text, langCode, buttonEl) {
@@ -3231,12 +3262,18 @@ function startBrowserSpeech(text, langCode, buttonEl) {
 }
 
 async function startServerSpeech(text, langCode, buttonEl, options = {}) {
+  let timedOut = false;
+  let timeoutId = null;
   try {
     const langMap = { 'en': 'en', 'en-US': 'en', 'en-IN': 'en', 'kn': 'kn', 'kn-IN': 'kn' };
     const ttsLang = langMap[langCode] || 'en';
 
     _ttsAbortController = new AbortController();
     _ttsMode = 'server';
+    timeoutId = setTimeout(() => {
+      timedOut = true;
+      _ttsAbortController?.abort();
+    }, 15000);
     const res = await fetch(`${API_BASE}/api/tts`, {
       method: 'POST',
       headers: {
@@ -3246,6 +3283,7 @@ async function startServerSpeech(text, langCode, buttonEl, options = {}) {
       body: JSON.stringify({ text: text, language: ttsLang }),
       signal: _ttsAbortController.signal
     });
+    clearTimeout(timeoutId);
 
     if (!res.ok) throw new Error(`TTS API error: ${res.status}`);
 
@@ -3275,7 +3313,8 @@ async function startServerSpeech(text, langCode, buttonEl, options = {}) {
     return true;
 
   } catch (err) {
-    if (err.name === 'AbortError') return true;
+    if (timeoutId) clearTimeout(timeoutId);
+    if (err.name === 'AbortError' && !timedOut) return true;
     console.error('TTS failed:', err);
     resetSpeechButton(buttonEl);
     currentlySpeakingBubble = null;

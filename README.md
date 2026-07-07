@@ -48,7 +48,7 @@ NAMMA KSP solves this by combining conversational AI, visual analytics, criminol
 |---|---|
 | Conversational crime intelligence | English/Kannada AI chat for FIRs, accused, victims, locations, status, summaries, and follow-up investigation questions. |
 | Conversation history PDF | Report module and PDF generation support structured investigation outputs and archived downloads. |
-| Voice interaction | Browser speech support with bilingual response playback and stop/start controls. |
+| Voice interaction | Sarvam AI speech-to-text and text-to-speech in English/Kannada, automatic response playback, and an interactive listening interface. |
 | Criminal network analysis | Offender-victim-FIR-location relationship graph with repeat offender and association discovery. |
 | Pattern and trend analytics | Dashboard KPIs, monthly trends, crime type distribution, hotspot intelligence, and district analytics. |
 | Sociological insights | Socio-economic indicator dataset and proxy-based district risk interpretation. |
@@ -64,7 +64,7 @@ NAMMA KSP solves this by combining conversational AI, visual analytics, criminol
 | Module | What It Delivers |
 |---|---|
 | Intelligence Dashboard | Total FIRs, active cases, repeat offenders, districts, crime trends, distribution charts, and AI strategic briefing. |
-| AI Assistant | Natural-language investigation Q&A with bilingual support and structured responses. |
+| AI Assistant | Context-aware investigation Q&A with adaptive factual, analytical, and deep-investigation response modes. |
 | Crime Heatmap | District and location-level hotspot visualization across Karnataka. |
 | Criminal Network | Relationship mapping across offenders, victims, FIRs, and locations. |
 | Offender Profiles | Risk category, demographic context, previous FIRs, behavioral signals, and dossier-ready details. |
@@ -85,7 +85,8 @@ NAMMA KSP solves this by combining conversational AI, visual analytics, criminol
 | Frontend | HTML, CSS, JavaScript |
 | Backend | Python, FastAPI, SQLite, Pandas, NetworkX, Scikit-Learn |
 | Visualizations | Chart.js, Leaflet.js, Cytoscape.js |
-| AI | Groq API |
+| AI | Groq LLM, adaptive response-depth router, Catalyst QuickML |
+| Voice and translation | Sarvam AI Saaras STT, Bulbul TTS, and Mayura translation |
 | Reports | ReportLab PDF generation with bilingual font support |
 | Deployment | Zoho Catalyst Web Client Hosting and AppSail |
 
@@ -159,6 +160,7 @@ Create `.env` from `.env.example` and configure keys:
 ```env
 GROQ_API_KEY=your_groq_api_key_here
 MISTRAL_API_KEY=your_mistral_api_key_here
+SARVAM_API_KEY=your_sarvam_api_key_here
 GROQ_MODEL=llama-3.3-70b-versatile
 ```
 
@@ -181,6 +183,11 @@ http://127.0.0.1:8000/
 | Frontend | Catalyst Web Client Hosting |
 | Backend API | Catalyst AppSail |
 | Runtime | Python 3.12 |
+| ML endpoint | Catalyst QuickML published FIR-status model |
+| API routing | Catalyst API Gateway |
+| Automation | Catalyst Cron and Job Scheduling |
+| Event routing | Catalyst Signals publisher and early-warning rules |
+| Operational data | Catalyst Data Store/NoSQL/Stratus/Cache adapter layer with local fallbacks |
 
 Zoho Catalyst service coverage, excluding Catalyst Authentication by design, is documented in [`docs/CATALYST_SERVICES.md`](docs/CATALYST_SERVICES.md). The live app also exposes a service evidence matrix at:
 
@@ -217,6 +224,8 @@ https://namma-ksp-50043229029.development.catalystappsail.in
 | `GET` | `/api/hotspots` | Crime hotspot data. |
 | `POST` | `/api/chat` | AI investigation assistant. |
 | `POST` | `/api/tts` | Text-to-speech generation. |
+| `POST` | `/api/audio-transcribe` | Sarvam bilingual speech-to-text. |
+| `POST` | `/api/translate` | Sarvam English/Kannada translation. |
 | `POST` | `/api/reports/case` | Case PDF report. |
 | `POST` | `/api/reports/district` | District PDF report. |
 | `POST` | `/api/reports/offender` | Offender dossier PDF. |
@@ -235,6 +244,19 @@ NAMMA KSP helps investigation teams move from raw records to operational intelli
 4. Visual criminal relationship discovery.
 5. Bilingual AI-assisted investigation workflows.
 6. Exportable reports for reviews, briefings, and submissions.
+
+## Verified Submission Build
+
+The deployed Catalyst Development build has been verified for:
+
+- Web Client Hosting and AppSail availability.
+- Browser-origin CORS preflight, login, and protected API access.
+- Context-aware English and Kannada AI chat.
+- Adaptive factual, analytical, and deep-investigation responses.
+- Sarvam bilingual TTS with automatic playback and stop controls.
+- Interactive microphone capture and Sarvam speech transcription.
+- Dataset-backed dashboard, FIR, offender, network, hotspot, and report APIs.
+- QuickML, Cron, Job Scheduling, Signals, API Gateway, and service-evidence configuration.
 
 ## Notes
 

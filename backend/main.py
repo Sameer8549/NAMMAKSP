@@ -90,6 +90,8 @@ ALLOWED_ORIGINS = [
     "https://namma-ksp-50043229029.development.catalystappsail.in",
 ]
 
+# Catalyst's edge gateway supplies CORS in AppSail. Adding it twice causes
+# browsers to reject otherwise successful login responses.
 if not os.getenv("X_ZOHO_CATALYST_LISTEN_PORT"):
     app.add_middleware(
         CORSMiddleware,

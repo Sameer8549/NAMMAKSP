@@ -78,12 +78,12 @@ def get_catalyst_service_matrix() -> dict:
                         "Catalyst Search indexes exist for `namma_ksp_firs`; app search keeps its SQL fallback until the SDK adapter is enabled.",
                         ["/api/firs", "/api/search/global"], ["CATALYST_DATASTORE_SEARCH_ENABLED"]),
         CatalystService(11, "Text LLMs/RAG/knowledge bases", "Catalyst QuickML",
-                        "console-initialized" if not _enabled("CATALYST_QUICKML_ENABLED") else "adapter-ready",
-                        "QuickML is initialized in the Catalyst console; AI chat can route through QuickML LLM/RAG when endpoint credentials are assigned.",
+                        "published" if _resource("NAMMAKSP_QUICKML_ENDPOINT_ID", "") else ("adapter-ready" if _enabled("NAMMAKSP_QUICKML_ENABLED") else "console-initialized"),
+                        "QuickML model endpoint is published for FIR status intelligence; conversational AI continues through the configured multilingual LLM providers.",
                         ["/api/chat"], ["CATALYST_QUICKML_ENABLED"]),
         CatalystService(12, "No-code ML pipelines", "Catalyst QuickML",
-                        "console-initialized" if not _enabled("CATALYST_QUICKML_PIPELINE_ID") else "adapter-ready",
-                        "Pattern discovery/forecast workflows have a QuickML console workspace ready for pipeline jobs.",
+                        "published" if _resource("NAMMAKSP_QUICKML_PIPELINE_ID", "") and _resource("NAMMAKSP_QUICKML_MODEL_ID", "") else "console-initialized",
+                        "The FIR status classification pipeline, CatBoost model, and prediction endpoint are configured and published in Development.",
                         ["/api/analytics/forecast"], ["CATALYST_QUICKML_PIPELINE_ID"]),
         CatalystService(13, "Automated tabular training", "Catalyst Zia AutoML",
                         "console-initialized" if not _enabled("CATALYST_ZIA_AUTOML_MODEL_ID") else "adapter-ready",
@@ -134,7 +134,7 @@ def get_catalyst_service_matrix() -> dict:
     ]
 
     rows = [service.__dict__ for service in services]
-    active_like = {"active", "configured", "ready", "adapter-ready", "console-created", "console-configured", "console-indexed", "console-initialized"}
+    active_like = {"active", "configured", "ready", "published", "adapter-ready", "console-created", "console-configured", "console-indexed", "console-initialized"}
     external_setup = {"console-required", "not-configured", "manual-workflow", "external-prereq", "unavailable-in-console"}
     return {
         "auth_excluded": True,

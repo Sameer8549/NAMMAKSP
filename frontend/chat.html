@@ -197,9 +197,21 @@
             </div>
           </div>
           <!-- Voice Recording Indicator -->
-          <div class="voice-indicator" id="voice-indicator">
-            <div class="voice-dot"></div>
-            <span id="voice-status-text">Listening… speak now</span>
+          <div class="voice-session" id="voice-indicator" aria-live="polite">
+            <div class="voice-session-orb">
+              <img src="assets/ksp_emblem_chat.png" alt="" />
+              <span class="voice-session-ring"></span>
+            </div>
+            <div class="voice-session-copy">
+              <strong id="voice-status-title">Listening</strong>
+              <span id="voice-status-text">Speak naturally in English or Kannada</span>
+            </div>
+            <div class="voice-wave" aria-hidden="true">
+              <i></i><i></i><i></i><i></i><i></i><i></i><i></i>
+            </div>
+            <button class="voice-session-stop" type="button" onclick="toggleVoiceInput()" aria-label="Finish speaking" title="Finish speaking">
+              <span></span>
+            </button>
           </div>
 
           <!-- Chat Input Bar -->
@@ -207,7 +219,10 @@
           <!-- Templates panel removed -->
           <div class="chat-input-bar">
             <div class="chat-input-row">
-              <textarea class="chat-input" id="chat-input" rows="1" placeholder="Ask about FIRs, offenders, hotspots, patterns, or investigation leads..."></textarea>
+              <textarea class="chat-input" id="chat-input" rows="1" placeholder="Ask NAMMA KSP"></textarea>
+            </div>
+            <div class="chat-composer-actions">
+              <div class="chat-composer-actions-left">
               <!-- Voice button -->
               <button class="btn btn-outline btn-icon" id="voice-btn" onclick="toggleVoiceInput()" aria-label="Voice input" title="Click to speak">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -217,9 +232,9 @@
                   <line x1="8" y1="23" x2="16" y2="23"/>
                 </svg>
               </button>
-              <button class="btn btn-primary" id="chat-send-btn">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="margin-right:4px"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
-                Send
+              </div>
+              <button class="btn btn-primary" id="chat-send-btn" aria-label="Send message" title="Send message">
+                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 19V5"/><path d="m5 12 7-7 7 7"/></svg>
               </button>
             </div>
           </div>

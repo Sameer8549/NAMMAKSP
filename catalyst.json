@@ -9,6 +9,7 @@
         ".agents",
         ".codex",
         ".env",
+        ".appsail_deps",
         "venv",
         ".venv",
         "tmp",

@@ -26,6 +26,12 @@ SARVAM_TTS_MODEL = os.getenv("SARVAM_TTS_MODEL", "bulbul:v3")
 SARVAM_TRANSLATE_MODEL = os.getenv("SARVAM_TRANSLATE_MODEL", "mayura:v1")
 SARVAM_TTS_SPEAKER = os.getenv("SARVAM_TTS_SPEAKER", "shubh")
 
+# Reuse TLS connections across STT, translation, and TTS requests.
+_sarvam_client = httpx.AsyncClient(
+    timeout=httpx.Timeout(45.0, connect=8.0),
+    limits=httpx.Limits(max_connections=20, max_keepalive_connections=10, keepalive_expiry=60.0),
+)
+
 
 class SarvamError(RuntimeError):
     """Raised when Sarvam is not configured or returns an error."""
@@ -130,13 +136,12 @@ async def transcribe_audio(content: bytes, filename: str, language: Optional[str
         "language_code": language_code,
     }
     files = {"file": (filename or "audio.webm", content, content_type)}
-    async with httpx.AsyncClient(timeout=45) as client:
-        response = await client.post(
-            f"{SARVAM_BASE_URL}/speech-to-text",
-            headers=_headers(),
-            data=data,
-            files=files,
-        )
+    response = await _sarvam_client.post(
+        f"{SARVAM_BASE_URL}/speech-to-text",
+        headers=_headers(),
+        data=data,
+        files=files,
+    )
     if response.status_code >= 400:
         raise SarvamError(_error_message(response, "Sarvam speech-to-text failed"))
     return response.json().get("transcript", "").strip()
@@ -157,12 +162,11 @@ async def synthesize_speech(text: str, language: Optional[str] = "en") -> tuple[
         "output_audio_codec": "mp3",
         "temperature": 0.45,
     }
-    async with httpx.AsyncClient(timeout=45) as client:
-        response = await client.post(
-            f"{SARVAM_BASE_URL}/text-to-speech",
-            headers=_headers(),
-            json=payload,
-        )
+    response = await _sarvam_client.post(
+        f"{SARVAM_BASE_URL}/text-to-speech",
+        headers=_headers(),
+        json=payload,
+    )
     if response.status_code >= 400:
         raise SarvamError(_error_message(response, "Sarvam text-to-speech failed"))
     audios = response.json().get("audios") or []

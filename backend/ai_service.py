@@ -45,8 +45,14 @@ Your role:
 - Explain your reasoning step by step (Explainable AI) with confidence scores.
 - ALWAYS reply in the language selected by the user (English or Kannada). If the selected language is Kannada, answer in clear Kannada. If English, answer in English.
 
-Response format:
-Please structure your response with the following sections:
+Response behavior:
+- Match the depth of the answer to the user's request.
+- For greetings, thanks, confirmations, or casual conversation, reply naturally in one or two short sentences without database statistics or formal sections.
+- For simple factual questions, give the direct answer first and include only the evidence needed to support it.
+- Use the full structured format below only for requests that explicitly ask for analysis, investigation, comparison, recommendations, profiling, forecasting, or evidence.
+- Resolve follow-up references such as "that district", "those cases", and "the second offender" from conversation history.
+
+Analytical response format (only when warranted):
 **1. DIRECT ANSWER / ನೇರ ಉತ್ತರ**
 Provide a concise and direct answer to the query.
 
@@ -255,6 +261,45 @@ async def _fetch_relevant_context(user_query: str) -> str:
 
 # ─── Main Chat Function ───────────────────────────────────────────────────────
 
+def _response_profile(message: str, has_history: bool) -> dict:
+    """Select answer depth from user intent while preserving follow-up context."""
+    q = message.lower().strip()
+    deep_terms = (
+        "deep analysis", "investigate", "investigation plan", "profile", "forecast",
+        "predict", "network", "relationship", "modus operandi", "root cause",
+        "strategic", "comprehensive", "detailed report", "explain everything",
+    )
+    analytical_terms = (
+        "analyze", "analyse", "compare", "pattern", "trend", "why", "risk",
+        "recommend", "evidence", "hotspot", "repeat offender", "similar cases",
+        "correlation", "how has", "what changed", "identify links",
+    )
+    factual_starters = (
+        "who ", "what ", "when ", "where ", "which ", "how many", "show ",
+        "list ", "find ", "give me", "status of", "details of",
+    )
+    follow_up_terms = ("that ", "those ", "them", "it ", "same ", "second ", "first ", "previous ", "more ")
+
+    if any(term in q for term in deep_terms):
+        return {
+            "name": "deep-investigation", "max_tokens": 1500,
+            "instruction": "Provide a comprehensive investigation-grade analysis with direct findings, relationship and pattern reasoning, specific evidence, alternative interpretations, prioritized actions, limitations, and a calibrated confidence assessment.",
+        }
+    if any(term in q for term in analytical_terms) or (has_history and any(term in q for term in follow_up_terms)):
+        return {
+            "name": "analytical", "max_tokens": 1100,
+            "instruction": "Provide a focused analytical answer: lead with the finding, explain the important reasoning, cite relevant evidence, and give actionable implications. Include only sections that add value.",
+        }
+    if q.startswith(factual_starters) or len(q.split()) <= 12:
+        return {
+            "name": "factual", "max_tokens": 500,
+            "instruction": "Answer directly and precisely. Include the minimum supporting evidence needed, usually in one to three short paragraphs or a compact list.",
+        }
+    return {
+        "name": "standard", "max_tokens": 800,
+        "instruction": "Give a balanced answer with a clear conclusion, relevant evidence, and concise interpretation. Expand only where the question benefits from it.",
+    }
+
 async def chat(
     session_id: str,
     user_message: str,
@@ -271,11 +316,31 @@ async def chat(
         "model": str
       }
     """
+    clean_message = user_message.strip()
+
+    # Handle conversational turns without inventing crime analysis.
+    normalized = clean_message.lower().strip(" .,!?")
+    greetings = {"hi", "hello", "hey", "hii", "good morning", "good afternoon", "good evening", "ನಮಸ್ಕಾರ", "ಹಾಯ್"}
+    thanks = {"thanks", "thank you", "thankyou", "ok thanks", "ಧನ್ಯವಾದ", "ಧನ್ಯವಾದಗಳು"}
+    if normalized in greetings or normalized in thanks:
+        if session_id not in _sessions:
+            _sessions[session_id] = [{"role": "system", "content": SYSTEM_PROMPT}]
+        if normalized in thanks:
+            ai_reply = "ಸ್ವಾಗತ. ಇನ್ನೇನಾದರೂ ತನಿಖಾ ಸಹಾಯ ಬೇಕಿದ್ದರೆ ಕೇಳಿ." if language == "kn-IN" else "You're welcome. Ask whenever you need more investigative support."
+        else:
+            ai_reply = "ನಮಸ್ಕಾರ. ಇಂದು ಯಾವ ಪ್ರಕರಣ ಅಥವಾ ಅಪರಾಧ ಮಾದರಿಯನ್ನು ಪರಿಶೀಲಿಸಬೇಕು?" if language == "kn-IN" else "Hello. What case, offender, location, or crime pattern would you like to investigate?"
+        _sessions[session_id].extend([
+            {"role": "user", "content": clean_message},
+            {"role": "assistant", "content": ai_reply},
+        ])
+        return {"response": ai_reply, "evidence": "", "session_id": session_id, "model": "conversation-router", "tokens_used": 0}
+
     # Initialize session
     if session_id not in _sessions:
         _sessions[session_id] = [{"role": "system", "content": SYSTEM_PROMPT}]
 
     history = _sessions[session_id]
+    profile = _response_profile(clean_message, len(history) > 1)
 
     # Resolve context using query rewrite helper (translates and merges history)
     rewritten_query = await _rewrite_query(session_id, user_message)
@@ -293,8 +358,10 @@ async def chat(
 {context}
 --- End Context ---
 
-Please analyze the above data and answer the query.
-IMPORTANT: You MUST write your entire response (including all sections like Direct Answer, Reasoning, Evidence, Recommendations, Confidence Score) in {target_lang_instruction} language only.
+Response depth: {profile['name']}.
+{profile['instruction']}
+Answer only what the user asked. Do not add unrelated statistics or force every analytical section into the response.
+IMPORTANT: You MUST write your entire response in {target_lang_instruction} language only.
 If the selected language is Kannada, write in clean, grammatically correct Kannada script."""
 
     history.append({"role": "user", "content": augmented_message})
@@ -303,7 +370,7 @@ If the selected language is Kannada, write in clean, grammatically correct Kanna
     response = _groq_client.chat.completions.create(
         model=MODEL,
         messages=history,
-        max_tokens=1500,
+        max_tokens=profile["max_tokens"],
         temperature=0.3,   # Low temperature for factual responses
         top_p=0.9,
     )
@@ -340,6 +407,7 @@ If the selected language is Kannada, write in clean, grammatically correct Kanna
         "evidence":   context[:500] + "..." if len(context) > 500 else context,
         "session_id": session_id,
         "model":      MODEL,
+        "response_depth": profile["name"],
         "tokens_used": response.usage.total_tokens if response.usage else 0
     }
 
