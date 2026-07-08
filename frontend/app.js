@@ -3936,6 +3936,25 @@ function initKeyboardShortcuts() {
 function initUniversalControls() {
   initLoginControls();
 
+  const chatInput = document.getElementById('chat-input');
+  const chatSend = document.getElementById('chat-send-btn');
+  if (chatInput && !chatInput.dataset.globalEnterReady) {
+    chatInput.dataset.globalEnterReady = 'true';
+    chatInput.addEventListener('keydown', event => {
+      if (event.key === 'Enter' && !event.shiftKey) {
+        event.preventDefault();
+        if (typeof sendChatMessage === 'function') sendChatMessage();
+      }
+    });
+  }
+  if (chatSend && !chatSend.dataset.globalClickReady) {
+    chatSend.dataset.globalClickReady = 'true';
+    chatSend.addEventListener('click', event => {
+      event.preventDefault();
+      if (typeof sendChatMessage === 'function') sendChatMessage();
+    });
+  }
+
   document.addEventListener('keydown', event => {
     if (event.defaultPrevented || event.key !== 'Enter') return;
     const target = event.target;
