@@ -1662,11 +1662,11 @@ function initChat() {
   const inputEl  = document.getElementById('chat-input');
   if (!sendBtn || !inputEl) return;
 
-  sendBtn.addEventListener('click', sendChatMessage);
+  sendBtn.addEventListener('click', triggerChatSend);
   inputEl.addEventListener('keydown', e => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
-      sendChatMessage();
+      triggerChatSend();
     }
   });
   inputEl.addEventListener('input', () => {
@@ -1785,6 +1785,11 @@ async function sendChatMessage() {
   }
 }
 window.sendChatMessage = sendChatMessage;
+
+function triggerChatSend() {
+  const sender = typeof window.sendChatMessage === 'function' ? window.sendChatMessage : sendChatMessage;
+  return sender();
+}
 
 function appendChatMessage(role, content, container, metadata = {}) {
   const isAI = role === 'ai' || role === 'assistant';
@@ -3943,7 +3948,7 @@ function initUniversalControls() {
     chatInput.addEventListener('keydown', event => {
       if (event.key === 'Enter' && !event.shiftKey) {
         event.preventDefault();
-        if (typeof sendChatMessage === 'function') sendChatMessage();
+        triggerChatSend();
       }
     });
   }
@@ -3951,7 +3956,7 @@ function initUniversalControls() {
     chatSend.dataset.globalClickReady = 'true';
     chatSend.addEventListener('click', event => {
       event.preventDefault();
-      if (typeof sendChatMessage === 'function') sendChatMessage();
+      triggerChatSend();
     });
   }
 
@@ -3971,7 +3976,7 @@ function initUniversalControls() {
 
     if (target.id === 'chat-input' && !event.shiftKey) {
       event.preventDefault();
-      if (typeof sendChatMessage === 'function') sendChatMessage();
+      triggerChatSend();
       return;
     }
 
@@ -4858,13 +4863,5 @@ window.filterFIRTable = filterFIRTable;
     const sho = document.getElementById('shortcuts-overlay');
     if (sho) sho.addEventListener('click', e => { if (e.target === sho) closeShortcuts(); });
 
-    // Patch existing sendChatMessage to add typing indicator
-    if (typeof sendChatMessage === 'function') {
-      const _origSend = sendChatMessage;
-      window.sendChatMessage = function() {
-        showTypingIndicator();
-        return _origSend.apply(this, arguments);
-      };
-    }
   });
 })();
