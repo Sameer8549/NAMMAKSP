@@ -541,6 +541,44 @@ function showLoginError(msg) {
   if (el) { el.textContent = msg; el.style.display = 'block'; }
 }
 
+function initLoginControls() {
+  const form = document.getElementById('login-form');
+  const username = document.getElementById('username');
+  const password = document.getElementById('password');
+  const submitBtn = document.getElementById('login-btn');
+
+  if (form && !form.dataset.controlsReady) {
+    form.dataset.controlsReady = 'true';
+    form.onsubmit = handleLogin;
+  }
+
+  [username, password].filter(Boolean).forEach(input => {
+    if (input.dataset.enterReady) return;
+    input.dataset.enterReady = 'true';
+    input.addEventListener('keydown', event => {
+      if (event.key === 'Enter') {
+        event.preventDefault();
+        if (form?.requestSubmit) {
+          form.requestSubmit();
+        } else if (submitBtn) {
+          submitBtn.click();
+        }
+      }
+    });
+  });
+
+  if (submitBtn && !submitBtn.dataset.clickReady) {
+    submitBtn.dataset.clickReady = 'true';
+    submitBtn.addEventListener('click', event => {
+      if (form) {
+        event.preventDefault();
+        if (form.requestSubmit) form.requestSubmit();
+        else handleLogin(event);
+      }
+    });
+  }
+}
+
 function fillDemo(type) {
   const creds = {
     admin:       { u: 'admin',   p: 'admin123' },
@@ -3895,6 +3933,44 @@ function initKeyboardShortcuts() {
   });
 }
 
+function initUniversalControls() {
+  initLoginControls();
+
+  document.addEventListener('keydown', event => {
+    if (event.defaultPrevented || event.key !== 'Enter') return;
+    const target = event.target;
+    if (!(target instanceof Element)) return;
+    const tag = target.tagName.toLowerCase();
+
+    if (target.closest('#login-form')) {
+      event.preventDefault();
+      const form = document.getElementById('login-form');
+      if (form?.requestSubmit) form.requestSubmit();
+      else document.getElementById('login-btn')?.click();
+      return;
+    }
+
+    if (target.id === 'chat-input' && !event.shiftKey) {
+      event.preventDefault();
+      if (typeof sendChatMessage === 'function') sendChatMessage();
+      return;
+    }
+
+    if (target.id === 'global-search-input') {
+      event.preventDefault();
+      const firstResult = document.querySelector('.global-search-item');
+      if (firstResult) firstResult.click();
+      return;
+    }
+
+    const actionable = target.closest('button, a, [role="button"], .fir-chip, .global-search-item, .strategic-clickable');
+    if (actionable && !['input', 'textarea', 'select'].includes(tag)) {
+      event.preventDefault();
+      actionable.click();
+    }
+  }, true);
+}
+
 // ─── ANIMATED KPI COUNTER ────────────────────────────────────────────────────
 function animateCounter(el, target, duration = 800, prefix = '', suffix = '') {
   if (!el) return;
@@ -4730,6 +4806,7 @@ window.filterFIRTable = filterFIRTable;
     initDarkMode();
     initISTClock();
     initKeyboardShortcuts();
+    initUniversalControls();
     initGlobalSearch();
     renderChatBookmarks();
 
