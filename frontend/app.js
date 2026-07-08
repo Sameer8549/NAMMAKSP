@@ -3336,10 +3336,25 @@ let _ttsAbortController = null;
 let currentlySpeakingBubble = null;
 let _ttsMode = null;
 let _audioPlaybackUnlocked = false;
+let _ttsPlaybackElement = null;
+const SILENT_AUDIO_DATA_URL = 'data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAIlYAAESsAAACABAAZGF0YQAAAAA=';
 
 function unlockAudioPlayback() {
   if (_audioPlaybackUnlocked) return;
   try {
+    if (!_ttsPlaybackElement) {
+      _ttsPlaybackElement = new Audio();
+      _ttsPlaybackElement.preload = 'auto';
+      _ttsPlaybackElement.playsInline = true;
+    }
+    _ttsPlaybackElement.muted = true;
+    _ttsPlaybackElement.src = SILENT_AUDIO_DATA_URL;
+    _ttsPlaybackElement.play().then(() => {
+      _ttsPlaybackElement.pause();
+      _ttsPlaybackElement.currentTime = 0;
+      _ttsPlaybackElement.muted = false;
+    }).catch(() => {});
+
     const AudioContextClass = window.AudioContext || window.webkitAudioContext;
     if (AudioContextClass) {
       const ctx = new AudioContextClass();
@@ -3469,7 +3484,10 @@ async function startServerSpeech(text, langCode, buttonEl, options = {}) {
 
     const audioBlob = await res.blob();
     const audioUrl  = URL.createObjectURL(audioBlob);
-    const audio     = new Audio(audioUrl);
+    const audio     = _ttsPlaybackElement || new Audio();
+    audio.pause();
+    audio.muted = false;
+    audio.src = audioUrl;
     _ttsAudio = audio;
 
     audio.onended = () => {
