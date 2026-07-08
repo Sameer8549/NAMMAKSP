@@ -1539,6 +1539,7 @@ let isRecording = false;
 let audioStream = null;
 
 async function toggleVoiceInput() {
+  unlockAudioPlayback();
   const voiceBtn = document.getElementById('voice-btn');
   const indicator = document.getElementById('voice-indicator');
   const statusTitle = document.getElementById('voice-status-title');
@@ -1787,6 +1788,7 @@ async function sendChatMessage() {
 window.sendChatMessage = sendChatMessage;
 
 function triggerChatSend() {
+  unlockAudioPlayback();
   const sender = typeof window.sendChatMessage === 'function' ? window.sendChatMessage : sendChatMessage;
   return sender();
 }
@@ -3333,6 +3335,25 @@ let _ttsAudio = null;
 let _ttsAbortController = null;
 let currentlySpeakingBubble = null;
 let _ttsMode = null;
+let _audioPlaybackUnlocked = false;
+
+function unlockAudioPlayback() {
+  if (_audioPlaybackUnlocked) return;
+  try {
+    const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+    if (AudioContextClass) {
+      const ctx = new AudioContextClass();
+      if (ctx.state === 'suspended') ctx.resume().catch(() => {});
+      const source = ctx.createBufferSource();
+      source.buffer = ctx.createBuffer(1, 1, 22050);
+      source.connect(ctx.destination);
+      source.start(0);
+    }
+    _audioPlaybackUnlocked = true;
+  } catch (err) {
+    _audioPlaybackUnlocked = true;
+  }
+}
 
 /**
  * readAloud — speaks chat text quickly and toggles stop/start reliably.
