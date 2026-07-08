@@ -349,6 +349,51 @@ def _response_profile(message: str, has_history: bool) -> dict:
         "instruction": "Give a balanced answer with a clear conclusion, relevant evidence, and concise interpretation. Expand only where the question benefits from it.",
     }
 
+
+KSP_DOMAIN_TERMS = {
+    "ksp", "police", "karnataka police", "crime", "criminal", "case", "fir",
+    "offender", "accused", "victim", "suspect", "investigation", "investigator",
+    "station", "police station", "district", "hotspot", "network", "relationship",
+    "repeat offender", "risk", "evidence", "modus", "fraud", "theft", "robbery",
+    "burglary", "assault", "cyber", "drug", "vehicle theft", "domestic violence",
+    "murder", "kidnapping", "financial fraud", "forecast", "early warning",
+    "profile", "timeline", "status", "report", "audit", "analytics", "pattern",
+    "trend", "bengaluru", "mysuru", "mangaluru", "hubballi", "belagavi",
+    "kalaburagi", "shivamogga", "tumakuru", "ballari", "vijayapura",
+    "davanagere", "hassan", "udupi", "chikkamagaluru",
+    "ಅಪರಾಧ", "ಪೊಲೀಸ್", "ಪ್ರಕರಣ", "ಎಫ್‌ಐಆರ್", "ಎಫ್ಐಆರ್", "ಆರೋಪಿ",
+    "ಬಲಿ", "ತನಿಖೆ", "ಜಿಲ್ಲೆ", "ಕಳ್ಳತನ", "ದರೋಡೆ", "ಕೊಲೆ", "ಸೈಬರ್",
+}
+
+FOLLOW_UP_TERMS = {
+    "that", "those", "them", "it", "same", "previous", "above", "second", "first",
+    "more", "details", "explain", "compare", "why", "how", "ಇದು", "ಅದು", "ಅವರ",
+}
+
+
+def _is_ksp_domain_query(message: str, has_history: bool) -> bool:
+    """Allow only Karnataka Police/crime-intelligence questions into the LLM path."""
+    q = message.lower().strip()
+    if not q:
+        return False
+    if any(term in q for term in KSP_DOMAIN_TERMS):
+        return True
+
+    import re
+    if re.search(r"\b(fir|off)\d{5}\b", q):
+        return True
+
+    words = set(re.findall(r"[\w\u0c80-\u0cff]+", q))
+    if has_history and words & FOLLOW_UP_TERMS:
+        return True
+    return False
+
+
+def _domain_refusal(language: str) -> str:
+    if language == "kn-IN":
+        return "ನಾನು NAMMA KSP ಪೊಲೀಸ್ ಮತ್ತು ಅಪರಾಧ ಬುದ್ಧಿಮತ್ತೆ ವಿಷಯಗಳಿಗೆ ಮಾತ್ರ ಸಹಾಯ ಮಾಡುತ್ತೇನೆ. ದಯವಿಟ್ಟು FIR, ಪ್ರಕರಣ, ಅಪರಾಧ ಮಾದರಿ, offender, ಜಿಲ್ಲೆ, hotspot, report ಅಥವಾ ತನಿಖೆಗೆ ಸಂಬಂಧಿಸಿದ ಪ್ರಶ್ನೆ ಕೇಳಿ."
+    return "I can only help with NAMMA KSP police and crime-intelligence topics. Please ask about FIRs, cases, crime patterns, offenders, districts, hotspots, reports, or investigation support."
+
 async def chat(
     session_id: str,
     user_message: str,
@@ -389,6 +434,22 @@ async def chat(
         _sessions[session_id] = [{"role": "system", "content": SYSTEM_PROMPT}]
 
     history = _sessions[session_id]
+    if not _is_ksp_domain_query(clean_message, len(history) > 1):
+        ai_reply = _domain_refusal(language)
+        history.extend([
+            {"role": "user", "content": clean_message},
+            {"role": "assistant", "content": ai_reply},
+        ])
+        return {
+            "response": ai_reply,
+            "evidence": "",
+            "sources": [],
+            "cached": False,
+            "session_id": session_id,
+            "model": "domain-router",
+            "tokens_used": 0,
+        }
+
     profile = _response_profile(clean_message, len(history) > 1)
 
     # Resolve context using query rewrite helper (translates and merges history)

@@ -26,6 +26,16 @@ class AiReliabilityTests(unittest.TestCase):
         self.assertEqual(result["model"], "conversation-router")
         self.assertIn("investigate", result["response"].lower())
 
+    def test_unrelated_prompt_is_refused_before_llm(self):
+        with patch.object(ai_service, "_safe_chat_completion") as completion:
+            result = asyncio.run(ai_service.chat("unit-offtopic", "Write a romantic poem about the moon", "en-US"))
+
+        completion.assert_not_called()
+        self.assertEqual(result["sources"], [])
+        self.assertEqual(result["model"], "domain-router")
+        self.assertIn("only help", result["response"].lower())
+        self.assertIn("crime-intelligence", result["response"].lower())
+
     def test_chat_returns_sources_and_caches_fallback(self):
         completion = SimpleNamespace(usage=SimpleNamespace(total_tokens=42))
 
