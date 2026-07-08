@@ -9,10 +9,12 @@ import os
 import sys
 import logging
 import uuid
+import re
 import time
+import json
 from collections import defaultdict
 from pathlib import Path
-from datetime import datetime
+from datetime import datetime, UTC
 from typing import Optional
 
 import uvicorn
@@ -20,7 +22,7 @@ from fastapi import FastAPI, HTTPException, Query, BackgroundTasks, Depends, Hea
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, JSONResponse, StreamingResponse
 from fastapi.staticfiles import StaticFiles
-from pydantic import BaseModel
+from pydantic import BaseModel, Field, field_validator
 from dotenv import load_dotenv
 
 # Add backend dir to path so sibling imports work
@@ -56,17 +58,45 @@ from sarvam_service import (
     synthesize_speech,
     translate_text,
 )
+from catalyst_auth import AUTH_MODE, DEMO_MODE, get_all_catalyst_users, get_current_catalyst_user
 from catalyst_services import get_catalyst_service_matrix
 from report    import (
     generate_case_report, generate_district_report, generate_chat_log_report,
     generate_recommendations_report
 )
 
-# ─── Logging ─────────────────────────────────────────────────────────────────
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s [%(levelname)s] %(name)s: %(message)s"
-)
+class StructuredFormatter(logging.Formatter):
+    def format(self, record: logging.LogRecord) -> str:
+        payload = {
+            "ts": datetime.now(UTC).isoformat(timespec="milliseconds").replace("+00:00", "Z"),
+            "level": record.levelname,
+            "logger": record.name,
+            "message": record.getMessage(),
+        }
+        if record.exc_info:
+            payload["exception"] = self.formatException(record.exc_info)
+        return json.dumps(payload, ensure_ascii=False)
+
+
+def configure_logging() -> None:
+    handler = logging.StreamHandler()
+    if os.getenv("STRUCTURED_LOGS", "true").strip().lower() == "true":
+        handler.setFormatter(StructuredFormatter())
+    else:
+        handler.setFormatter(logging.Formatter("%(asctime)s [%(levelname)s] %(name)s: %(message)s"))
+    logging.basicConfig(level=logging.INFO, handlers=[handler], force=True)
+
+    sentry_dsn = os.getenv("SENTRY_DSN", "").strip()
+    if sentry_dsn:
+        try:
+            import sentry_sdk
+            sentry_sdk.init(dsn=sentry_dsn, traces_sample_rate=float(os.getenv("SENTRY_TRACES_SAMPLE_RATE", "0.05")))
+            logging.getLogger(__name__).info("Sentry error reporting enabled")
+        except Exception as exc:
+            logging.getLogger(__name__).warning("Sentry setup skipped: %s", exc)
+
+
+configure_logging()
 logger = logging.getLogger(__name__)
 
 # ─── App Setup ────────────────────────────────────────────────────────────────
@@ -82,6 +112,18 @@ app = FastAPI(
     docs_url="/api/docs",
     redoc_url="/api/redoc"
 )
+
+
+@app.exception_handler(Exception)
+async def unhandled_exception_handler(request: Request, exc: Exception):
+    logger.exception(
+        "Unhandled request failure",
+        extra={"path": request.url.path, "method": request.method},
+    )
+    return JSONResponse(
+        status_code=500,
+        content={"detail": "Internal server error", "request_id": request.headers.get("x-request-id", "")},
+    )
 
 ALLOWED_ORIGINS = [
     "http://127.0.0.1:8000",
@@ -132,61 +174,218 @@ async def startup():
     logger.info("Database ready. API is live.")
 
 
-# ─── Pydantic Models ──────────────────────────────────────────────────────────
+# ─── Validation Helpers & Pydantic Models ─────────────────────────────────────
+FIR_ID_RE = re.compile(r"^FIR\d{5}$")
+OFFENDER_ID_RE = re.compile(r"^OFF\d{5}$")
+SESSION_ID_RE = re.compile(r"^[A-Za-z0-9_.:-]{1,80}$")
+SAFE_TEXT_RE = re.compile(r"^[\w\s.,:/()&+-]+$", re.UNICODE)
+DATE_RE = re.compile(r"^\d{4}-\d{2}-\d{2}$")
+VALID_LANGUAGES = {"en-US", "kn-IN", "en", "kn"}
+VALID_ROLES = {"Admin", "Investigator"}
+VALID_STATUSES = {"Open", "Closed", "Under Investigation"}
+
+
+def _clean_text(value: str | None, field_name: str, *, max_length: int = 120, required: bool = True) -> str | None:
+    if value is None:
+        if required:
+            raise ValueError(f"{field_name} is required")
+        return None
+    cleaned = value.strip()
+    if required and not cleaned:
+        raise ValueError(f"{field_name} cannot be empty")
+    if not cleaned:
+        return None
+    if len(cleaned) > max_length:
+        raise ValueError(f"{field_name} is too long")
+    if not SAFE_TEXT_RE.match(cleaned):
+        raise ValueError(f"{field_name} contains unsupported characters")
+    return cleaned
+
+
+def _validate_fir_id(value: str) -> str:
+    cleaned = value.strip().upper()
+    if not FIR_ID_RE.match(cleaned):
+        raise ValueError("FIR ID must match FIR00000 format")
+    return cleaned
+
+
+def _validate_offender_id(value: str) -> str:
+    cleaned = value.strip().upper()
+    if not OFFENDER_ID_RE.match(cleaned):
+        raise ValueError("Offender ID must match OFF00000 format")
+    return cleaned
+
+
+def _validate_report_filename(filename: str) -> str:
+    if "/" in filename or "\\" in filename or not filename.endswith(".pdf"):
+        raise HTTPException(status_code=400, detail="Invalid filename")
+    if not re.match(r"^[A-Za-z0-9_.-]+\.pdf$", filename):
+        raise HTTPException(status_code=400, detail="Invalid filename")
+    return filename
+
+
+def _validate_filter(value: str | None, field_name: str, *, max_length: int = 120) -> str | None:
+    try:
+        return _clean_text(value, field_name, max_length=max_length, required=False)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+
+def _validate_date(value: str | None, field_name: str) -> str | None:
+    if not value:
+        return None
+    if not DATE_RE.match(value):
+        raise HTTPException(status_code=400, detail=f"{field_name} must use YYYY-MM-DD")
+    return value
+
+
 class ChatRequest(BaseModel):
-    message:    str
+    message:    str = Field(min_length=1, max_length=4000)
     session_id: Optional[str] = None
     language:   Optional[str] = "en-US"
 
+    @field_validator("message")
+    @classmethod
+    def validate_message(cls, value: str) -> str:
+        cleaned = value.strip()
+        if not cleaned:
+            raise ValueError("message cannot be empty")
+        return cleaned
+
+    @field_validator("session_id")
+    @classmethod
+    def validate_session_id(cls, value: str | None) -> str | None:
+        if not value:
+            return None
+        if not SESSION_ID_RE.match(value):
+            raise ValueError("session_id contains unsupported characters")
+        return value
+
+    @field_validator("language")
+    @classmethod
+    def validate_language(cls, value: str | None) -> str:
+        lang = value or "en-US"
+        if lang not in VALID_LANGUAGES:
+            raise ValueError("unsupported language")
+        return "kn-IN" if lang == "kn" else "en-US" if lang == "en" else lang
+
 class ClearSessionRequest(BaseModel):
-    session_id: str
+    session_id: str = Field(min_length=1, max_length=80)
+
+    @field_validator("session_id")
+    @classmethod
+    def validate_session_id(cls, value: str) -> str:
+        if not SESSION_ID_RE.match(value):
+            raise ValueError("session_id contains unsupported characters")
+        return value
 
 class ReportRequest(BaseModel):
     fir_id: str
 
+    @field_validator("fir_id")
+    @classmethod
+    def validate_fir(cls, value: str) -> str:
+        return _validate_fir_id(value)
+
 class DistrictReportRequest(BaseModel):
     district: str
+
+    @field_validator("district")
+    @classmethod
+    def validate_district(cls, value: str) -> str:
+        return _clean_text(value, "district", max_length=80)
 
 class OffenderReportRequest(BaseModel):
     offender_id: str
 
+    @field_validator("offender_id")
+    @classmethod
+    def validate_offender(cls, value: str) -> str:
+        return _validate_offender_id(value)
+
 class NetworkReportRequest(BaseModel):
-    image_data: str
+    image_data: str = Field(min_length=20, max_length=8_000_000)
     district: Optional[str] = "All Districts"
     crime_type: Optional[str] = "All Crimes"
+
+    @field_validator("district", "crime_type")
+    @classmethod
+    def validate_optional_filter(cls, value: str | None) -> str | None:
+        return _clean_text(value, "filter", max_length=80, required=False)
 
 class RecommendationsReportRequest(BaseModel):
     district: Optional[str] = None
     crime_type: Optional[str] = None
 
+    @field_validator("district", "crime_type")
+    @classmethod
+    def validate_optional_filter(cls, value: str | None) -> str | None:
+        return _clean_text(value, "filter", max_length=80, required=False)
+
 class LoginRequest(BaseModel):
-    username: str
-    password: str
+    username: str = Field(min_length=2, max_length=80)
+    password: str = Field(min_length=1, max_length=256)
 
 class UserCreate(BaseModel):
-    username: str
-    password: str
-    role: str  # 'Admin' or 'Investigator'
+    username: str = Field(min_length=2, max_length=80)
+    password: str = Field(min_length=8, max_length=256)
+    role: str
+
+    @field_validator("role")
+    @classmethod
+    def validate_role(cls, value: str) -> str:
+        if value not in VALID_ROLES:
+            raise ValueError("role must be Admin or Investigator")
+        return value
 
 class ChatMessage(BaseModel):
-    role: str
-    content: str
+    role: str = Field(min_length=1, max_length=20)
+    content: str = Field(min_length=1, max_length=8000)
+
+    @field_validator("role")
+    @classmethod
+    def validate_role(cls, value: str) -> str:
+        if value not in {"user", "assistant", "ai", "system"}:
+            raise ValueError("unsupported chat role")
+        return value
 
 class ExportChatRequest(BaseModel):
-    session_id: str
+    session_id: str = Field(min_length=1, max_length=80)
     messages: list[ChatMessage]
 
+    @field_validator("session_id")
+    @classmethod
+    def validate_session_id(cls, value: str) -> str:
+        if not SESSION_ID_RE.match(value):
+            raise ValueError("session_id contains unsupported characters")
+        return value
+
 class TTSRequest(BaseModel):
-    text: str
-    language: Optional[str] = "en"  # "en" or "kn"
+    text: str = Field(min_length=1, max_length=3000)
+    language: Optional[str] = "en"
+
+    @field_validator("language")
+    @classmethod
+    def validate_language(cls, value: str | None) -> str:
+        lang = value or "en"
+        if lang not in VALID_LANGUAGES:
+            raise ValueError("unsupported language")
+        return lang
 
 class TranslateRequest(BaseModel):
-    text: str
+    text: str = Field(min_length=1, max_length=4000)
     target_language: str
     source_language: Optional[str] = "auto"
 
+    @field_validator("target_language")
+    @classmethod
+    def validate_target_language(cls, value: str) -> str:
+        if value not in VALID_LANGUAGES:
+            raise ValueError("unsupported target_language")
+        return value
+
 class LanguageDetectRequest(BaseModel):
-    text: str
+    text: str = Field(min_length=1, max_length=4000)
 
 class CatalystSignalRequest(BaseModel):
     event: Optional[str] = None
@@ -195,6 +394,11 @@ class CatalystSignalRequest(BaseModel):
     district: Optional[str] = ""
     detail: Optional[str] = ""
     payload: Optional[dict] = None
+
+    @field_validator("event", "severity", "signal", "district", "detail")
+    @classmethod
+    def validate_optional_text(cls, value: str | None) -> str | None:
+        return _clean_text(value, "signal field", max_length=500, required=False)
 
 
 # ─── Auth Session Registry & Dependencies ─────────────────────────────────────
@@ -207,6 +411,7 @@ LOGIN_MAX_ATTEMPTS = 5
 PUBLIC_API_PATHS = {
     "/api/health",
     "/api/auth/login",
+    "/api/auth/config",
     "/api/internal/cron/daily-intelligence-refresh",
     "/api/internal/signals/early-warning",
 }
@@ -214,7 +419,7 @@ PUBLIC_API_PREFIXES = ("/api/reports/qr/",)
 
 @app.middleware("http")
 async def require_authenticated_api_session(request: Request, call_next):
-    """Reject access to crime data APIs before route handlers are reached."""
+    """Resolve one server-verified identity before protected API handlers."""
     path = request.url.path.rstrip("/") or "/"
     if (
         request.method != "OPTIONS"
@@ -222,33 +427,56 @@ async def require_authenticated_api_session(request: Request, call_next):
         and path not in PUBLIC_API_PATHS
         and not any(path.startswith(prefix) for prefix in PUBLIC_API_PREFIXES)
     ):
-        authorization = request.headers.get("authorization", "")
-        token = authorization[7:].strip() if authorization.startswith("Bearer ") else ""
-        session = ACTIVE_SESSIONS.get(token)
-        if not session or session.get("expires_at", 0) <= time.time():
-            if token:
-                ACTIVE_SESSIONS.pop(token, None)
-            return JSONResponse(
-                status_code=401,
-                content={"detail": "Authentication required or session expired"},
-                headers={"Cache-Control": "no-store"},
-            )
+        if DEMO_MODE:
+            authorization = request.headers.get("authorization", "")
+            token = authorization[7:].strip() if authorization.startswith("Bearer ") else ""
+            user = ACTIVE_SESSIONS.get(token)
+            if not user or user.get("expires_at", 0) <= time.time():
+                if token:
+                    ACTIVE_SESSIONS.pop(token, None)
+                return JSONResponse(
+                    status_code=401,
+                    content={"detail": "Authentication required or session expired"},
+                    headers={"Cache-Control": "no-store"},
+                )
+        else:
+            try:
+                user = await get_current_catalyst_user(request)
+            except HTTPException as exc:
+                return JSONResponse(
+                    status_code=exc.status_code,
+                    content={"detail": exc.detail},
+                    headers={"Cache-Control": "no-store"},
+                )
+        request.state.auth_user = user
     return await call_next(request)
 
-async def get_current_user(authorization: Optional[str] = Header(None)):
-    if not authorization or not authorization.startswith("Bearer "):
-        raise HTTPException(status_code=401, detail="Authorization token required")
-    token = authorization.split(" ")[1]
-    session = ACTIVE_SESSIONS.get(token)
-    if not session or session.get("expires_at", 0) <= time.time():
-        ACTIVE_SESSIONS.pop(token, None)
-        raise HTTPException(status_code=401, detail="Session expired or invalid")
-    return session
+
+async def get_current_user(request: Request, authorization: Optional[str] = Header(None)):
+    user = getattr(request.state, "auth_user", None)
+    if user:
+        return user
+    if DEMO_MODE:
+        if not authorization or not authorization.startswith("Bearer "):
+            raise HTTPException(status_code=401, detail="Authorization token required")
+        token = authorization.split(" ", 1)[1]
+        session = ACTIVE_SESSIONS.get(token)
+        if not session or session.get("expires_at", 0) <= time.time():
+            ACTIVE_SESSIONS.pop(token, None)
+            raise HTTPException(status_code=401, detail="Session expired or invalid")
+        return session
+    return await get_current_catalyst_user(request)
+
 
 async def require_admin(user: dict = Depends(get_current_user)):
     if user.get("role") != "Admin":
         raise HTTPException(status_code=403, detail="Admin permissions required")
     return user
+
+
+async def get_offender_route_user(request: Request, authorization: Optional[str] = Header(None)):
+    """Alias retained after the proof conversion for a stable route contract."""
+    return await get_current_user(request, authorization)
 
 
 # ─── Health Check ─────────────────────────────────────────────────────────────
@@ -343,6 +571,7 @@ async def analytics_district_crime_breakdown(district: str):
     """Breakdown of crime types for a given district."""
     from database import fetch_all
     from analytics import normalize_district_name
+    district = _validate_filter(district, "district", max_length=80)
     norm_dist = normalize_district_name(district)
     return await fetch_all(
         "SELECT crime_type, COUNT(*) AS count FROM firs WHERE district LIKE ? GROUP BY crime_type ORDER BY count DESC",
@@ -624,8 +853,14 @@ async def submission_readiness(user: dict = Depends(get_current_user)):
 # AUTHENTICATION ENDPOINTS
 # ═══════════════════════════════════════════════════════════════════════════════
 
+@app.get("/api/auth/config")
+async def auth_config():
+    return {"mode": "demo" if DEMO_MODE else "catalyst", "demo_mode": DEMO_MODE}
+
 @app.post("/api/auth/login")
 async def login_endpoint(request: LoginRequest, http_request: Request):
+    if not DEMO_MODE:
+        raise HTTPException(status_code=404, detail="Use Catalyst Authentication to sign in")
     from database import fetch_one, hash_password
     client_ip = _client_ip(http_request)
     now = time.time()
@@ -658,6 +893,8 @@ async def login_endpoint(request: LoginRequest, http_request: Request):
 
 @app.post("/api/auth/logout")
 async def logout_endpoint(http_request: Request, authorization: Optional[str] = Header(None)):
+    if not DEMO_MODE:
+        return {"status": "catalyst-managed"}
     if authorization and authorization.startswith("Bearer "):
         token = authorization.split(" ")[1]
         user = ACTIVE_SESSIONS.get(token)
@@ -677,16 +914,25 @@ async def me_endpoint(user: dict = Depends(get_current_user)):
 # ═══════════════════════════════════════════════════════════════════════════════
 
 @app.get("/api/users")
-async def list_users(admin_user: dict = Depends(require_admin)):
-    from database import fetch_all
-    return await fetch_all("SELECT username, role FROM users ORDER BY username ASC")
+async def list_users(http_request: Request, admin_user: dict = Depends(require_admin)):
+    if not DEMO_MODE:
+        users = await get_all_catalyst_users(http_request)
+    else:
+        from database import fetch_all
+        users = await fetch_all("SELECT username, role FROM users ORDER BY username ASC")
+    await log_audit(
+        admin_user.get("username"), admin_user.get("role"), "USER_LIST_VIEW",
+        "users", f"Viewed {len(users)} authorized users", _client_ip(http_request),
+        user_id=admin_user.get("user_id", ""),
+    )
+    return users
 
 
 @app.get("/api/audit/logs")
 async def list_audit_logs(limit: int = Query(100, ge=1, le=500), admin_user: dict = Depends(require_admin)):
     from database import fetch_all
     return await fetch_all("""
-        SELECT id, timestamp, username, role, action, resource, detail, ip_address
+        SELECT id, timestamp, username, user_id, role, action, resource, detail, ip_address
         FROM audit_logs
         ORDER BY id DESC
         LIMIT ?
@@ -695,6 +941,8 @@ async def list_audit_logs(limit: int = Query(100, ge=1, le=500), admin_user: dic
 
 @app.post("/api/users")
 async def create_user(request: UserCreate, admin_user: dict = Depends(require_admin)):
+    if not DEMO_MODE:
+        raise HTTPException(status_code=409, detail="Manage users and roles in Catalyst Authentication")
     from database import fetch_one, execute_write, hash_password
     username = request.username.strip()
     if not username:
@@ -712,12 +960,14 @@ async def create_user(request: UserCreate, admin_user: dict = Depends(require_ad
         "INSERT INTO users (username, password_hash, role) VALUES (?, ?, ?)",
         (username, pw_hash, request.role)
     )
-    await log_audit(admin_user.get("username"), admin_user.get("role"), "USER_CREATE", "users", f"Created {username} as {request.role}", "")
+    await log_audit(admin_user.get("username"), admin_user.get("role"), "USER_CREATE", "users", f"Created {username} as {request.role}", "", user_id=admin_user.get("user_id", ""))
     return {"username": username, "role": request.role}
 
 
 @app.delete("/api/users/{username}")
 async def delete_user(username: str, admin_user: dict = Depends(require_admin)):
+    if not DEMO_MODE:
+        raise HTTPException(status_code=409, detail="Manage users and roles in Catalyst Authentication")
     from database import execute_write
     u = username.strip().lower()
     if u == "admin":
@@ -726,7 +976,7 @@ async def delete_user(username: str, admin_user: dict = Depends(require_admin)):
         raise HTTPException(status_code=400, detail="Cannot delete your own active account")
     
     await execute_write("DELETE FROM users WHERE LOWER(username) = ?", (u,))
-    await log_audit(admin_user.get("username"), admin_user.get("role"), "USER_DELETE", "users", f"Deleted {u}", "")
+    await log_audit(admin_user.get("username"), admin_user.get("role"), "USER_DELETE", "users", f"Deleted {u}", "", user_id=admin_user.get("user_id", ""))
     return {"deleted": username}
 
 
@@ -743,6 +993,10 @@ async def hotspots(
     user: dict = Depends(get_current_user)
 ):
     """Lat/lon hotspot data for Leaflet.js heatmap."""
+    district = _validate_filter(district, "district", max_length=80)
+    crime_type = _validate_filter(crime_type, "crime_type", max_length=80)
+    from_date = _validate_date(from_date, "from_date")
+    to_date = _validate_date(to_date, "to_date")
     return await get_hotspot_data(district, crime_type, from_date, to_date)
 
 
@@ -755,6 +1009,10 @@ async def hotspot_density(
     user: dict = Depends(get_current_user)
 ):
     """District crime density for choropleth map."""
+    district = _validate_filter(district, "district", max_length=80)
+    crime_type = _validate_filter(crime_type, "crime_type", max_length=80)
+    from_date = _validate_date(from_date, "from_date")
+    to_date = _validate_date(to_date, "to_date")
     return await get_district_crime_density(district, crime_type, from_date, to_date)
 
 
@@ -772,13 +1030,20 @@ async def list_firs(
     limit:      int           = Query(50, le=200)
 ):
     """Search FIRs with optional filters."""
+    crime_type = _validate_filter(crime_type, "crime_type", max_length=80)
+    district = _validate_filter(district, "district", max_length=80)
+    if status and status not in VALID_STATUSES:
+        raise HTTPException(status_code=400, detail="status must be Open, Closed, or Under Investigation")
+    from_date = _validate_date(from_date, "from_date")
+    to_date = _validate_date(to_date, "to_date")
     return await search_firs(crime_type, district, status, from_date, to_date, limit)
 
 
 @app.get("/api/firs/{fir_id}")
 async def get_fir(fir_id: str):
     """Get full details for a single FIR."""
-    data = await get_fir_detail(fir_id.upper())
+    fir_id = _validate_fir_id(fir_id)
+    data = await get_fir_detail(fir_id)
     if not data:
         raise HTTPException(status_code=404, detail=f"FIR {fir_id} not found")
     return data
@@ -787,7 +1052,7 @@ async def get_fir(fir_id: str):
 @app.get("/api/firs/{fir_id}/related")
 async def fir_related_cases(fir_id: str):
     """Get related cases for a FIR."""
-    return await get_related_cases(fir_id.upper())
+    return await get_related_cases(_validate_fir_id(fir_id))
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -800,6 +1065,7 @@ async def high_risk_offenders(
     search: Optional[str] = Query(None)
 ):
     """Top high-risk offenders with risk scores."""
+    search = _validate_filter(search, "search", max_length=80)
     return await get_high_risk_offenders(limit, search)
 
 
@@ -810,11 +1076,23 @@ async def repeat_offenders():
 
 
 @app.get("/api/offenders/{offender_id}")
-async def get_offender(offender_id: str):
+async def get_offender(
+    offender_id: str,
+    http_request: Request,
+    user: dict = Depends(get_offender_route_user),
+):
     """Full offender profile with FIR history and risk score."""
-    profile = await get_offender_profile(offender_id.upper())
+    offender_id = _validate_offender_id(offender_id)
+    profile = await get_offender_profile(offender_id)
     if not profile:
         raise HTTPException(status_code=404, detail=f"Offender {offender_id} not found")
+    await log_audit(
+        user.get("username"), user.get("role"), "OFFENDER_PROFILE_VIEW",
+        f"offenders/{offender_id}",
+        f"Catalyst user {user.get('user_id', '')} viewed offender profile",
+        _client_ip(http_request),
+        user_id=user.get("user_id", ""),
+    )
     return profile
 
 
@@ -829,13 +1107,15 @@ async def criminal_network(
     limit:      int           = Query(150, le=300)
 ):
     """Criminal network graph data for Cytoscape.js visualization."""
+    district = _validate_filter(district, "district", max_length=80)
+    crime_type = _validate_filter(crime_type, "crime_type", max_length=80)
     return await get_network_data(district=district, crime_type=crime_type, limit=limit)
 
 
 @app.get("/api/network/offender/{offender_id}")
 async def offender_network(offender_id: str):
     """Focused sub-network around a specific offender."""
-    return await get_shared_offender_network(offender_id.upper())
+    return await get_shared_offender_network(_validate_offender_id(offender_id))
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -946,6 +1226,10 @@ async def audio_transcribe_endpoint(
     Transcribe recorded audio file via Sarvam AI Saaras.
     """
     try:
+        if language and language not in VALID_LANGUAGES:
+            raise HTTPException(status_code=400, detail="unsupported language")
+        if file.content_type and not file.content_type.startswith("audio/"):
+            raise HTTPException(status_code=400, detail="audio file required")
         content = await file.read()
         if not content:
             raise HTTPException(status_code=400, detail="Empty audio file")
@@ -953,6 +1237,8 @@ async def audio_transcribe_endpoint(
         from ai_service import transcribing_audio
         text = await transcribing_audio(content, file.filename or "audio.webm", language)
         return {"text": text}
+    except HTTPException:
+        raise
     except Exception as e:
         logger.error("Audio transcription endpoint failed: %s", e)
         raise HTTPException(status_code=500, detail=str(e))
@@ -974,7 +1260,7 @@ async def export_chat_endpoint(request: ExportChatRequest, http_request: Request
             user.get("username"), user.get("role"),
             "REPORT_GENERATE", "reports/chat",
             f"Chat export {Path(pdf_path).name}",
-            _client_ip(http_request)
+            _client_ip(http_request), user_id=user.get("user_id", "")
         )
         return FileResponse(
             path=pdf_path,
@@ -990,7 +1276,8 @@ async def export_chat_endpoint(request: ExportChatRequest, http_request: Request
 async def ai_case_summary(fir_id: str, http_request: Request, user: dict = Depends(get_current_user)):
     """AI-generated investigation summary for a specific FIR."""
     try:
-        result = await generate_case_summary(fir_id.upper())
+        fir_id = _validate_fir_id(fir_id)
+        result = await generate_case_summary(fir_id)
         if "error" in result:
             raise HTTPException(status_code=404, detail=result["error"])
         await log_audit(
@@ -1014,6 +1301,8 @@ async def ai_recommendations(
 ):
     """AI-generated crime prevention and investigation recommendations."""
     try:
+        district = _validate_filter(district, "district", max_length=80)
+        crime_type = _validate_filter(crime_type, "crime_type", max_length=80)
         return await get_investigation_recommendations(district, crime_type)
     except Exception as e:
         logger.error("Recommendations error: %s", e)
@@ -1027,7 +1316,7 @@ async def ai_recommendations(
 @app.post("/api/reports/case")
 async def generate_report(request: ReportRequest, http_request: Request, user: dict = Depends(get_current_user)):
     """Generate and download a PDF investigation report for a FIR."""
-    fir_id = request.fir_id.upper()
+    fir_id = request.fir_id
 
     case_data = await get_fir_detail(fir_id)
     if not case_data:
@@ -1049,7 +1338,7 @@ async def generate_report(request: ReportRequest, http_request: Request, user: d
             user.get("username"), user.get("role"),
             "REPORT_GENERATE", "reports/case",
             f"Case report for {fir_id}: {Path(pdf_path).name}",
-            _client_ip(http_request)
+            _client_ip(http_request), user_id=user.get("user_id", "")
         )
     except Exception as e:
         logger.error("PDF generation error: %s", e)
@@ -1084,7 +1373,7 @@ async def generate_district_report_endpoint(request: DistrictReportRequest, http
             user.get("username"), user.get("role"),
             "REPORT_GENERATE", "reports/district",
             f"District report for {district}: {Path(pdf_path).name}",
-            _client_ip(http_request)
+            _client_ip(http_request), user_id=user.get("user_id", "")
         )
     except Exception as e:
         logger.error("District report error: %s", e)
@@ -1100,7 +1389,7 @@ async def generate_district_report_endpoint(request: DistrictReportRequest, http
 @app.post("/api/reports/offender")
 async def generate_offender_report_endpoint(request: OffenderReportRequest, http_request: Request, user: dict = Depends(get_current_user)):
     """Generate and download a PDF offender profile dossier."""
-    offender_id = request.offender_id.upper()
+    offender_id = request.offender_id
     
     from analytics import get_offender_profile
     data = await get_offender_profile(offender_id)
@@ -1115,7 +1404,7 @@ async def generate_offender_report_endpoint(request: OffenderReportRequest, http
             user.get("username"), user.get("role"),
             "REPORT_GENERATE", "reports/offender",
             f"Offender report for {offender_id}: {Path(pdf_path).name}",
-            _client_ip(http_request)
+            _client_ip(http_request), user_id=user.get("user_id", "")
         )
     except Exception as e:
         logger.error("Offender report generation failed: %s", e)
@@ -1146,7 +1435,7 @@ async def generate_network_report_endpoint(request: NetworkReportRequest, http_r
             user.get("username"), user.get("role"),
             "REPORT_GENERATE", "reports/network",
             f"Network report {Path(pdf_path).name}",
-            _client_ip(http_request)
+            _client_ip(http_request), user_id=user.get("user_id", "")
         )
         
         return FileResponse(
@@ -1180,7 +1469,7 @@ async def generate_recommendations_report_endpoint(request: RecommendationsRepor
             user.get("username"), user.get("role"),
             "REPORT_GENERATE", "reports/recommendations",
             f"Recommendations report {Path(pdf_path).name}",
-            _client_ip(http_request)
+            _client_ip(http_request), user_id=user.get("user_id", "")
         )
     except Exception as e:
         logger.error("Recommendations report PDF generation error: %s", e)
@@ -1222,9 +1511,7 @@ async def download_report_file(filename: str, http_request: Request, user: dict 
     Serve a generated PDF report file with guaranteed application/pdf content-type
     and Content-Disposition: attachment so browsers download it instead of displaying it.
     """
-    # Sanitize: only allow .pdf filenames with no path traversal
-    if "/" in filename or "\\" in filename or not filename.endswith(".pdf"):
-        raise HTTPException(status_code=400, detail="Invalid filename")
+    filename = _validate_report_filename(filename)
     
     pdf_path = REPORTS_DIR / filename
     if not pdf_path.exists():
@@ -1233,7 +1520,7 @@ async def download_report_file(filename: str, http_request: Request, user: dict 
         user.get("username"), user.get("role"),
         "REPORT_DOWNLOAD", "reports",
         f"Downloaded {filename}",
-        _client_ip(http_request)
+        _client_ip(http_request), user_id=user.get("user_id", "")
     )
 
     return FileResponse(
@@ -1254,8 +1541,7 @@ async def open_report_from_qr(filename: str):
     Public QR endpoint for generated PDF reports.
     The QR embedded inside a report opens this URL directly.
     """
-    if "/" in filename or "\\" in filename or not filename.endswith(".pdf"):
-        raise HTTPException(status_code=400, detail="Invalid filename")
+    filename = _validate_report_filename(filename)
 
     pdf_path = REPORTS_DIR / filename
     if not pdf_path.exists():

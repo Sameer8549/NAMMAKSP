@@ -948,7 +948,7 @@ async def get_submission_readiness() -> dict:
             "Financial rows are synthetic AML-style demonstration data, not live bank records.",
             "Several socio-economic fields are unavailable in the uploaded district sources.",
             "Forecasting is an explainable moving-average prototype, not a validated production model.",
-            "Catalyst Authentication is intentionally excluded; login remains prototype role-based access.",
+            "Catalyst-native authentication is implemented; production rollout requires configured Catalyst users and Admin/Investigator roles.",
             "Some Catalyst managed services are adapter-ready and require Catalyst console provisioning before replacing local fallbacks.",
         ],
     }

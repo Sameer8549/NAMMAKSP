@@ -37,7 +37,7 @@ def _resource(name: str, default: str) -> str:
 
 
 def get_catalyst_service_matrix() -> dict:
-    """Return all requested Catalyst services except Authentication."""
+    """Return the configured Catalyst service evidence matrix."""
     runtime_active = _runtime_is_catalyst()
 
     services = [
@@ -101,6 +101,9 @@ def get_catalyst_service_matrix() -> dict:
                         "console-initialized" if not _enabled("CATALYST_SMARTBROWZ_ENABLED") else "adapter-ready",
                         "SmartBrowz is initialized with Headless, Browser Logic, PDF & Screenshot, Templates, and Dataverse sections available.",
                         ["/api/reports/case", "/api/reports/district"], ["CATALYST_SMARTBROWZ_ENABLED"]),
+        CatalystService(17, "User authentication and RBAC", "Catalyst Authentication",
+                        "active", "Embedded Authentication and request-scoped Python SDK identity enforce active Admin/Investigator roles server-side.",
+                        ["/app/index.html", "/api/auth/me", "/api/users"], ["AUTH_MODE", "DEMO_MODE"]),
         CatalystService(18, "API routing/throttling", "Catalyst API Gateway",
                         "active", "API Gateway serves the Web Client Hosting `/app/*` routes; AppSail APIs use their dedicated Catalyst domain.",
                         ["/app/index.html", "/app/dashboard.html"], ["CATALYST_API_GATEWAY_URL"]),
@@ -137,9 +140,9 @@ def get_catalyst_service_matrix() -> dict:
     active_like = {"active", "configured", "ready", "published", "adapter-ready", "console-created", "console-configured", "console-indexed", "console-initialized"}
     external_setup = {"console-required", "not-configured", "manual-workflow", "external-prereq", "unavailable-in-console"}
     return {
-        "auth_excluded": True,
+        "auth_excluded": False,
         "summary": {
-            "total_requested_without_auth": len(rows),
+            "total_requested": len(rows),
             "active_or_ready": sum(1 for row in rows if row["status"] in active_like),
             "console_required": sum(1 for row in rows if row["status"] == "console-required"),
             "external_setup_required": sum(1 for row in rows if row["status"] in external_setup),

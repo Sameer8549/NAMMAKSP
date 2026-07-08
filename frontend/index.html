@@ -38,14 +38,16 @@
         <h1 class="login-welcome">Welcome back / ಸುಸ್ವಾಗತ</h1>
         <p class="login-welcome-sub">Sign in to your account / ನಿಮ್ಮ ಖಾತೆಗೆ ಲಾಗ್ ಇನ್ ಮಾಡಿ</p>
         <div id="login-error" style="display:none;background:#FEE2E2;border:1px solid #FECACA;border-radius:var(--radius-md);padding:10px 14px;font-size:13px;color:#991B1B;margin-bottom:var(--space-md);"></div>
+        <div class="form-group">
+          <label class="form-label" for="login-lang-select">Select Language / ಭಾಷೆಯನ್ನು ಆಯ್ಕೆಮಾಡಿ</label>
+          <select class="form-select" id="login-lang-select" onchange="localStorage.setItem('cl_lang', this.value)">
+            <option value="en">English (Default)</option>
+            <option value="kn">ಕನ್ನಡ (Kannada)</option>
+          </select>
+        </div>
+        <div id="catalyst-login" class="catalyst-login-frame" aria-label="Catalyst secure sign in"></div>
+        <div id="demo-login-wrap" hidden>
         <form id="login-form" onsubmit="handleLogin(event)" novalidate>
-          <div class="form-group">
-            <label class="form-label" for="login-lang-select">Select Language / ಭಾಷೆಯನ್ನು ಆಯ್ಕೆಮಾಡಿ</label>
-            <select class="form-select" id="login-lang-select" onchange="localStorage.setItem('cl_lang', this.value)">
-              <option value="en">English (Default)</option>
-              <option value="kn">ಕನ್ನಡ (Kannada)</option>
-            </select>
-          </div>
           <div class="form-group">
             <label class="form-label" for="username">Username / ಬಳಕೆದಾರ ಹೆಸರು</label>
             <input class="form-input" id="username" type="text" placeholder="Enter username / ಬಳಕೆದಾರ ಹೆಸರನ್ನು ನಮೂದಿಸಿ" autocomplete="username" required />
@@ -64,25 +66,13 @@
           </div>
           <button type="submit" id="login-btn" class="btn btn-primary btn-full btn-lg" style="margin-top:var(--space-sm)">Sign In / ಸೈನ್ ಇನ್ ಮಾಡಿ</button>
         </form>
-        <p class="login-warning">&#x26A0; Authorized Law Enforcement Personnel Only / ಅಧಿಕೃತ ಕಾನೂನು ಜಾರಿ ಸಿಬ್ಬಂದಿ ಮಾತ್ರ</p>
-        <div class="demo-creds">
-          <div class="demo-creds-title">Demo Credentials / ಡೆಮೊ ರುಜುವಾತುಗಳು</div>
-          <div class="demo-cred-row">
-            <span>Admin / ನಿರ್ವಾಹಕರು:</span>
-            <span><code>admin</code> / <code>admin123</code>
-              <button onclick="fillDemo('admin')" style="font-size:11px;color:var(--color-secondary);margin-left:6px;background:none;border:none;cursor:pointer;font-family:inherit;">autofill</button>
-            </span>
-          </div>
-          <div class="demo-cred-row">
-            <span>Investigator / ತನಿಖಾಧಿಕಾರಿ:</span>
-            <span><code>officer</code> / <code>officer123</code>
-              <button onclick="fillDemo('investigator')" style="font-size:11px;color:var(--color-secondary);margin-left:6px;background:none;border:none;cursor:pointer;font-family:inherit;">autofill</button>
-            </span>
-          </div>
         </div>
+        <p class="login-warning">&#x26A0; Authorized Law Enforcement Personnel Only / ಅಧಿಕೃತ ಕಾನೂನು ಜಾರಿ ಸಿಬ್ಬಂದಿ ಮಾತ್ರ</p>
       </div>
     </div>
   </div>
+  <script src="https://static.zohocdn.com/catalyst/sdk/js/4.0.0/catalystWebSDK.js"></script>
+  <script src="/__catalyst/sdk/init.js"></script>
   <script src="app.js"></script>
   <script>
     document.addEventListener('DOMContentLoaded', () => {
@@ -90,6 +80,7 @@
       const savedLang = localStorage.getItem('cl_lang') || 'en';
       const select = document.getElementById('login-lang-select');
       if (select) select.value = savedLang;
+      initCatalystLogin();
     });
   </script>
 </body>

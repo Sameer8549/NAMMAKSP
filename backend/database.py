@@ -139,6 +139,7 @@ CREATE TABLE IF NOT EXISTS audit_logs (
     id          INTEGER PRIMARY KEY AUTOINCREMENT,
     timestamp   TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
     username    TEXT,
+    user_id     TEXT,
     role        TEXT,
     action      TEXT NOT NULL,
     resource    TEXT,
@@ -216,13 +217,18 @@ async def init_db() -> None:
         async with aiosqlite.connect(DB_PATH) as db:
             # Create schema
             await db.executescript(CREATE_TABLES_SQL)
+            async with db.execute("PRAGMA table_info(audit_logs)") as cur:
+                audit_columns = {row[1] for row in await cur.fetchall()}
+            if "user_id" not in audit_columns:
+                await db.execute("ALTER TABLE audit_logs ADD COLUMN user_id TEXT")
             await db.commit()
             logger.info("Schema created / verified.")
 
             # Seed default users if users table is empty
             async with db.execute("SELECT COUNT(*) FROM users") as cur:
                 user_count = (await cur.fetchone())[0]
-            if user_count == 0:
+            demo_mode = os.getenv("DEMO_MODE", "false").strip().lower() == "true"
+            if user_count == 0 and demo_mode:
                 logger.info("Seeding default users...")
                 admin_hash = hash_password("admin123")
                 officer_hash = hash_password("officer123")
@@ -388,15 +394,16 @@ async def log_audit(
     action: str,
     resource: str = "",
     detail: str = "",
-    ip_address: str = ""
+    ip_address: str = "",
+    user_id: str = "",
 ) -> None:
     """Persist an audit event for governance and traceability."""
     await execute_write(
         """
-        INSERT INTO audit_logs (username, role, action, resource, detail, ip_address)
-        VALUES (?, ?, ?, ?, ?, ?)
+        INSERT INTO audit_logs (username, user_id, role, action, resource, detail, ip_address)
+        VALUES (?, ?, ?, ?, ?, ?, ?)
         """,
-        (username, role, action, resource, detail, ip_address)
+        (username, user_id, role, action, resource, detail, ip_address)
     )
 
 

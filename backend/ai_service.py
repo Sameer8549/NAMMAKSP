@@ -7,10 +7,13 @@ Every AI response includes reasoning, evidence, and data citations.
 
 import os
 import logging
+import re
+from collections import OrderedDict
 from typing import AsyncGenerator
 
 from groq import Groq
 from dotenv import load_dotenv
+from pii_redaction import PiiRedactor
 
 from database import fetch_all, fetch_dataframe
 from analytics import (
@@ -28,11 +31,58 @@ load_dotenv()
 logger = logging.getLogger(__name__)
 
 # ─── Client Setup ─────────────────────────────────────────────────────────────
-_groq_client = Groq(api_key=os.getenv("GROQ_API_KEY"))
-MODEL = os.getenv("GROQ_MODEL", "llama-3.3-70b-versatile")
+LLM_PROVIDER_MODE = os.getenv("LLM_PROVIDER_MODE", "cloud").strip().lower()
+if LLM_PROVIDER_MODE not in {"cloud", "local"}:
+    raise RuntimeError("LLM_PROVIDER_MODE must be 'cloud' or 'local'")
+
+if LLM_PROVIDER_MODE == "local":
+    _groq_client = Groq(
+        api_key=os.getenv("LOCAL_LLM_API_KEY", "local-development-key"),
+        base_url=os.getenv("LOCAL_LLM_BASE_URL", "http://127.0.0.1:11434/v1"),
+    )
+    MODEL = os.getenv("LOCAL_LLM_MODEL", "llama3.1:8b")
+else:
+    _groq_client = Groq(api_key=os.getenv("GROQ_API_KEY"))
+    MODEL = os.getenv("GROQ_MODEL", "llama-3.3-70b-versatile")
+
+
+def _safe_chat_completion(messages: list[dict], **kwargs):
+    """Redact outbound text and rehydrate provider output locally."""
+    redactor = PiiRedactor()
+    response = _groq_client.chat.completions.create(
+        model=MODEL,
+        messages=redactor.redact_messages(messages),
+        **kwargs,
+    )
+    content = redactor.restore(response.choices[0].message.content or "")
+    return response, content
 
 # ─── Conversation History Store (in-memory per session) ──────────────────────
 _sessions: dict[str, list[dict]] = {}
+_response_cache: OrderedDict[str, dict] = OrderedDict()
+_RESPONSE_CACHE_LIMIT = int(os.getenv("LLM_RESPONSE_CACHE_SIZE", "100"))
+
+
+def _query_pattern(message: str, language: str) -> str:
+    normalized = re.sub(r"\b(?:fir|off)\d+\b", "<record_id>", message.lower())
+    normalized = re.sub(r"\b\d+\b", "<number>", normalized)
+    normalized = re.sub(r"\s+", " ", normalized).strip()
+    return f"{language}:{normalized}"
+
+
+def _cache_response(key: str, payload: dict) -> None:
+    _response_cache[key] = payload
+    _response_cache.move_to_end(key)
+    while len(_response_cache) > _RESPONSE_CACHE_LIMIT:
+        _response_cache.popitem(last=False)
+
+
+def _cached_response(key: str) -> dict | None:
+    payload = _response_cache.get(key)
+    if payload:
+        _response_cache.move_to_end(key)
+        return dict(payload)
+    return None
 
 SYSTEM_PROMPT = """You are NAMMA KSP, an expert crime intelligence analyst for Karnataka Police.
 You have access to a database of 5,000 FIR records, 2,000 offenders, 3,000 victims, 100 locations, and 5,000 criminal relationships.
@@ -128,13 +178,12 @@ Follow-up User Query: {user_message}
 Output Standalone English Search Query:"""
 
     try:
-        response = _groq_client.chat.completions.create(
-            model=MODEL,
+        response, rewritten = _safe_chat_completion(
             messages=[{"role": "user", "content": prompt}],
             max_tokens=200,
             temperature=0.1,  # deterministic
         )
-        rewritten = response.choices[0].message.content.strip()
+        rewritten = rewritten.strip()
         logger.info("Rewritten query for session %s: '%s' -> '%s'", session_id, user_message, rewritten)
         return rewritten
     except Exception as e:
@@ -171,10 +220,10 @@ async def _fetch_relevant_context(user_query: str) -> str:
 
     # FIR ID mentioned
     import re
-    fir_ids = re.findall(r'fir\d{5}', q.upper())
+    fir_ids = re.findall(r'FIR\d{5}', user_query.upper())
 
     # Offender ID mentioned
-    offender_ids = re.findall(r'off\d{5}', q.upper())
+    offender_ids = re.findall(r'OFF\d{5}', user_query.upper())
 
     # Fetch FIR detail if specific FIR mentioned
     for fid in fir_ids[:2]:
@@ -333,7 +382,7 @@ async def chat(
             {"role": "user", "content": clean_message},
             {"role": "assistant", "content": ai_reply},
         ])
-        return {"response": ai_reply, "evidence": "", "session_id": session_id, "model": "conversation-router", "tokens_used": 0}
+        return {"response": ai_reply, "evidence": "", "sources": [], "cached": False, "session_id": session_id, "model": "conversation-router", "tokens_used": 0}
 
     # Initialize session
     if session_id not in _sessions:
@@ -350,6 +399,13 @@ async def chat(
     logger.info("Context fetched for session %s: %d chars", session_id, len(context))
 
     target_lang_instruction = "English" if language == "en-US" else "Kannada"
+    sources = [{
+        "id": "S1",
+        "title": "NAMMA KSP database retrieval",
+        "query": rewritten_query,
+        "evidence_excerpt": context[:500] + ("..." if len(context) > 500 else ""),
+    }]
+    cache_key = _query_pattern(rewritten_query, language)
 
     # Augment user message with context (saving original message text for history clean-up)
     augmented_message = f"""User Query: {user_message}
@@ -361,21 +417,31 @@ async def chat(
 Response depth: {profile['name']}.
 {profile['instruction']}
 Answer only what the user asked. Do not add unrelated statistics or force every analytical section into the response.
+Every numeric claim derived from the database context must include the citation [S1]. Do not cite general advice or non-numeric interpretation.
 IMPORTANT: You MUST write your entire response in {target_lang_instruction} language only.
 If the selected language is Kannada, write in clean, grammatically correct Kannada script."""
 
     history.append({"role": "user", "content": augmented_message})
 
     # Call Groq API
-    response = _groq_client.chat.completions.create(
-        model=MODEL,
-        messages=history,
-        max_tokens=profile["max_tokens"],
-        temperature=0.3,   # Low temperature for factual responses
-        top_p=0.9,
-    )
-
-    ai_reply = response.choices[0].message.content
+    try:
+        response, ai_reply = _safe_chat_completion(
+            messages=history,
+            max_tokens=profile["max_tokens"],
+            temperature=0.3,
+            top_p=0.9,
+        )
+    except Exception as exc:
+        cached = _cached_response(cache_key)
+        if cached:
+            logger.warning("LLM unavailable for %s; returning cached response: %s", cache_key, exc)
+            return {
+                **cached,
+                "session_id": session_id,
+                "cached": True,
+                "warning": "AI unavailable, showing cached data",
+            }
+        raise
 
     # Check if we requested Kannada but response has no Kannada characters
     if language == "kn-IN" and not any('\u0c80' <= c <= '\u0cff' for c in ai_reply):
@@ -385,13 +451,11 @@ If the selected language is Kannada, write in clean, grammatically correct Kanna
                 ai_reply = await translate_text(ai_reply, target_language_code="kn-IN", source_language_code="en-IN")
             else:
                 translation_prompt = f"Translate the following English text to clean, natural, grammatically correct Kannada script. Return ONLY the translated Kannada text, preserving the sections and markdown formatting. Do not include any explanations.\n\nText:\n{ai_reply}"
-                translation_response = _groq_client.chat.completions.create(
-                    model=MODEL,
+                translation_response, ai_reply = _safe_chat_completion(
                     messages=[{"role": "user", "content": translation_prompt}],
                     max_tokens=2000,
                     temperature=0.2,
                 )
-                ai_reply = translation_response.choices[0].message.content
         except Exception as te:
             logger.error("Failed to translate English response to Kannada: %s", te)
 
@@ -402,14 +466,18 @@ If the selected language is Kannada, write in clean, grammatically correct Kanna
     if len(history) > 42:
         _sessions[session_id] = [history[0]] + history[-40:]
 
-    return {
+    result = {
         "response":   ai_reply,
         "evidence":   context[:500] + "..." if len(context) > 500 else context,
+        "sources":    sources,
+        "cached":     False,
         "session_id": session_id,
         "model":      MODEL,
         "response_depth": profile["name"],
         "tokens_used": response.usage.total_tokens if response.usage else 0
     }
+    _cache_response(cache_key, {key: value for key, value in result.items() if key != "session_id"})
+    return result
 
 
 # ─── Case Summary Generator ───────────────────────────────────────────────────
@@ -463,8 +531,7 @@ Structure your response as:
 6. PRIORITY ACTIONS"""}
     ]
 
-    response = _groq_client.chat.completions.create(
-        model=MODEL,
+    response, summary = _safe_chat_completion(
         messages=messages,
         max_tokens=1200,
         temperature=0.2,
@@ -472,7 +539,7 @@ Structure your response as:
 
     return {
         "fir_id":    fir_id,
-        "summary":   response.choices[0].message.content,
+        "summary":   summary,
         "fir_data":  detail,
         "related":   related,
         "model":     MODEL
@@ -530,15 +597,14 @@ Provide:
 5. INTER-DISTRICT COORDINATION NEEDS"""}
     ]
 
-    response = _groq_client.chat.completions.create(
-        model=MODEL,
+    response, recommendations = _safe_chat_completion(
         messages=messages,
         max_tokens=1000,
         temperature=0.3,
     )
 
     return {
-        "recommendations": response.choices[0].message.content,
+        "recommendations": recommendations,
         "data_context": stats[:5],
         "model": MODEL
     }
@@ -571,6 +637,9 @@ async def transcribing_audio(content: bytes, filename: str, language: str = None
     try:
         if is_sarvam_configured():
             return await sarvam_transcribe_audio(content, filename, language)
+
+        if os.getenv("ALLOW_CLOUD_AUDIO", "false").strip().lower() != "true":
+            raise SarvamError("Cloud audio processing is disabled")
 
         ext = filename.split(".")[-1].lower() if "." in filename else "webm"
         content_type = f"audio/{ext}" if ext in ["webm", "mp3", "wav", "m4a", "ogg"] else "audio/webm"

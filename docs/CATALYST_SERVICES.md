@@ -1,6 +1,6 @@
 # Zoho Catalyst Services Coverage
 
-NAMMA KSP intentionally keeps the existing prototype login and excludes Catalyst Authentication. All other requested Catalyst capabilities are represented through deployed services, code-level adapters, or console-ready integration points.
+NAMMA KSP uses Catalyst Embedded Authentication with server-enforced Admin and Investigator roles. Requested Catalyst capabilities are represented through deployed services, code-level adapters, or console-ready integration points.
 
 Live evidence endpoint:
 
@@ -8,7 +8,7 @@ Live evidence endpoint:
 GET /api/catalyst/services
 ```
 
-This endpoint returns every requested Catalyst service except Authentication, including:
+This endpoint returns the requested Catalyst services, including Authentication:
 
 - service number and capability
 - required Catalyst service

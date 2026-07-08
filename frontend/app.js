@@ -323,6 +323,66 @@ function injectHeaderLanguageToggle() {
 function getToken()    { return sessionStorage.getItem('cl_token'); }
 function getUsername() { return sessionStorage.getItem('cl_username'); }
 function getRole()     { return sessionStorage.getItem('cl_role'); }
+let _authConfigPromise = null;
+
+function getAuthConfig() {
+  if (!_authConfigPromise) {
+    _authConfigPromise = fetch(`${API_BASE}/api/auth/config`, { credentials: 'include', cache: 'no-store' })
+      .then(response => response.ok ? response.json() : { mode: 'catalyst', demo_mode: false })
+      .catch(() => ({ mode: 'catalyst', demo_mode: false }));
+  }
+  return _authConfigPromise;
+}
+
+function normalizeCatalystBrowserUser(raw) {
+  const roleName = raw?.role_details?.role_name || '';
+  const adminRoles = ['admin', 'app admin', 'app administrator'];
+  const investigatorRoles = ['investigator'];
+  const roleKey = roleName.toLowerCase();
+  if (!adminRoles.includes(roleKey) && !investigatorRoles.includes(roleKey)) {
+    throw new Error('Catalyst role is not authorized for NAMMA KSP');
+  }
+  const role = adminRoles.includes(roleKey) ? 'Admin' : 'Investigator';
+  const fullName = [raw?.first_name, raw?.last_name].filter(Boolean).join(' ').trim();
+  return {
+    username: fullName || raw?.email_id || 'Catalyst User',
+    role,
+    user_id: String(raw?.user_id || raw?.zuid || '')
+  };
+}
+
+async function getCatalystBrowserUser() {
+  if (!window.catalyst?.auth?.isUserAuthenticated) return null;
+  try {
+    const response = await window.catalyst.auth.isUserAuthenticated();
+    return response?.content ? normalizeCatalystBrowserUser(response.content) : null;
+  } catch (_) {
+    return null;
+  }
+}
+
+async function initCatalystLogin() {
+  const config = await getAuthConfig();
+  const demoWrap = document.getElementById('demo-login-wrap');
+  const catalystLogin = document.getElementById('catalyst-login');
+  if (config.demo_mode) {
+    if (demoWrap) demoWrap.hidden = false;
+    if (catalystLogin) catalystLogin.hidden = true;
+    return;
+  }
+  const user = await getCatalystBrowserUser();
+  if (user) {
+    setSession('', user.username, user.role);
+    location.replace('dashboard.html');
+    return;
+  }
+  if (catalystLogin && window.catalyst?.auth?.signIn) {
+    window.catalyst.auth.signIn('catalyst-login');
+  } else {
+    showLoginError('Catalyst Authentication is unavailable. Reload this deployed Catalyst page.');
+  }
+}
+window.initCatalystLogin = initCatalystLogin;
 
 function setSession(token, username, role) {
   sessionStorage.setItem('cl_token',    token);
@@ -338,12 +398,30 @@ function clearSession() {
   });
 }
 
+function injectSyntheticDataNotice() {
+  if (document.getElementById('synthetic-data-notice')) return;
+  const page = location.pathname.split('/').pop() || 'index.html';
+  if (page === 'index.html' || page === '') return;
+
+  const notice = document.createElement('aside');
+  notice.id = 'synthetic-data-notice';
+  notice.className = 'synthetic-data-notice';
+  notice.setAttribute('role', 'note');
+  notice.innerHTML = `
+    <strong>Demo dataset</strong>
+    <span>This workspace uses synthetically generated FIR, offender, victim, relationship, financial, and socio-economic records. It is not connected to live KSP/CCTNS data.</span>
+  `;
+
+  const main = document.querySelector('.main-content') || document.querySelector('main') || document.body;
+  main.appendChild(notice);
+}
+
 /** Authenticated fetch — auto-attaches Bearer token */
 async function apiFetch(path, opts = {}) {
   const token = getToken();
   const headers = { 'Content-Type': 'application/json', ...(opts.headers || {}) };
   if (token) headers['Authorization'] = `Bearer ${token}`;
-  const res = await fetch(`${API_BASE}${path}`, { ...opts, headers });
+  const res = await fetch(`${API_BASE}${path}`, { ...opts, headers, credentials: 'include' });
   if (res.status === 401) {
     clearSession();
     location.replace('index.html');
@@ -363,6 +441,7 @@ async function validateStoredSession(token) {
   try {
     const response = await fetch(`${API_BASE}/api/auth/me`, {
       headers: { 'Authorization': `Bearer ${token}` },
+      credentials: 'include',
       cache: 'no-store'
     });
     if (!response.ok) return null;
@@ -378,17 +457,13 @@ function authGuard() {
   _authGuardPromise = (async () => {
   const page = location.pathname.split('/').pop() || 'index.html';
   const isLogin = page === 'index.html' || page === '';
+    const config = await getAuthConfig();
     const token = getToken();
 
     // Discard persistent credentials left by previous versions.
     ['cl_token','cl_username','cl_role'].forEach(k => localStorage.removeItem(k));
 
-    if (!token) {
-      if (!isLogin) location.replace('index.html');
-      return isLogin;
-    }
-
-    const user = await validateStoredSession(token);
+    const user = config.demo_mode ? (token ? await validateStoredSession(token) : null) : await getCatalystBrowserUser();
     if (!user) {
       clearSession();
       if (!isLogin) location.replace('index.html');
@@ -420,6 +495,11 @@ function authGuard() {
 // ─── Login ────────────────────────────────────────────────────────────────────
 async function handleLogin(e) {
   e.preventDefault();
+  const config = await getAuthConfig();
+  if (!config.demo_mode) {
+    showLoginError('Use the Catalyst secure sign-in form.');
+    return;
+  }
   const btn = document.getElementById('login-btn');
   const errEl = document.getElementById('login-error');
   const username = document.getElementById('username').value.trim();
@@ -474,12 +554,19 @@ function fillDemo(type) {
 
 // ─── Logout ───────────────────────────────────────────────────────────────────
 async function logout() {
+  const config = await getAuthConfig();
+  if (!config.demo_mode && window.catalyst?.auth?.signOut) {
+    clearSession();
+    window.catalyst.auth.signOut(`${location.origin}/app/index.html`);
+    return;
+  }
   try {
     const token = getToken();
     if (token) {
       await fetch(`${API_BASE}/api/auth/logout`, {
         method: 'POST',
-        headers: { 'Authorization': `Bearer ${token}` }
+        headers: { 'Authorization': `Bearer ${token}` },
+        credentials: 'include'
       });
     }
   } catch(_) {}
@@ -1293,7 +1380,7 @@ function renderOperationsGrid(container, status) {
     </div>
     <div class="ops-card">
       <div class="ops-label">Catalyst Services</div>
-      <div class="ops-value">${Number(catalystSummary.active_or_ready || 0)} / ${Number(catalystSummary.total_requested_without_auth || 25)}</div>
+      <div class="ops-value">${Number(catalystSummary.active_or_ready || 0)} / ${Number(catalystSummary.total_requested || catalystSummary.total_requested_without_auth || 26)}</div>
       <div class="ops-detail">${Number(catalystSummary.external_setup_required || catalystSummary.console_required || 0)} external setup · ${Number(catalystSummary.fallback_mode || 0)} local fallback</div>
     </div>
     <div class="ops-card">
@@ -1475,6 +1562,7 @@ async function toggleVoiceInput() {
           
           const response = await fetch(`${API_BASE}/api/audio-transcribe?language=${_chatLanguage}`, {
             method: 'POST',
+            credentials: 'include',
             headers: {
               'Authorization': `Bearer ${getToken()}`
             },
@@ -1638,7 +1726,11 @@ async function sendChatMessage() {
 
     if (data) {
       const reply = data.response || 'No response.';
-      const aiMessage = appendChatMessage('ai', reply, messages);
+      const aiMessage = appendChatMessage('ai', reply, messages, {
+        sources: Array.isArray(data.sources) ? data.sources : [],
+        cached: Boolean(data.cached),
+        warning: data.warning || ''
+      });
       _chatHistory.push({ role: 'assistant', content: reply });
       _chatSessionId = data.session_id || _chatSessionId;
       const speakButton = aiMessage?.querySelector('.chat-speak-btn');
@@ -1656,7 +1748,7 @@ async function sendChatMessage() {
 }
 window.sendChatMessage = sendChatMessage;
 
-function appendChatMessage(role, content, container) {
+function appendChatMessage(role, content, container, metadata = {}) {
   const isAI = role === 'ai' || role === 'assistant';
   const username = getUsername() || 'User';
   const initials = username.split(' ').map(w => w[0]).join('').slice(0,2).toUpperCase();
@@ -1669,10 +1761,23 @@ function appendChatMessage(role, content, container) {
   const formatted = formatChatContent(content);
 
   if (isAI) {
+    const cachedBanner = metadata.cached
+      ? `<div class="chat-cache-warning">${escapeHtml(metadata.warning || 'AI unavailable, showing cached data')}</div>`
+      : '';
+    const sources = Array.isArray(metadata.sources) ? metadata.sources : [];
+    const sourcesHtml = sources.length
+      ? `<div class="chat-sources"><div class="chat-sources-title">Sources</div>${sources.map(source => `
+          <div class="chat-source-item">
+            <span class="chat-source-id">${escapeHtml(source.id || 'S')}</span>
+            <div><strong>${escapeHtml(source.title || 'Database retrieval')}</strong><span>${escapeHtml(source.query || '')}</span></div>
+          </div>`).join('')}</div>`
+      : '';
     div.innerHTML = `
       ${chatAssistantAvatarMarkup()}
       <div>
+        ${cachedBanner}
         <div class="chat-bubble">${formatted}</div>
+        ${sourcesHtml}
         <div class="chat-timestamp" style="display:flex;align-items:center;gap:6px">
           <span>${now}</span>
           <button class="chat-speak-btn" onclick="readAloud(this.closest('.chat-message').querySelector('.chat-bubble').innerText, _chatLanguage, this)">
@@ -1806,6 +1911,7 @@ async function exportChatLog() {
   try {
     const res = await fetch(`${API_BASE}/api/chat/export`, {
       method: 'POST',
+      credentials: 'include',
       headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${getToken()}` },
       body: JSON.stringify({ session_id: _chatSessionId, messages: _chatHistory })
     });
@@ -2812,6 +2918,7 @@ async function generateReport() {
 
     const res = await fetch(`${API_BASE}${endpoint}`, {
       method: 'POST',
+      credentials: 'include',
       headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${getToken()}` },
       body
     });
@@ -2859,6 +2966,7 @@ async function downloadReport(filename) {
     // Use the dedicated download API endpoint (not StaticFiles) 
     // to guarantee application/pdf Content-Type and attachment disposition
     const res = await fetch(`${API_BASE}/api/reports/download/${encodeURIComponent(filename)}`, {
+      credentials: 'include',
       headers: { 'Authorization': `Bearer ${getToken()}` }
     });
     if (!res.ok) throw new Error('File download failed: ' + res.status);
@@ -2875,6 +2983,13 @@ async function downloadReport(filename) {
 // ═══════════════════════════════════════════════════════════════════════════════
 
 async function initUsersPage() {
+  const config = await getAuthConfig();
+  const addButton = document.getElementById('local-add-user-btn');
+  const addModal = document.getElementById('add-user-modal');
+  if (!config.demo_mode) {
+    if (addButton) addButton.hidden = true;
+    if (addModal) addModal.remove();
+  }
   await Promise.all([loadUsersList(), loadAuditLogs(), loadSystemStatus(), loadEarlyWarningAlerts()]);
 
   if (window._auditRefreshTimer) clearInterval(window._auditRefreshTimer);
@@ -3276,6 +3391,7 @@ async function startServerSpeech(text, langCode, buttonEl, options = {}) {
     }, 15000);
     const res = await fetch(`${API_BASE}/api/tts`, {
       method: 'POST',
+      credentials: 'include',
       headers: {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${getToken()}`
@@ -3397,6 +3513,7 @@ async function exportOffenderPDF() {
   try {
     const res = await fetch(`${API_BASE}/api/reports/offender`, {
       method: 'POST',
+      credentials: 'include',
       headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${getToken()}` },
       body: JSON.stringify({ offender_id: offenderId })
     });
@@ -3420,6 +3537,7 @@ async function exportNetworkPDF() {
     
     const res = await fetch(`${API_BASE}/api/reports/network`, {
       method: 'POST',
+      credentials: 'include',
       headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${getToken()}` },
       body: JSON.stringify({ image_data: pngBase64, district, crime_type: crimeType })
     });
@@ -3477,6 +3595,7 @@ async function downloadReportDirectHelper(endpoint, body, defaultDownloadName) {
   try {
     const res = await fetch(`${API_BASE}${endpoint}`, {
       method: 'POST',
+      credentials: 'include',
       headers: { 
         'Content-Type': 'application/json', 
         'Authorization': `Bearer ${getToken()}` 
@@ -4284,6 +4403,7 @@ async function downloadCaseReportDirect() {
     await new Promise(r => setTimeout(r, 3500));
     const response = await fetch(`${API_BASE}/api/reports/case`, {
       method: 'POST',
+      credentials: 'include',
       headers: {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${getToken()}`
@@ -4336,7 +4456,7 @@ async function loadReportArchive() {
 async function downloadReportFileDirectly(filename) {
   try {
     showToast('Downloading report...', 'info');
-    const res = await fetch(`${API_BASE}/api/reports/download/${encodeURIComponent(filename)}`);
+    const res = await fetch(`${API_BASE}/api/reports/download/${encodeURIComponent(filename)}`, { credentials: 'include' });
     if (!res.ok) throw new Error('Download failed');
     const blob = await res.blob();
     triggerFileDownload(blob, filename);
@@ -4615,6 +4735,7 @@ window.filterFIRTable = filterFIRTable;
 
     // Inject header language toggle and translate page UI
     injectHeaderLanguageToggle();
+    injectSyntheticDataNotice();
     translatePageUI();
 
     // Animate KPI cards in on load

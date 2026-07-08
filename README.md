@@ -57,7 +57,7 @@ NAMMA KSP solves this by combining conversational AI, visual analytics, criminol
 | Financial crime link analysis | Financial transaction dataset support for suspicious account and cyber/financial pattern analysis. |
 | Forecasting and early warning | Explainable moving-average forecasting, hotspot scoring, and early warning indicators. |
 | Explainable AI | Dashboard evidence cards, data-backed summaries, and report-ready reasoning outputs. |
-| Secure access and governance | Role-based login, automatic role detection, protected routes, and prototype governance controls. |
+| Secure access and governance | Catalyst-native authentication, server-enforced Admin/Investigator RBAC, protected routes, immutable Catalyst user IDs in audit events, and automatic role detection. |
 
 ## Core Modules
 
@@ -69,14 +69,17 @@ NAMMA KSP solves this by combining conversational AI, visual analytics, criminol
 | Criminal Network | Relationship mapping across offenders, victims, FIRs, and locations. |
 | Offender Profiles | Risk category, demographic context, previous FIRs, behavioral signals, and dossier-ready details. |
 | Investigation Reports | Case, district, offender, recommendation, and network reports with PDF export and archive workflow. |
-| Role-Based Access | Admin and investigator access without manual role selection on the login screen. |
+| Role-Based Access | Catalyst-managed Admin and Investigator identities without manual role selection on the login screen. |
 
-## Demo Login
+## Authentication
 
-| Role | Username | Password |
-|---|---|---|
-| Admin | `admin` | `admin123` |
-| Investigator | `officer` | `officer123` |
+The deployed application uses Catalyst Embedded Authentication and Catalyst
+User Management roles. Configure `Admin`/`App Administrator` and `Investigator`
+roles in the Catalyst console before deployment.
+
+Legacy local credentials exist only for isolated demonstrations when
+`DEMO_MODE=true`. Demo mode is disabled by default and must not be enabled for
+production or real-data environments.
 
 ## Technology Stack
 
@@ -189,7 +192,7 @@ http://127.0.0.1:8000/
 | Event routing | Catalyst Signals publisher and early-warning rules |
 | Operational data | Catalyst Data Store/NoSQL/Stratus/Cache adapter layer with local fallbacks |
 
-Zoho Catalyst service coverage, excluding Catalyst Authentication by design, is documented in [`docs/CATALYST_SERVICES.md`](docs/CATALYST_SERVICES.md). The live app also exposes a service evidence matrix at:
+Zoho Catalyst service coverage, including Catalyst Authentication, is documented in [`docs/CATALYST_SERVICES.md`](docs/CATALYST_SERVICES.md). The live app also exposes a service evidence matrix at:
 
 ```text
 GET /api/catalyst/services
@@ -212,7 +215,8 @@ https://namma-ksp-50043229029.development.catalystappsail.in
 | Method | Endpoint | Description |
 |---|---|---|
 | `GET` | `/api/health` | Health check and dataset summary. |
-| `POST` | `/api/auth/login` | Login and automatic role detection. |
+| `GET` | `/api/auth/config` | Return the active Catalyst/demo authentication mode. |
+| `GET` | `/api/auth/me` | Return the server-verified Catalyst user and role. |
 | `GET` | `/api/analytics/overview` | Dashboard KPIs. |
 | `GET` | `/api/analytics/crime-types` | Crime type distribution. |
 | `GET` | `/api/analytics/monthly-trends` | Monthly trend analytics. |
@@ -231,7 +235,7 @@ https://namma-ksp-50043229029.development.catalystappsail.in
 | `POST` | `/api/reports/offender` | Offender dossier PDF. |
 | `POST` | `/api/reports/network` | Network analysis PDF. |
 | `GET` | `/api/reports/list` | Generated report archive. |
-| `GET` | `/api/catalyst/services` | Zoho Catalyst service usage matrix excluding Authentication. |
+| `GET` | `/api/catalyst/services` | Zoho Catalyst service usage and evidence matrix. |
 | `GET` | `/api/docs` | FastAPI Swagger documentation. |
 
 ## Impact

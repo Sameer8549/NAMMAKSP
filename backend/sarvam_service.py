@@ -15,6 +15,7 @@ from typing import Optional
 
 import httpx
 from dotenv import load_dotenv
+from pii_redaction import PiiRedactor
 
 load_dotenv()
 logger = logging.getLogger(__name__)
@@ -25,6 +26,7 @@ SARVAM_STT_MODEL = os.getenv("SARVAM_STT_MODEL", "saaras:v3")
 SARVAM_TTS_MODEL = os.getenv("SARVAM_TTS_MODEL", "bulbul:v3")
 SARVAM_TRANSLATE_MODEL = os.getenv("SARVAM_TRANSLATE_MODEL", "mayura:v1")
 SARVAM_TTS_SPEAKER = os.getenv("SARVAM_TTS_SPEAKER", "shubh")
+ALLOW_CLOUD_AUDIO = os.getenv("ALLOW_CLOUD_AUDIO", "false").strip().lower() == "true"
 
 # Reuse TLS connections across STT, translation, and TTS requests.
 _sarvam_client = httpx.AsyncClient(
@@ -79,11 +81,13 @@ def strip_markup_for_speech(text: str, max_chars: int = 2200) -> str:
 async def detect_language(text: str) -> dict:
     if not text.strip():
         return {"language_code": None, "script_code": None}
+    redactor = PiiRedactor()
+    safe_text = redactor.redact(text[:1000])
     async with httpx.AsyncClient(timeout=20) as client:
         response = await client.post(
             f"{SARVAM_BASE_URL}/text-lid",
             headers=_headers(),
-            json={"input": text[:1000]},
+            json={"input": safe_text},
         )
     if response.status_code >= 400:
         raise SarvamError(_error_message(response, "Sarvam language detection failed"))
@@ -98,9 +102,11 @@ async def translate_text(
 ) -> str:
     if not text.strip():
         return ""
+    redactor = PiiRedactor()
+    safe_text = redactor.redact(text)
     target = normalize_language_code(target_language_code)
     source = normalize_language_code(source_language_code, default="auto")
-    chunks = _chunk_text(text, 950 if SARVAM_TRANSLATE_MODEL == "mayura:v1" else 1900)
+    chunks = _chunk_text(safe_text, 950 if SARVAM_TRANSLATE_MODEL == "mayura:v1" else 1900)
     translated: list[str] = []
     async with httpx.AsyncClient(timeout=40) as client:
         for chunk in chunks:
@@ -121,12 +127,14 @@ async def translate_text(
             if response.status_code >= 400:
                 raise SarvamError(_error_message(response, "Sarvam translation failed"))
             translated.append(response.json().get("translated_text", ""))
-    return "\n".join(part for part in translated if part).strip()
+    return redactor.restore("\n".join(part for part in translated if part).strip())
 
 
 async def transcribe_audio(content: bytes, filename: str, language: Optional[str] = None) -> str:
     if not content:
         raise SarvamError("Empty audio file")
+    if not ALLOW_CLOUD_AUDIO:
+        raise SarvamError("Cloud audio processing is disabled; set ALLOW_CLOUD_AUDIO=true only for approved synthetic/demo audio")
     language_code = normalize_language_code(language or "unknown", default="unknown")
     ext = filename.rsplit(".", 1)[-1].lower() if "." in filename else "webm"
     content_type = f"audio/{ext}" if ext in {"webm", "mp3", "wav", "m4a", "ogg", "flac", "aac"} else "audio/webm"
@@ -148,7 +156,8 @@ async def transcribe_audio(content: bytes, filename: str, language: Optional[str
 
 
 async def synthesize_speech(text: str, language: Optional[str] = "en") -> tuple[bytes, str]:
-    clean = strip_markup_for_speech(text)
+    redactor = PiiRedactor()
+    clean = redactor.redact(strip_markup_for_speech(text))
     if not clean:
         raise SarvamError("No text to speak")
     target = normalize_language_code(language)

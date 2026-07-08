@@ -55,15 +55,15 @@
           <h1 class="page-title">User Management</h1>
           <div class="page-subtitle">Manage officer accounts and system access — Admin only</div>
         </div>
-        <button class="btn btn-accent" data-modal-open="add-user-modal">
+        <button class="btn btn-accent" id="local-add-user-btn" data-modal-open="add-user-modal">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
           Add User
         </button>
       </div>
 
-      <div class="notification-bar">
+      <div class="notification-bar" id="user-management-notice">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m21.73 18-8-14a2 2 0 0 0-3.46 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-        This page is accessible to Admin accounts only. User actions are logged for audit purposes.
+        Catalyst administrators can review users here. Account and role changes are managed in the Catalyst Authentication console.
       </div>
 
       <div class="card mb-lg">
@@ -161,6 +161,8 @@
     </div>
   </div>
 
+  <script src="https://static.zohocdn.com/catalyst/sdk/js/4.0.0/catalystWebSDK.js"></script>
+  <script src="/__catalyst/sdk/init.js"></script>
   <script src="app.js"></script>
   <div id="page-progress-bar"></div>
   <!-- Global Search Modal -->
