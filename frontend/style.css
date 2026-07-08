@@ -3141,9 +3141,20 @@ h1, h2, h3, h4, h5, h6 {
   border-radius: 12px;
   background: transparent;
   line-height: 1.55;
+  text-align: left;
+  text-indent: 0;
+  direction: ltr;
   overflow-y: hidden;
   box-sizing: border-box;
   vertical-align: top;
+}
+
+.chat-input::placeholder {
+  text-align: left;
+}
+
+.chat-message .chat-bubble {
+  text-align: left;
 }
 
 .chat-input:focus {
