@@ -70,3 +70,14 @@ and a repeatable verification result.
   legal-section fact is inferred when the source CSV does not provide it.
 - A `DEMO/UNSPECIFIED` legal association records that the legal act/section is
   absent from the source instead of inventing an IPC/BNS provision.
+
+## ER-Backed Intelligence
+
+- FIR detail responses include a labelled ER evidence block with CaseMaster,
+  status/category/gravity, crime heads, station/district, occurrence, accused,
+  victim, and legal-association records.
+- AI context receives the same ER evidence whenever a FIR identifier is queried.
+- Criminal-network edges are built from CaseMaster-Accused and
+  CaseMaster-Victim relationships while source IDs preserve repeat-person links.
+- Case and investigation reports inherit this evidence through the shared FIR
+  detail contract.

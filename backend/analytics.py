@@ -417,7 +417,12 @@ async def get_fir_detail(fir_id: str) -> dict | None:
         LEFT JOIN locations l ON f.location_id = l.location_id
         WHERE f.fir_id = ?
     """, (fir_id,))
-    return rows[0] if rows else None
+    if not rows:
+        return None
+    from er_queries import get_er_case_evidence
+    detail = rows[0]
+    detail["er_evidence"] = await get_er_case_evidence(fir_id)
+    return detail
 
 
 async def get_related_cases(fir_id: str) -> list[dict]:

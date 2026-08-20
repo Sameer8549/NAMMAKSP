@@ -9,6 +9,7 @@ centrality metrics, community detection, and key node identification.
 import logging
 import networkx as nx
 from database import fetch_all
+from er_queries import get_er_network_rows
 
 logger = logging.getLogger(__name__)
 
@@ -32,31 +33,7 @@ async def build_criminal_network(
       - Offender → FIR  (relationship_type)
       - Victim   → FIR  (relationship_type)
     """
-    conditions = []
-    params = []
-
-    if district:
-        conditions.append("f.district = ?")
-        params.append(district)
-    if crime_type:
-        conditions.append("f.crime_type = ?")
-        params.append(crime_type)
-
-    where = ("WHERE " + " AND ".join(conditions)) if conditions else ""
-
-    rows = await fetch_all(f"""
-        SELECT
-            r.offender_id, r.victim_id, r.fir_id, r.relationship_type,
-            o.name AS offender_name, o.risk_category, o.previous_firs,
-            v.name AS victim_name,
-            f.crime_type, f.status, f.date, f.district
-        FROM relationships r
-        JOIN offenders o ON r.offender_id = o.offender_id
-        JOIN victims   v ON r.victim_id   = v.victim_id
-        JOIN firs      f ON r.fir_id      = f.fir_id
-        {where}
-        LIMIT ?
-    """, tuple(params + [limit]))
+    rows = await get_er_network_rows(district, crime_type, limit)
 
     G = nx.Graph()
 
