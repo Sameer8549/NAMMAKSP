@@ -404,6 +404,13 @@ async def log_audit(
     user_id: str = "",
 ) -> None:
     """Persist an audit event for governance and traceability."""
+    from catalyst_runtime import datastore_append_event
+
+    await datastore_append_event("audit", {
+        "username": username or "", "user_id": user_id, "role": role or "",
+        "action": action, "resource": resource, "detail": detail,
+        "ip_address": ip_address,
+    })
     await execute_write(
         """
         INSERT INTO audit_logs (username, user_id, role, action, resource, detail, ip_address)
@@ -424,6 +431,13 @@ async def record_report_archive(
     status: str = "ready"
 ) -> None:
     """Record generated report metadata for archive/governance views."""
+    from catalyst_runtime import datastore_append_event
+
+    await datastore_append_event("report", {
+        "filename": filename, "report_type": report_type, "subject": subject,
+        "size_kb": size_kb, "storage_mode": storage_mode,
+        "storage_uri": storage_uri, "generated_by": generated_by, "status": status,
+    })
     await execute_write(
         """
         INSERT OR REPLACE INTO report_archive
@@ -436,6 +450,11 @@ async def record_report_archive(
 
 async def list_report_archive(limit: int = 100) -> list[dict]:
     """Return newest report archive metadata."""
+    from catalyst_runtime import datastore_list_events
+
+    managed = await datastore_list_events("report", limit)
+    if managed["used"]:
+        return managed["data"]
     return await fetch_all(
         """
         SELECT id, created_at, filename, report_type, subject, size_kb,
@@ -445,6 +464,24 @@ async def list_report_archive(limit: int = 100) -> list[dict]:
         LIMIT ?
         """,
         (limit,)
+    )
+
+
+async def list_audit_events(limit: int = 100) -> list[dict]:
+    """Return durable Catalyst audit events with a local continuity fallback."""
+    from catalyst_runtime import datastore_list_events
+
+    managed = await datastore_list_events("audit", limit)
+    if managed["used"]:
+        return managed["data"]
+    return await fetch_all(
+        """
+        SELECT id, timestamp, username, user_id, role, action, resource, detail, ip_address
+        FROM audit_logs
+        ORDER BY id DESC
+        LIMIT ?
+        """,
+        (limit,),
     )
 
 

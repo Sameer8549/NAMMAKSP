@@ -36,7 +36,7 @@ mimetypes.add_type("application/pdf", ".pdf")
 
 from database  import (
     init_db, get_db_stats, get_er_schema_status, log_audit, fetch_one, fetch_all,
-    record_report_archive, list_report_archive, record_alert_event,
+    record_report_archive, list_report_archive, list_audit_events, record_alert_event,
     list_alert_events, record_job_run, list_job_runs
 )
 from analytics import (
@@ -1006,13 +1006,7 @@ async def list_users(http_request: Request, admin_user: dict = Depends(require_a
 
 @app.get("/api/audit/logs")
 async def list_audit_logs(limit: int = Query(100, ge=1, le=500), admin_user: dict = Depends(require_admin)):
-    from database import fetch_all
-    return await fetch_all("""
-        SELECT id, timestamp, username, user_id, role, action, resource, detail, ip_address
-        FROM audit_logs
-        ORDER BY id DESC
-        LIMIT ?
-    """, (limit,))
+    return await list_audit_events(limit)
 
 
 @app.post("/api/users")

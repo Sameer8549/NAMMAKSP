@@ -50,6 +50,57 @@ async def datastore_probe(request=None) -> dict:
         return _result("sqlite", False, error=str(exc))
 
 
+async def datastore_append_event(event_kind: str, payload: dict[str, Any], request=None) -> dict:
+    """Append governance metadata to the durable Catalyst event ledger."""
+    table_name = config_value("CATALYST_DATASTORE_TABLE_EVENTS").strip()
+    if not enabled("CATALYST_DATASTORE_ENABLED") or not table_name:
+        return _result("sqlite", False, error="Catalyst event ledger is not configured")
+
+    def run():
+        row = {
+            "event_kind": event_kind,
+            "event_payload": json.dumps(payload, separators=(",", ":"), default=str),
+        }
+        return _app(request).datastore().table(table_name).insert_row(row)
+
+    try:
+        return _result("catalyst-datastore", True, await asyncio.to_thread(run))
+    except Exception as exc:
+        return _result("sqlite", False, error=str(exc))
+
+
+async def datastore_list_events(event_kind: str, limit: int = 100, request=None) -> dict:
+    """Read newest matching events from the durable Catalyst event ledger."""
+    table_name = config_value("CATALYST_DATASTORE_TABLE_EVENTS").strip()
+    if not enabled("CATALYST_DATASTORE_ENABLED") or not table_name:
+        return _result("sqlite", False, error="Catalyst event ledger is not configured")
+
+    def run():
+        response = _app(request).datastore().table(table_name).get_paged_rows(
+            max_rows=min(max(limit * 3, 100), 1000)
+        )
+        rows = response.get("data", []) if isinstance(response, dict) else []
+        matching = [row for row in rows if row.get("event_kind") == event_kind]
+        matching.sort(key=lambda row: int(row.get("ROWID") or 0), reverse=True)
+        decoded = []
+        for row in matching[:limit]:
+            try:
+                payload = json.loads(row.get("event_payload") or "{}")
+            except (TypeError, json.JSONDecodeError):
+                continue
+            payload.setdefault("id", row.get("ROWID"))
+            payload.setdefault("created_at", row.get("CREATEDTIME"))
+            if event_kind == "audit":
+                payload.setdefault("timestamp", row.get("CREATEDTIME"))
+            decoded.append(payload)
+        return decoded
+
+    try:
+        return _result("catalyst-datastore", True, await asyncio.to_thread(run))
+    except Exception as exc:
+        return _result("sqlite", False, error=str(exc))
+
+
 async def search(request, term: str, table_columns: dict[str, list[str]]) -> dict:
     if not enabled("CATALYST_DATASTORE_SEARCH_ENABLED"):
         return _result("sql-search", False, error="Catalyst Search is not configured")
