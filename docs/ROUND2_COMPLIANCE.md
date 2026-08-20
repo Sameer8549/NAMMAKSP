@@ -17,8 +17,8 @@ features that are not required. All bundled records are synthetic demo data.
 | Trends, hotspots, early warning | Implemented prototype | Analytics, explainable forecast, alert/job ledger | Validate through scheduled Catalyst run |
 | Reports and QR archive | Implemented locally | ReportLab PDFs, QR links, archive metadata | Use Stratus only when runtime storage is configured |
 | Authentication and RBAC | Implemented with demo fallback | Catalyst adapter plus Admin/Investigator checks | Disable `DEMO_MODE` before real-data use |
-| Catalyst QuickML | Published model endpoint configured | Pipeline/model/endpoint IDs in runtime configuration | Invoke through a tested adapter |
-| Police FIR ER database | Implemented for synthetic demo | Complete schema, deterministic seeder, FK/cardinality validation | Enable the equivalent Catalyst Data Store adapter |
+| Catalyst QuickML | Published model endpoint and tested adapter | Pipeline/model/endpoint IDs plus `/api/quickml/predict` | Keep the endpoint key server-side |
+| Police FIR ER database | Implemented for synthetic demo | Complete schema, deterministic seeder, FK/cardinality validation, live health evidence | Keep the normalized ER store authoritative for analytics |
 
 ## ER Source-of-Truth Gaps
 

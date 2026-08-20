@@ -9,7 +9,7 @@ import logging
 from collections import defaultdict
 from statistics import mean
 
-from database import fetch_all, fetch_one
+from database import fetch_all, fetch_one, get_er_schema_status
 from catalyst_services import get_catalyst_service_matrix
 
 logger = logging.getLogger(__name__)
@@ -940,13 +940,15 @@ async def get_submission_readiness() -> dict:
         (10, "Secure role-based access and governance", "prototype", ["/api/auth/login", "/api/auth/me", "/api/audit/logs"]),
     ]
     catalyst = get_catalyst_service_matrix()
+    er_schema = await get_er_schema_status()
     return {
-        "overall": "challenge-complete prototype",
+        "overall": "challenge-complete synthetic-data prototype",
         "capabilities": [
             {"number": number, "name": name, "status": status, "evidence_endpoints": endpoints}
             for number, name, status, endpoints in capabilities
         ],
         "dataset_evidence": counts,
+        "police_fir_er_schema": er_schema,
         "socio_economic_completeness": {key: int(value or 0) for key, value in socio.items()},
         "catalyst_services": catalyst,
         "limitations": [
@@ -954,6 +956,6 @@ async def get_submission_readiness() -> dict:
             "Several socio-economic fields are unavailable in the uploaded district sources.",
             "Forecasting is an explainable moving-average prototype, not a validated production model.",
             "Catalyst-native authentication is implemented; production rollout requires configured Catalyst users and Admin/Investigator roles.",
-            "Some Catalyst managed services are adapter-ready and require Catalyst console provisioning before replacing local fallbacks.",
+            "Only services marked active in the Catalyst matrix have a configured runtime path; all other statuses remain explicit.",
         ],
     }

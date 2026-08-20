@@ -46,7 +46,7 @@ These services have app feature boundaries or console resources, but are not cou
 | NoSQL | Not required for the relational MVP; reserve for a genuine semi-structured evidence workflow |
 | Stratus | generated PDF report archive and QR-linked report downloads |
 | Cache | dashboard analytics, forecast, and search response caching |
-| QuickML | Published tabular FIR-status pipeline; runtime prediction adapter remains to be verified |
+| QuickML | Published tabular FIR-status pipeline with a request-scoped prediction adapter; the endpoint key remains server-side only |
 | Zia AutoML | Offender risk and forecasting require a trained, validated model before activation |
 | Zia Services | initialized OCR/text analytics workspace; API adapter can replace local evidence parsing |
 | SmartBrowz | initialized browser-rendering workspace; report adapter can replace ReportLab/PDF fallback |

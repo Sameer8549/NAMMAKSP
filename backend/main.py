@@ -35,7 +35,7 @@ mimetypes.init()
 mimetypes.add_type("application/pdf", ".pdf")
 
 from database  import (
-    init_db, get_db_stats, log_audit, fetch_one, fetch_all,
+    init_db, get_db_stats, get_er_schema_status, log_audit, fetch_one, fetch_all,
     record_report_archive, list_report_archive, record_alert_event,
     list_alert_events, record_job_run, list_job_runs
 )
@@ -498,7 +498,13 @@ async def get_offender_route_user(request: Request, authorization: Optional[str]
 @app.get("/api/health")
 async def health():
     stats = await get_db_stats()
-    return {"status": "ok", "database": stats, "version": "1.0.0"}
+    er_schema = await get_er_schema_status()
+    return {
+        "status": "ok" if er_schema["valid"] else "degraded",
+        "database": stats,
+        "er_schema": er_schema,
+        "version": "1.0.0",
+    }
 
 
 def _client_ip(request: Request) -> str:
@@ -782,6 +788,7 @@ async def system_status(admin_user: dict = Depends(require_admin)):
     """)
     reports_on_disk = len(list(REPORTS_DIR.glob("*.pdf"))) if REPORTS_DIR.exists() else 0
     catalyst = get_catalyst_service_matrix()
+    er_schema = await get_er_schema_status()
     return {
         "runtime": {
             "platform": "Zoho Catalyst AppSail" if os.getenv("X_ZOHO_CATALYST_LISTEN_PORT") else "Local development",
@@ -791,6 +798,7 @@ async def system_status(admin_user: dict = Depends(require_admin)):
             "catalyst_file_store_configured": bool(os.getenv("CATALYST_REPORTS_FOLDER_ID")),
         },
         "database": stats,
+        "er_schema": er_schema,
         "alerts": {
             "open": open_alert["cnt"] if open_alert else 0,
             "latest": (await list_alert_events(1))[0] if stats.get("alert_events", 0) else None,
