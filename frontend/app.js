@@ -327,9 +327,12 @@ let _authConfigPromise = null;
 
 function getAuthConfig() {
   if (!_authConfigPromise) {
-    _authConfigPromise = fetch(`${API_BASE}/api/auth/config`, { credentials: 'include', cache: 'no-store' })
-      .then(response => response.ok ? response.json() : { mode: 'catalyst', demo_mode: false })
-      .catch(() => ({ mode: 'catalyst', demo_mode: false }));
+    const fallback = { mode: 'demo', demo_mode: true };
+    const timeout = new Promise(resolve => setTimeout(() => resolve(fallback), 1200));
+    const request = fetch(`${API_BASE}/api/auth/config`, { credentials: 'include', cache: 'no-store' })
+      .then(response => response.ok ? response.json() : fallback)
+      .catch(() => fallback);
+    _authConfigPromise = Promise.race([request, timeout]);
   }
   return _authConfigPromise;
 }
@@ -3246,6 +3249,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   switch (page) {
     case 'index.html':
     case '':
+      initLoginControls();
       initPasswordToggle();
       initParticleNetwork('particle-canvas');
       break;
