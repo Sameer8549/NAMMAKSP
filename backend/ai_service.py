@@ -35,21 +35,36 @@ LLM_PROVIDER_MODE = os.getenv("LLM_PROVIDER_MODE", "cloud").strip().lower()
 if LLM_PROVIDER_MODE not in {"cloud", "local"}:
     raise RuntimeError("LLM_PROVIDER_MODE must be 'cloud' or 'local'")
 
+_groq_client: Groq | None = None
 if LLM_PROVIDER_MODE == "local":
-    _groq_client = Groq(
-        api_key=os.getenv("LOCAL_LLM_API_KEY", "local-development-key"),
-        base_url=os.getenv("LOCAL_LLM_BASE_URL", "http://127.0.0.1:11434/v1"),
-    )
     MODEL = os.getenv("LOCAL_LLM_MODEL", "llama3.1:8b")
 else:
-    _groq_client = Groq(api_key=os.getenv("GROQ_API_KEY"))
     MODEL = os.getenv("GROQ_MODEL", "llama-3.3-70b-versatile")
+
+
+def _get_groq_client() -> Groq:
+    """Create the provider client only when an AI request needs it."""
+    global _groq_client
+    if _groq_client is not None:
+        return _groq_client
+
+    if LLM_PROVIDER_MODE == "local":
+        _groq_client = Groq(
+            api_key=os.getenv("LOCAL_LLM_API_KEY", "local-development-key"),
+            base_url=os.getenv("LOCAL_LLM_BASE_URL", "http://127.0.0.1:11434/v1"),
+        )
+    else:
+        api_key = os.getenv("GROQ_API_KEY")
+        if not api_key:
+            raise RuntimeError("GROQ_API_KEY is not configured")
+        _groq_client = Groq(api_key=api_key)
+    return _groq_client
 
 
 def _safe_chat_completion(messages: list[dict], **kwargs):
     """Redact outbound text and rehydrate provider output locally."""
     redactor = PiiRedactor()
-    response = _groq_client.chat.completions.create(
+    response = _get_groq_client().chat.completions.create(
         model=MODEL,
         messages=redactor.redact_messages(messages),
         **kwargs,
@@ -716,7 +731,7 @@ async def transcribing_audio(content: bytes, filename: str, language: str = None
         loop = asyncio.get_running_loop()
         response = await loop.run_in_executor(
             None,
-            partial(_groq_client.audio.transcriptions.create, **kwargs)
+            partial(_get_groq_client().audio.transcriptions.create, **kwargs)
         )
         return response.text.strip()
     except Exception as e:
