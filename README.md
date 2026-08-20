@@ -164,7 +164,7 @@ Create `.env` from `.env.example` and configure keys:
 GROQ_API_KEY=your_groq_api_key_here
 MISTRAL_API_KEY=your_mistral_api_key_here
 SARVAM_API_KEY=your_sarvam_api_key_here
-GROQ_MODEL=llama-3.3-70b-versatile
+GROQ_MODEL=openai/gpt-oss-120b
 ```
 
 Run locally:

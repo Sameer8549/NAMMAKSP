@@ -39,7 +39,7 @@ _groq_client: Groq | None = None
 if LLM_PROVIDER_MODE == "local":
     MODEL = os.getenv("LOCAL_LLM_MODEL", "llama3.1:8b")
 else:
-    MODEL = os.getenv("GROQ_MODEL", "llama-3.3-70b-versatile")
+    MODEL = os.getenv("GROQ_MODEL", "openai/gpt-oss-120b")
 
 
 def _get_groq_client() -> Groq:

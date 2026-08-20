@@ -6,7 +6,7 @@
   "env_variables": {
     "DATA_DIR": "data",
     "REPORTS_DIR": "reports",
-    "GROQ_MODEL": "llama-3.3-70b-versatile",
+    "GROQ_MODEL": "openai/gpt-oss-120b",
     "SARVAM_BASE_URL": "https://api.sarvam.ai",
     "SARVAM_STT_MODEL": "saaras:v3",
     "SARVAM_TTS_MODEL": "bulbul:v3",
