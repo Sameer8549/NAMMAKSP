@@ -18,6 +18,8 @@ venv/
 .venv/
 env/
 .appsail_deps/
+.appsail_runtime/
+.appsail_linux/
 
 # Database files
 *.db

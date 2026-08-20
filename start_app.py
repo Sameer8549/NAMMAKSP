@@ -7,9 +7,11 @@ from http.server import BaseHTTPRequestHandler, HTTPServer
 
 HOST = "0.0.0.0"
 PORT = int(os.getenv("X_ZOHO_CATALYST_LISTEN_PORT") or os.getenv("PORT") or "8000")
-VENDOR_DIR = os.path.join(os.path.dirname(__file__), ".appsail_deps")
-if os.path.isdir(VENDOR_DIR):
-    sys.path.insert(0, VENDOR_DIR)
+for vendor_name in (".appsail_linux", ".appsail_runtime", ".appsail_deps"):
+    vendor_dir = os.path.join(os.path.dirname(__file__), vendor_name)
+    if os.path.isdir(vendor_dir):
+        sys.path.insert(0, vendor_dir)
+        break
 
 
 def run_fallback(error_text):
