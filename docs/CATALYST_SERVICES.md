@@ -29,6 +29,13 @@ This endpoint returns the requested Catalyst services, including Authentication:
 | Event publisher | Signals | Publisher `namma_ksp_events`, ID `6060000000021078`, event `early_warning_alert` |
 | CI/CD resource | Pipelines | Pipeline `namma_ksp_ci`; GitHub trigger authorization pending |
 
+Verified Development resources used by the runtime:
+
+- Data Store table `namma_ksp_firs`: `43505000000092002`, populated with synthetic FIR rows.
+- Search indexes: `FIR_ID`, `Crime_Type`, `District`, `Police_Station`, and `Status`.
+- Cache segment `namma_ksp_analytics`: `43505000000092368`.
+- Stratus bucket: `namma-ksp-reports`.
+
 ## Code-Ready / Console-Ready
 
 These services have app feature boundaries or console resources, but are not counted as runtime-active until a configured adapter is exercised successfully:

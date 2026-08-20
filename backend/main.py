@@ -60,6 +60,10 @@ from sarvam_service import (
 )
 from catalyst_auth import AUTH_MODE, DEMO_MODE, get_all_catalyst_users, get_current_catalyst_user
 from catalyst_services import get_catalyst_service_matrix
+from catalyst_runtime import (
+    cache_get_json, cache_put_json, datastore_probe, quickml_predict,
+    search as catalyst_search, upload_report,
+)
 from report    import (
     generate_case_report, generate_district_report, generate_chat_log_report,
     generate_recommendations_report
@@ -387,6 +391,17 @@ class TranslateRequest(BaseModel):
 class LanguageDetectRequest(BaseModel):
     text: str = Field(min_length=1, max_length=4000)
 
+
+class QuickMLPredictionRequest(BaseModel):
+    features: dict[str, int | float]
+
+    @field_validator("features")
+    @classmethod
+    def validate_features(cls, value):
+        if not value or len(value) > 50:
+            raise ValueError("Provide between 1 and 50 numeric QuickML features")
+        return value
+
 class CatalystSignalRequest(BaseModel):
     event: Optional[str] = None
     severity: Optional[str] = "High"
@@ -501,17 +516,24 @@ async def _archive_report(
     pdf_path: str,
     report_type: str,
     subject: str,
-    user: dict | None = None
+    user: dict | None = None,
+    request: Request | None = None,
 ) -> None:
     path = Path(pdf_path)
     size_kb = round(path.stat().st_size / 1024, 1) if path.exists() else 0
+    storage = await upload_report(request, pdf_path)
+    storage_mode = storage["provider"] if storage["used"] else _report_storage_mode()
+    storage_uri = (
+        f"stratus://{storage['data']['bucket']}/{storage['data']['object_key']}"
+        if storage["used"] else f"/api/reports/download/{path.name}"
+    )
     await record_report_archive(
         filename=path.name,
         report_type=report_type,
         subject=subject,
         size_kb=size_kb,
-        storage_mode=_report_storage_mode(),
-        storage_uri=f"/api/reports/download/{path.name}",
+        storage_mode=storage_mode,
+        storage_uri=storage_uri,
         generated_by=(user or {}).get("username", ""),
         status="ready" if path.exists() else "missing"
     )
@@ -623,8 +645,11 @@ async def analytics_explainability():
 
 
 @app.get("/api/analytics/advanced-intelligence")
-async def analytics_advanced_intelligence(user: dict = Depends(get_current_user)):
+async def analytics_advanced_intelligence(request: Request, user: dict = Depends(get_current_user)):
     """Combined advanced intelligence summary for dashboard/demo."""
+    cached = await cache_get_json(request, "advanced-intelligence-v1")
+    if cached["used"] and cached["data"]:
+        return {**cached["data"], "cache_provider": cached["provider"]}
     result = await get_advanced_intelligence_summary()
     warnings = result.get("forecast", {}).get("early_warnings", [])
     for warning in warnings:
@@ -635,6 +660,8 @@ async def analytics_advanced_intelligence(user: dict = Depends(get_current_user)
             signal = f"{signal}: {warning.get('increase_percent')}% increase"
         severity = warning.get("severity") or warning.get("alert_level") or "High"
         await record_alert_event(severity, signal, district, detail)
+    await cache_put_json(request, "advanced-intelligence-v1", result, expiry_hours=1)
+    result["cache_provider"] = "computed"
     await log_audit(
         user.get("username"), user.get("role"),
         "ADVANCED_INTEL_VIEW", "analytics",
@@ -836,6 +863,47 @@ async def catalyst_services(user: dict = Depends(get_current_user)):
         "catalyst/services", "Viewed Catalyst service usage matrix", "",
     )
     return get_catalyst_service_matrix()
+
+
+@app.get("/api/catalyst/datastore/status")
+async def catalyst_datastore_status(request: Request, user: dict = Depends(require_admin)):
+    """Probe the configured Catalyst Data Store table without mutating it."""
+    return await datastore_probe(request)
+
+
+@app.get("/api/search/global")
+async def global_search(request: Request, q: str = Query(..., min_length=2, max_length=120)):
+    """Use Catalyst Search when available, otherwise parameterized SQL."""
+    term = _validate_filter(q, "q", max_length=120)
+    table_name = os.getenv("CATALYST_SEARCH_TABLE_FIRS", "namma_ksp_firs")
+    managed = await catalyst_search(request, term, {
+        table_name: ["FIR_ID", "Crime_Type", "District", "Police_Station", "Status"]
+    })
+    if managed["used"]:
+        return managed
+    pattern = f"%{term}%"
+    rows = await fetch_all(
+        """
+        SELECT fir_id, crime_type, date, district, police_station, status,
+               offender_id, victim_id
+        FROM firs
+        WHERE fir_id LIKE ? OR crime_type LIKE ? OR district LIKE ?
+           OR police_station LIKE ? OR status LIKE ?
+        ORDER BY date DESC
+        LIMIT 50
+        """,
+        (pattern, pattern, pattern, pattern, pattern),
+    )
+    return {"provider": "sql-search", "used": True, "data": rows, "fallback_reason": managed["error"]}
+
+
+@app.post("/api/quickml/predict")
+async def quickml_prediction(body: QuickMLPredictionRequest, request: Request, user: dict = Depends(require_admin)):
+    """Invoke the published QuickML model through the Catalyst SDK."""
+    result = await quickml_predict(request, body.features)
+    if not result["used"]:
+        raise HTTPException(status_code=503, detail=result["error"])
+    return result
 
 
 @app.get("/api/submission/readiness")
@@ -1255,7 +1323,7 @@ async def export_chat_endpoint(request: ExportChatRequest, http_request: Request
     try:
         msg_list = [{"role": m.role, "content": m.content} for m in request.messages]
         pdf_path = await generate_chat_log_report(request.session_id, msg_list)
-        await _archive_report(pdf_path, "chat", request.session_id, user)
+        await _archive_report(pdf_path, "chat", request.session_id, user, http_request)
         await log_audit(
             user.get("username"), user.get("role"),
             "REPORT_GENERATE", "reports/chat",
@@ -1333,7 +1401,7 @@ async def generate_report(request: ReportRequest, http_request: Request, user: d
 
     try:
         pdf_path = await generate_case_report(fir_id, case_data, ai_summary)
-        await _archive_report(pdf_path, "case", fir_id, user)
+        await _archive_report(pdf_path, "case", fir_id, user, http_request)
         await log_audit(
             user.get("username"), user.get("role"),
             "REPORT_GENERATE", "reports/case",
@@ -1368,7 +1436,7 @@ async def generate_district_report_endpoint(request: DistrictReportRequest, http
 
     try:
         pdf_path = await generate_district_report(district, district_stats, ai_insights)
-        await _archive_report(pdf_path, "district", district, user)
+        await _archive_report(pdf_path, "district", district, user, http_request)
         await log_audit(
             user.get("username"), user.get("role"),
             "REPORT_GENERATE", "reports/district",
@@ -1399,7 +1467,7 @@ async def generate_offender_report_endpoint(request: OffenderReportRequest, http
     try:
         from report import generate_offender_report
         pdf_path = await generate_offender_report(offender_id, data)
-        await _archive_report(pdf_path, "offender", offender_id, user)
+        await _archive_report(pdf_path, "offender", offender_id, user, http_request)
         await log_audit(
             user.get("username"), user.get("role"),
             "REPORT_GENERATE", "reports/offender",
@@ -1430,7 +1498,7 @@ async def generate_network_report_endpoint(request: NetworkReportRequest, http_r
         from report import generate_network_pdf_report
         pdf_path = await generate_network_pdf_report(img_bytes, request.district, request.crime_type)
         subject = " / ".join([v for v in [request.district, request.crime_type] if v]) or "network"
-        await _archive_report(pdf_path, "network", subject, user)
+        await _archive_report(pdf_path, "network", subject, user, http_request)
         await log_audit(
             user.get("username"), user.get("role"),
             "REPORT_GENERATE", "reports/network",
@@ -1464,7 +1532,7 @@ async def generate_recommendations_report_endpoint(request: RecommendationsRepor
     try:
         pdf_path = await generate_recommendations_report(district, crime_type, recommendations)
         subject = " / ".join([v for v in [district, crime_type] if v]) or "statewide"
-        await _archive_report(pdf_path, "recommendations", subject, user)
+        await _archive_report(pdf_path, "recommendations", subject, user, http_request)
         await log_audit(
             user.get("username"), user.get("role"),
             "REPORT_GENERATE", "reports/recommendations",
