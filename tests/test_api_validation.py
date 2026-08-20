@@ -40,6 +40,15 @@ class ApiValidationTests(unittest.TestCase):
         with self.assertRaises(HTTPException):
             main._validate_report_filename("../secret.pdf")
 
+    def test_quickml_request_accepts_categorical_fir_features(self):
+        request = main.QuickMLPredictionRequest(features={
+            "Crime_Type": "Murder",
+            "District": "Mysuru",
+            "Police_Station": "Rural PS",
+            "prior_firs": 2,
+        })
+        self.assertEqual(request.features["District"], "Mysuru")
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -116,7 +116,7 @@ async def upload_report(request, pdf_path: str) -> dict:
         return _result("local-appsail", False, error=str(exc))
 
 
-async def quickml_predict(request, features: dict[str, int | float]) -> dict:
+async def quickml_predict(request, features: dict[str, str | int | float | bool]) -> dict:
     endpoint_key = os.getenv("NAMMAKSP_QUICKML_ENDPOINT_KEY", "").strip()
     if not enabled("NAMMAKSP_QUICKML_ENABLED") or not endpoint_key:
         return _result("local-analytics", False, error="QuickML endpoint key is not configured")

@@ -393,13 +393,13 @@ class LanguageDetectRequest(BaseModel):
 
 
 class QuickMLPredictionRequest(BaseModel):
-    features: dict[str, int | float]
+    features: dict[str, str | int | float | bool]
 
     @field_validator("features")
     @classmethod
     def validate_features(cls, value):
         if not value or len(value) > 50:
-            raise ValueError("Provide between 1 and 50 numeric QuickML features")
+            raise ValueError("Provide between 1 and 50 QuickML features")
         return value
 
 class CatalystSignalRequest(BaseModel):
