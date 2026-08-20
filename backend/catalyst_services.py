@@ -26,7 +26,12 @@ class CatalystService:
 
 def _enabled(*names: str) -> bool:
     false_values = {"", "0", "false", "no", "off"}
-    return any(os.getenv(name, "").strip().casefold() not in false_values for name in names)
+    return any(_env(name).strip().casefold() not in false_values for name in names)
+
+
+def _env(name: str, default: str = "") -> str:
+    safe_name = f"NAMMAKSP_{name.removeprefix('CATALYST_')}" if name.startswith("CATALYST_") else name
+    return os.getenv(safe_name, os.getenv(name, default))
 
 
 def _runtime_is_catalyst() -> bool:
@@ -34,14 +39,14 @@ def _runtime_is_catalyst() -> bool:
 
 
 def _resource(name: str, default: str) -> str:
-    return os.getenv(name, default)
+    return _env(name, default)
 
 
 def _configured(flag: str, resource: str | None = None) -> bool:
     """Require an explicit runtime flag; a documented default is not evidence."""
     if not _enabled(flag):
         return False
-    return resource is None or bool(os.getenv(resource))
+    return resource is None or bool(_env(resource))
 
 
 def get_catalyst_service_matrix() -> dict:

@@ -11,6 +11,15 @@ import catalyst_runtime
 
 
 class CatalystRuntimeTests(unittest.TestCase):
+    def test_appsail_safe_names_are_preferred(self):
+        with patch.dict(os.environ, {
+            "NAMMAKSP_CACHE_ENABLED": "true",
+            "NAMMAKSP_CACHE_SEGMENT": "safe-segment",
+            "CATALYST_CACHE_SEGMENT": "legacy-segment",
+        }, clear=True):
+            self.assertTrue(catalyst_runtime.enabled("CATALYST_CACHE_ENABLED"))
+            self.assertEqual(catalyst_runtime.config_value("CATALYST_CACHE_SEGMENT"), "safe-segment")
+
     def test_unconfigured_services_return_explicit_fallbacks(self):
         with patch.dict(os.environ, {}, clear=True):
             self.assertFalse(asyncio.run(catalyst_runtime.datastore_probe())["used"])

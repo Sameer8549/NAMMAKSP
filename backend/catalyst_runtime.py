@@ -12,8 +12,14 @@ from typing import Any
 FALSE_VALUES = {"", "0", "false", "no", "off"}
 
 
+def config_value(name: str, default: str = "") -> str:
+    """Read AppSail-safe names first while retaining local legacy aliases."""
+    safe_name = f"NAMMAKSP_{name.removeprefix('CATALYST_')}" if name.startswith("CATALYST_") else name
+    return os.getenv(safe_name, os.getenv(name, default))
+
+
 def enabled(name: str) -> bool:
-    return os.getenv(name, "").strip().casefold() not in FALSE_VALUES
+    return config_value(name).strip().casefold() not in FALSE_VALUES
 
 
 def _app(request=None):
@@ -26,7 +32,7 @@ def _result(provider: str, used: bool, data: Any = None, error: str = "") -> dic
 
 
 async def datastore_probe(request=None) -> dict:
-    table_name = os.getenv("CATALYST_DATASTORE_TABLE_FIRS", "").strip()
+    table_name = config_value("CATALYST_DATASTORE_TABLE_FIRS").strip()
     if not enabled("CATALYST_DATASTORE_ENABLED") or not table_name:
         return _result("sqlite", False, error="Catalyst Data Store is not configured")
 
@@ -56,7 +62,7 @@ async def search(request, term: str, table_columns: dict[str, list[str]]) -> dic
 
 
 async def cache_get_json(request, key: str) -> dict:
-    segment_id = os.getenv("CATALYST_CACHE_SEGMENT", "").strip()
+    segment_id = config_value("CATALYST_CACHE_SEGMENT").strip()
     if not enabled("CATALYST_CACHE_ENABLED") or not segment_id:
         return _result("memory", False, error="Catalyst Cache is not configured")
 
@@ -71,7 +77,7 @@ async def cache_get_json(request, key: str) -> dict:
 
 
 async def cache_put_json(request, key: str, value: Any, expiry_hours: int = 1) -> dict:
-    segment_id = os.getenv("CATALYST_CACHE_SEGMENT", "").strip()
+    segment_id = config_value("CATALYST_CACHE_SEGMENT").strip()
     if not enabled("CATALYST_CACHE_ENABLED") or not segment_id:
         return _result("memory", False, error="Catalyst Cache is not configured")
 
@@ -90,7 +96,7 @@ async def cache_put_json(request, key: str, value: Any, expiry_hours: int = 1) -
 
 
 async def upload_report(request, pdf_path: str) -> dict:
-    bucket_name = os.getenv("CATALYST_STRATUS_BUCKET", "").strip()
+    bucket_name = config_value("CATALYST_STRATUS_BUCKET").strip()
     if not enabled("CATALYST_STRATUS_ENABLED") or not bucket_name:
         return _result("local-appsail", False, error="Catalyst Stratus is not configured")
     path = Path(pdf_path)
