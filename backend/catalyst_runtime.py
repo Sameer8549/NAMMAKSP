@@ -171,6 +171,10 @@ async def quickml_predict(request, features: dict[str, str | int | float | bool]
     endpoint_key = os.getenv("NAMMAKSP_QUICKML_ENDPOINT_KEY", "").strip()
     if not enabled("NAMMAKSP_QUICKML_ENABLED") or not endpoint_key:
         return _result("local-analytics", False, error="QuickML endpoint key is not configured")
+    org_id = config_value("CATALYST_ORG_ID").strip()
+    if org_id:
+        # Catalyst SDK 1.4 reads this runtime variable when building CATALYST-ORG.
+        os.environ["X_ZOHO_CATALYST_ORG_ID"] = org_id
     try:
         data = await asyncio.to_thread(_app(request).quick_ml().predict, endpoint_key, features)
         return _result("catalyst-quickml", True, data)
