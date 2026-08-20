@@ -19,6 +19,7 @@ from pathlib import Path
 from dotenv import load_dotenv
 
 from er_schema import ER_CREATE_TABLES_SQL, validate_er_schema
+from er_seed import seed_er_model
 
 load_dotenv()
 
@@ -257,6 +258,8 @@ async def init_db() -> None:
             else:
                 logger.info("Database already populated (%d FIR records).", count)
                 await _ingest_optional_csvs(db)
+            er_seed_result = await seed_er_model(db, DATA_DIR)
+            logger.info("ER model seed status: %s", er_seed_result)
     except Exception as e:
         logger.warning("Database initialization write failed (possibly read-only filesystem): %s. Continuing in read-only mode.", e)
 

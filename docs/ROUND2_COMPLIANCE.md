@@ -18,7 +18,7 @@ features that are not required. All bundled records are synthetic demo data.
 | Reports and QR archive | Implemented locally | ReportLab PDFs, QR links, archive metadata | Use Stratus only when runtime storage is configured |
 | Authentication and RBAC | Implemented with demo fallback | Catalyst adapter plus Admin/Investigator checks | Disable `DEMO_MODE` before real-data use |
 | Catalyst QuickML | Published model endpoint configured | Pipeline/model/endpoint IDs in runtime configuration | Invoke through a tested adapter |
-| Police FIR ER database | Not yet compliant | Current SQLite schema is simplified | Implement and seed the full ER structure |
+| Police FIR ER database | Implemented for synthetic demo | Complete schema, deterministic seeder, FK/cardinality validation | Enable the equivalent Catalyst Data Store adapter |
 
 ## ER Source-of-Truth Gaps
 
@@ -57,3 +57,16 @@ The two source-document ambiguities are resolved as follows:
 No checklist item is considered complete merely because a console resource or
 environment variable exists. Completion requires code, runtime configuration,
 and a repeatable verification result.
+
+## Synthetic ER Migration Rules
+
+- Existing FIR, offender, victim, location, district, station, status, and crime
+  labels are preserved from the bundled synthetic CSVs.
+- `SourceOffenderID` and `SourceVictimID` are NAMMA KSP provenance extensions
+  that preserve repeat-person links across case-scoped ER records.
+- Courts, officers, KGIDs, crime numbers, and case numbers are deterministic
+  synthetic placeholders and are visibly labelled synthetic.
+- No arrest, complainant, chargesheet, religion, caste, occupation, or official
+  legal-section fact is inferred when the source CSV does not provide it.
+- A `DEMO/UNSPECIFIED` legal association records that the legal act/section is
+  absent from the source instead of inventing an IPC/BNS provision.

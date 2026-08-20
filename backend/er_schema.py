@@ -232,6 +232,7 @@ CREATE TABLE IF NOT EXISTS Victim (
     AgeYear INTEGER,
     GenderID INTEGER,
     VictimPolice TEXT DEFAULT '0',
+    SourceVictimID TEXT,
     FOREIGN KEY (CaseMasterID) REFERENCES CaseMaster(CaseMasterID) ON DELETE CASCADE
 );
 
@@ -242,6 +243,7 @@ CREATE TABLE IF NOT EXISTS Accused (
     AgeYear INTEGER,
     GenderID INTEGER,
     PersonID TEXT,
+    SourceOffenderID TEXT,
     FOREIGN KEY (CaseMasterID) REFERENCES CaseMaster(CaseMasterID) ON DELETE CASCADE
 );
 
@@ -304,6 +306,8 @@ CREATE INDEX IF NOT EXISTS idx_case_status ON CaseMaster(CaseStatusID);
 CREATE INDEX IF NOT EXISTS idx_case_crime_heads ON CaseMaster(CrimeMajorHeadID, CrimeMinorHeadID);
 CREATE INDEX IF NOT EXISTS idx_victim_case ON Victim(CaseMasterID);
 CREATE INDEX IF NOT EXISTS idx_accused_case ON Accused(CaseMasterID);
+CREATE INDEX IF NOT EXISTS idx_victim_source ON Victim(SourceVictimID);
+CREATE INDEX IF NOT EXISTS idx_accused_source ON Accused(SourceOffenderID);
 CREATE INDEX IF NOT EXISTS idx_arrest_case ON ArrestSurrender(CaseMasterID);
 CREATE INDEX IF NOT EXISTS idx_complainant_case ON ComplainantDetails(CaseMasterID);
 """
