@@ -25,7 +25,8 @@ class CatalystService:
 
 
 def _enabled(*names: str) -> bool:
-    return any(bool(os.getenv(name)) for name in names)
+    false_values = {"", "0", "false", "no", "off"}
+    return any(os.getenv(name, "").strip().casefold() not in false_values for name in names)
 
 
 def _runtime_is_catalyst() -> bool:
@@ -36,17 +37,24 @@ def _resource(name: str, default: str) -> str:
     return os.getenv(name, default)
 
 
+def _configured(flag: str, resource: str | None = None) -> bool:
+    """Require an explicit runtime flag; a documented default is not evidence."""
+    if not _enabled(flag):
+        return False
+    return resource is None or bool(os.getenv(resource))
+
+
 def get_catalyst_service_matrix() -> dict:
     """Return the configured Catalyst service evidence matrix."""
     runtime_active = _runtime_is_catalyst()
 
     services = [
         CatalystService(1, "Serverless functions/backend logic", "Catalyst Serverless Functions",
-                        "ready", "Daily intelligence refresh endpoint can be invoked by Functions/Event Functions.",
+                        "adapter-ready", "The daily intelligence refresh contract is ready for a deployed Function/Event Function target.",
                         ["/api/jobs/daily-intelligence-refresh"], ["CATALYST_FUNCTION_REFRESH_URL"]),
         CatalystService(2, "Docker image deployment", "Catalyst AppSail custom OCI runtime",
-                        "active" if runtime_active else "local", "Backend API runs on Catalyst AppSail.",
-                        ["/api/health"], ["X_ZOHO_CATALYST_LISTEN_PORT"]),
+                        "not-required", "NAMMA KSP uses the AppSail managed Python runtime; no custom Docker/OCI image is required.",
+                        [], []),
         CatalystService(3, "Full web app in managed runtime", "Catalyst AppSail managed runtime",
                         "active" if runtime_active else "local", "FastAPI managed runtime serves all investigation APIs.",
                         ["/api/docs", "/api/system/status"], ["X_ZOHO_CATALYST_LISTEN_PORT"]),
@@ -58,23 +66,23 @@ def get_catalyst_service_matrix() -> dict:
                         "Can map the existing Catalyst app to a public SSL domain.",
                         [], ["CATALYST_CUSTOM_DOMAIN"]),
         CatalystService(6, "Relational database", "Catalyst Data Store",
-                        "console-created" if _resource("CATALYST_DATASTORE_TABLE_FIRS", "namma_ksp_firs") else "sqlite-fallback",
+                        "active" if _configured("CATALYST_DATASTORE_ENABLED", "CATALYST_DATASTORE_TABLE_FIRS") else "sqlite-fallback",
                         f"Console table `{_resource('CATALYST_DATASTORE_TABLE_FIRS', 'namma_ksp_firs')}` is reserved for FIR relational data; app still uses SQLite fallback until SDK adapter is enabled.",
                         ["/api/health", "/api/analytics/overview"], ["CATALYST_DATASTORE_TABLE_FIRS", "CATALYST_DATASTORE_ENABLED"]),
         CatalystService(7, "Unstructured/semi-structured data", "Catalyst NoSQL",
-                        "console-created" if _resource("CATALYST_NOSQL_TABLE_EVIDENCE", "namma_ksp_evidence") else "local-fallback",
+                        "active" if _configured("CATALYST_NOSQL_ENABLED", "CATALYST_NOSQL_TABLE_EVIDENCE") else "not-required",
                         f"Console NoSQL table `{_resource('CATALYST_NOSQL_TABLE_EVIDENCE', 'namma_ksp_evidence')}` is reserved for chat/evidence payloads.",
                         ["/api/chat", "/api/analytics/explainability"], ["CATALYST_NOSQL_TABLE_EVIDENCE", "CATALYST_NOSQL_ENABLED"]),
         CatalystService(8, "Object/blob storage", "Catalyst Stratus",
-                        "console-created" if _resource("CATALYST_STRATUS_BUCKET", "namma-ksp-reports") else "local-fallback",
+                        "active" if _configured("CATALYST_STRATUS_ENABLED", "CATALYST_STRATUS_BUCKET") else "local-fallback",
                         f"Console bucket `{_resource('CATALYST_STRATUS_BUCKET', 'namma-ksp-reports')}` is reserved for generated PDF objects.",
                         ["/api/reports/list", "/api/reports/download/{filename}"], ["CATALYST_STRATUS_BUCKET", "CATALYST_REPORTS_FOLDER_ID"]),
         CatalystService(9, "Cache", "Catalyst Cache",
-                        "console-created" if _resource("CATALYST_CACHE_SEGMENT", "namma_ksp_analytics") else "memory-fallback",
+                        "active" if _configured("CATALYST_CACHE_ENABLED", "CATALYST_CACHE_SEGMENT") else "memory-fallback",
                         f"Console cache segment `{_resource('CATALYST_CACHE_SEGMENT', 'namma_ksp_analytics')}` is reserved for analytics summaries.",
                         ["/api/analytics/advanced-intelligence", "/api/system/summary"], ["CATALYST_CACHE_SEGMENT", "CATALYST_CACHE_ENABLED"]),
         CatalystService(10, "Full-text search", "Catalyst Data Store",
-                        "adapter-ready" if _enabled("CATALYST_DATASTORE_SEARCH_ENABLED") else "console-indexed",
+                        "active" if _enabled("CATALYST_DATASTORE_SEARCH_ENABLED") else "sql-fallback",
                         "Catalyst Search indexes exist for `namma_ksp_firs`; app search keeps its SQL fallback until the SDK adapter is enabled.",
                         ["/api/firs", "/api/search/global"], ["CATALYST_DATASTORE_SEARCH_ENABLED"]),
         CatalystService(11, "Text LLMs/RAG/knowledge bases", "Catalyst QuickML",
@@ -86,11 +94,11 @@ def get_catalyst_service_matrix() -> dict:
                         "The FIR status classification pipeline, CatBoost model, and prediction endpoint are configured and published in Development.",
                         ["/api/analytics/forecast"], ["CATALYST_QUICKML_PIPELINE_ID"]),
         CatalystService(13, "Automated tabular training", "Catalyst Zia AutoML",
-                        "console-initialized" if not _enabled("CATALYST_ZIA_AUTOML_MODEL_ID") else "adapter-ready",
+                        "active" if _enabled("CATALYST_ZIA_AUTOML_MODEL_ID") else "not-configured",
                         "Zia is initialized in the Catalyst console; offender risk and hotspot training can be routed to AutoML after a model is trained.",
                         ["/api/offenders/high-risk", "/api/analytics/forecast"], ["CATALYST_ZIA_AUTOML_MODEL_ID"]),
         CatalystService(14, "OCR/vision/text analytics/barcode", "Catalyst Zia Services",
-                        "console-initialized" if not _enabled("CATALYST_ZIA_SERVICES_ENABLED") else "adapter-ready",
+                        "active" if _enabled("CATALYST_ZIA_SERVICES_ENABLED") else "feature-dependent",
                         "Zia OCR, Text Analytics, object recognition, barcode, and image services are available from the initialized Zia workspace.",
                         ["/api/reports/case"], ["CATALYST_ZIA_SERVICES_ENABLED"]),
         CatalystService(15, "Voice/translation", "Catalyst Zia Services",
@@ -98,17 +106,17 @@ def get_catalyst_service_matrix() -> dict:
                         "Voice, speech, and translation endpoints are isolated for Zia voice substitution.",
                         ["/api/tts", "/api/translate", "/api/audio-transcribe"], ["CATALYST_ZIA_VOICE_ENABLED"]),
         CatalystService(16, "PDF/image screenshots/headless browser", "Catalyst SmartBrowz",
-                        "console-initialized" if not _enabled("CATALYST_SMARTBROWZ_ENABLED") else "adapter-ready",
+                        "active" if _enabled("CATALYST_SMARTBROWZ_ENABLED") else "reportlab-fallback",
                         "SmartBrowz is initialized with Headless, Browser Logic, PDF & Screenshot, Templates, and Dataverse sections available.",
                         ["/api/reports/case", "/api/reports/district"], ["CATALYST_SMARTBROWZ_ENABLED"]),
         CatalystService(17, "User authentication and RBAC", "Catalyst Authentication",
-                        "active", "Embedded Authentication and request-scoped Python SDK identity enforce active Admin/Investigator roles server-side.",
+                        "demo-fallback" if _enabled("DEMO_MODE") else "active", "Catalyst identity and server-side roles are implemented; DEMO_MODE uses synthetic local accounts for judge reliability.",
                         ["/app/index.html", "/api/auth/me", "/api/users"], ["AUTH_MODE", "DEMO_MODE"]),
         CatalystService(18, "API routing/throttling", "Catalyst API Gateway",
-                        "active", "API Gateway serves the Web Client Hosting `/app/*` routes; AppSail APIs use their dedicated Catalyst domain.",
+                        "configured" if _enabled("NAMMAKSP_API_GATEWAY_ENABLED", "CATALYST_API_GATEWAY_ENABLED") else "not-configured", "API Gateway routes are configured in Catalyst; AppSail APIs retain their dedicated Catalyst domain.",
                         ["/app/index.html", "/app/dashboard.html"], ["CATALYST_API_GATEWAY_URL"]),
         CatalystService(19, "OAuth tokens", "Catalyst Connections",
-                        "console-created", "Custom API-key service `Sarvam AI` / `sarvam_ai` is created in Catalyst Connections; connection secret value is intentionally not stored in code.",
+                        "not-required" if not _enabled("CATALYST_CONNECTIONS_ENABLED") else "configured", "External AI providers use API keys, not OAuth. A Connection is only required when a genuine OAuth provider is introduced.",
                         ["/api/chat", "/api/tts"], ["CATALYST_CONNECTIONS_ENABLED"]),
         CatalystService(20, "Scheduled jobs/cron", "Catalyst Cron / Job Scheduling",
                         "console-configured", "Daily forecast and early-warning refresh has a Catalyst Cron-compatible internal endpoint.",
@@ -117,7 +125,7 @@ def get_catalyst_service_matrix() -> dict:
                         "console-created", "Signals publisher `namma_ksp_events` and event `early_warning_alert` are created; backend receiver records Catalyst events.",
                         ["/api/internal/signals/early-warning", "/api/alerts/early-warning"], ["CATALYST_SIGNALS_KEY", "CATALYST_SIGNALS_ENABLED"]),
         CatalystService(22, "Cross-app event bus", "Catalyst Signals",
-                        "console-created", "Custom publisher ID `6060000000021078` is available for cross-app early-warning event routing.",
+                        "not-required", "The MVP has one Catalyst application, so cross-app event routing is not required.",
                         ["/api/internal/signals/early-warning"], ["CATALYST_SIGNALS_KEY", "CATALYST_SIGNALS_ENABLED"]),
         CatalystService(23, "Workflow orchestration", "Catalyst Circuits",
                         "unavailable-in-console" if not _enabled("CATALYST_CIRCUITS_ENABLED") else "adapter-ready",
@@ -137,7 +145,7 @@ def get_catalyst_service_matrix() -> dict:
     ]
 
     rows = [service.__dict__ for service in services]
-    active_like = {"active", "configured", "ready", "published", "adapter-ready", "console-created", "console-configured", "console-indexed", "console-initialized"}
+    active_like = {"active", "configured", "published"}
     external_setup = {"console-required", "not-configured", "manual-workflow", "external-prereq", "unavailable-in-console"}
     return {
         "auth_excluded": False,
