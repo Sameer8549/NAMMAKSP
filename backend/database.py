@@ -18,6 +18,8 @@ from pathlib import Path
 # pyrefly: ignore [missing-import]
 from dotenv import load_dotenv
 
+from er_schema import ER_CREATE_TABLES_SQL, validate_er_schema
+
 load_dotenv()
 
 logger = logging.getLogger(__name__)
@@ -25,7 +27,7 @@ logger = logging.getLogger(__name__)
 # ─── Paths ────────────────────────────────────────────────────────────────────
 BASE_DIR   = Path(__file__).resolve().parent.parent
 DATA_DIR   = BASE_DIR / os.getenv("DATA_DIR", "data")
-DB_PATH    = BASE_DIR / "crime_lens.db"
+DB_PATH    = BASE_DIR / os.getenv("NAMMAKSP_DB_PATH", "namma_ksp.db")
 
 # ─── CSV file map ─────────────────────────────────────────────────────────────
 CSV_FILES = {
@@ -217,6 +219,7 @@ async def init_db() -> None:
         async with aiosqlite.connect(DB_PATH) as db:
             # Create schema
             await db.executescript(CREATE_TABLES_SQL)
+            await db.executescript(ER_CREATE_TABLES_SQL)
             async with db.execute("PRAGMA table_info(audit_logs)") as cur:
                 audit_columns = {row[1] for row in await cur.fetchall()}
             if "user_id" not in audit_columns:
@@ -514,6 +517,13 @@ async def get_db_stats() -> dict:
         row = await fetch_one(f"SELECT COUNT(*) as cnt FROM {table}")
         stats[table] = row["cnt"] if row else 0
     return stats
+
+
+async def get_er_schema_status() -> dict:
+    """Return Police FIR ER schema integrity evidence."""
+    async with aiosqlite.connect(DB_PATH) as db:
+        await db.execute("PRAGMA foreign_keys=ON")
+        return await validate_er_schema(db)
 
 
 def hash_password(password: str) -> str:

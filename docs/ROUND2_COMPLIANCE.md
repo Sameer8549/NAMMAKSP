@@ -29,13 +29,12 @@ ArrestSurrender, Act, Section, ActSectionAssociation, CrimeHead,
 CrimeSubHead, CrimeHeadActSection, geography/unit tables, employee lookups,
 case lookups, ChargesheetDetails, and explicit FK/cardinality validation.
 
-Two source-document ambiguities must be resolved and documented before the
-schema is frozen:
+The two source-document ambiguities are resolved as follows:
 
-1. Incident date/location fields appear on CaseMaster while the relationship
-   matrix also names a one-to-one `Inv_OccuranceTime` entity.
-2. ArrestSurrender contains `AccusedMasterID`, while the relationship matrix
-   also names `inv_arrestsurrenderaccused` as a junction for multiple accused.
+1. Incident date/location fields remain on CaseMaster for compatibility, while
+   one-to-one `InvOccurrenceTime` is the normalized authoritative entity.
+2. ArrestSurrender retains optional `AccusedMasterID` for compatibility, while
+   `InvArrestSurrenderAccused` is the authoritative multi-accused junction.
 
 ## Catalyst Classification
 

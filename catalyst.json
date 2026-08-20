@@ -16,7 +16,7 @@
         "docs",
         "catalyst-debug.log",
         "script.md",
-        "crime_lens.db",
+        "namma_ksp.db",
         "*.db-wal",
         "*.db-shm",
         "**/__pycache__",
