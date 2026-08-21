@@ -15,7 +15,7 @@ from groq import Groq
 from dotenv import load_dotenv
 from pii_redaction import PiiRedactor
 
-from database import fetch_all, fetch_dataframe
+from database import fetch_all, fetch_dataframe, get_fir_by_id, search_offenders
 from analytics import (
     search_firs, get_fir_detail, get_related_cases,
     get_district_stats, get_offender_profile, get_high_risk_offenders
@@ -136,6 +136,50 @@ State the confidence score (0-100%) and explain the reasoning behind this score 
 Always be professional, precise, and factual. Never speculate beyond the data provided.
 Districts covered: Bengaluru Urban, Bengaluru Rural, Mysuru, Mangaluru, Hubballi-Dharwad, Belagavi, Kalaburagi, Shivamogga, Tumakuru, Ballari, Vijayapura, Davanagere, Hassan, Udupi, Chikkamagaluru.
 Crime types: Theft, Robbery, Burglary, Assault, Cyber Crime, Fraud, Drug Offense, Vehicle Theft, Domestic Violence, Murder, Kidnapping, Financial Fraud."""
+
+MISSING_ENTITY_GUARDRAIL = """CRITICAL: The user is asking about an entity or case file that is completely missing from the verified official police database. You must explicitly inform the user that this specific record was not found in the verified ledger, and you must refuse to hallucinate any fictional details about it. Do not infer identity, allegations, location, status, associates, or history for a missing record. You may only suggest verifying the identifier or searching with known factual filters."""
+
+_ENTITY_PATTERNS = {
+    "fir": re.compile(r"\bFIR[\s-]?(\d{1,10})\b", re.IGNORECASE),
+    "offender": re.compile(r"\b(?:OFF|SUSPECT)[\s-]?(\d{1,10})\b", re.IGNORECASE),
+}
+
+
+def _extract_entity_references(text: str) -> dict[str, list[str]]:
+    """Extract and canonicalize explicit FIR/offender identifiers."""
+    references: dict[str, list[str]] = {"fir": [], "offender": []}
+    for entity_type, pattern in _ENTITY_PATTERNS.items():
+        prefix = "FIR" if entity_type == "fir" else "OFF"
+        for digits in pattern.findall(text):
+            canonical = f"{prefix}{digits.zfill(5)}"
+            if canonical not in references[entity_type]:
+                references[entity_type].append(canonical)
+    return references
+
+
+async def _verify_entity_references(text: str) -> dict[str, list[str]]:
+    """Verify explicit identifiers against the managed/local repository adapter."""
+    references = _extract_entity_references(text)
+    verified: list[str] = []
+    missing: list[str] = []
+
+    for fir_id in references["fir"][:5]:
+        try:
+            record = await get_fir_by_id(fir_id)
+        except Exception as exc:
+            logger.exception("FIR verification failed for %s: %s", fir_id, exc)
+            record = None
+        (verified if record else missing).append(fir_id)
+
+    for offender_id in references["offender"][:5]:
+        try:
+            records = await search_offenders({"offender_id": offender_id, "limit": 1})
+        except Exception as exc:
+            logger.exception("Offender verification failed for %s: %s", offender_id, exc)
+            records = []
+        (verified if records else missing).append(offender_id)
+
+    return {"verified": verified, "missing": missing}
 
 
 QUERY_REWRITE_PROMPT = """You are a crime intelligence search query translator and analyzer.
@@ -470,8 +514,14 @@ async def chat(
     # Resolve context using query rewrite helper (translates and merges history)
     rewritten_query = await _rewrite_query(session_id, user_message)
 
-    # Fetch relevant data context using the rewritten English query
-    context = await _fetch_relevant_context(rewritten_query)
+    entity_status = await _verify_entity_references(f"{clean_message}\n{rewritten_query}")
+
+    # Missing explicit IDs must never be replaced with unrelated overview data.
+    if entity_status["missing"]:
+        missing_text = ", ".join(entity_status["missing"])
+        context = f"Verified ledger lookup: no record exists for {missing_text}."
+    else:
+        context = await _fetch_relevant_context(rewritten_query)
     logger.info("Context fetched for session %s: %d chars", session_id, len(context))
 
     target_lang_instruction = "English" if language == "en-US" else "Kannada"
@@ -501,8 +551,21 @@ If the selected language is Kannada, write in clean, grammatically correct Kanna
 
     # Call Groq API
     try:
+        completion_messages = history
+        if entity_status["missing"]:
+            completion_messages = [
+                history[0],
+                {
+                    "role": "system",
+                    "content": (
+                        f"{MISSING_ENTITY_GUARDRAIL}\n"
+                        f"Missing verified identifiers: {', '.join(entity_status['missing'])}."
+                    ),
+                },
+                *history[1:],
+            ]
         response, ai_reply = _safe_chat_completion(
-            messages=history,
+            messages=completion_messages,
             max_tokens=profile["max_tokens"],
             temperature=0.3,
             top_p=0.9,

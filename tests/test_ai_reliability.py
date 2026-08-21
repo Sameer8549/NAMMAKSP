@@ -3,7 +3,7 @@ import os
 import sys
 import unittest
 from types import SimpleNamespace
-from unittest.mock import patch
+from unittest.mock import AsyncMock, patch
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "backend"))
 
@@ -18,6 +18,11 @@ class AiReliabilityTests(unittest.TestCase):
     def test_query_pattern_normalizes_ids_numbers_and_language(self):
         pattern = ai_service._query_pattern("Show FIR00123 and OFF00045 from 2026", "en-US")
         self.assertEqual(pattern, "en-US:show <record_id> and <record_id> from <number>")
+
+    def test_entity_parser_normalizes_hyphenated_references(self):
+        refs = ai_service._extract_entity_references("Check FIR-123 and suspect-42")
+        self.assertEqual(refs["fir"], ["FIR00123"])
+        self.assertEqual(refs["offender"], ["OFF00042"])
 
     def test_greeting_returns_no_database_sources(self):
         result = asyncio.run(ai_service.chat("unit-greeting", "hi", "en-US"))
@@ -63,6 +68,24 @@ class AiReliabilityTests(unittest.TestCase):
         self.assertEqual(second["warning"], "AI unavailable, showing cached data")
         self.assertEqual(second["response"], "Theft has 10 cases [S1].")
         self.assertEqual(second["sources"][0]["id"], "S1")
+
+    def test_missing_fir_injects_deterministic_system_guardrail(self):
+        completion = SimpleNamespace(usage=SimpleNamespace(total_tokens=12))
+        with patch.object(ai_service, "_rewrite_query", new=AsyncMock(return_value="Show FIR99999")), \
+             patch.object(ai_service, "get_fir_by_id", new=AsyncMock(return_value=None)), \
+             patch.object(ai_service, "_fetch_relevant_context", new=AsyncMock()) as context_fetch, \
+             patch.object(
+                 ai_service,
+                 "_safe_chat_completion",
+                 return_value=(completion, "FIR99999 was not found in the verified ledger."),
+             ) as llm:
+            result = asyncio.run(ai_service.chat("missing-fir", "Show FIR-99999", "en-US"))
+
+        context_fetch.assert_not_awaited()
+        messages = llm.call_args.kwargs["messages"]
+        self.assertEqual(messages[1]["role"], "system")
+        self.assertIn("refuse to hallucinate", messages[1]["content"])
+        self.assertIn("FIR99999", result["evidence"])
 
 
 if __name__ == "__main__":
