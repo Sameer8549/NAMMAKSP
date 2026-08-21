@@ -5,14 +5,95 @@ Crime analytics engine: computes all statistics for the dashboard,
 hotspot analysis, offender profiling, and trend detection.
 """
 
+import asyncio
+import hashlib
 import logging
+import time
 from collections import defaultdict
 from statistics import mean
+from typing import Any, Awaitable, Callable
 
-from database import fetch_all, fetch_one, get_er_schema_status
 from catalyst_services import get_catalyst_service_matrix
+from database import fetch_all, fetch_one, get_er_schema_status
+
 
 logger = logging.getLogger(__name__)
+ANALYTICS_CACHE_TTL_SECONDS = 3600
+_analytics_memory_cache: dict[str, tuple[float, Any]] = {}
+_analytics_cache_locks: dict[str, asyncio.Lock] = {}
+
+
+async def _cached_analytics_payload(
+    request,
+    cache_key: str,
+    producer: Callable[[], Awaitable[Any]],
+) -> Any:
+    """Resolve an analytics payload from memory, Catalyst Cache, or computation."""
+    cached = _analytics_memory_cache.get(cache_key)
+    if cached and time.monotonic() - cached[0] < ANALYTICS_CACHE_TTL_SECONDS:
+        return cached[1]
+
+    lock = _analytics_cache_locks.setdefault(cache_key, asyncio.Lock())
+    async with lock:
+        cached = _analytics_memory_cache.get(cache_key)
+        if cached and time.monotonic() - cached[0] < ANALYTICS_CACHE_TTL_SECONDS:
+            return cached[1]
+
+        from catalyst_runtime import cache_get_json, cache_put_json
+
+        try:
+            managed = await cache_get_json(request, cache_key)
+            if managed.get("used") and managed.get("data") is not None:
+                _analytics_memory_cache[cache_key] = (time.monotonic(), managed["data"])
+                return managed["data"]
+        except Exception as exc:
+            logger.warning("Catalyst Cache read failed for %s: %s", cache_key, exc)
+
+        payload = await producer()
+        _analytics_memory_cache[cache_key] = (time.monotonic(), payload)
+        try:
+            # Catalyst Cache SDK expiry is expressed in hours; one hour = 3600s.
+            await cache_put_json(request, cache_key, payload, expiry_hours=1)
+        except Exception as exc:
+            logger.warning("Catalyst Cache write failed for %s: %s", cache_key, exc)
+        return payload
+
+
+async def get_cached_analytics_overview(request=None) -> dict[str, Any]:
+    """Return the pre-serialized dashboard overview with a one-hour TTL."""
+    async def compute() -> dict[str, Any]:
+        overview, distribution, trends, districts = await asyncio.gather(
+            get_overview_stats(),
+            get_crime_type_distribution(),
+            get_monthly_trends(),
+            get_district_stats(),
+        )
+        return {
+            "overview": overview,
+            "crime_type_distribution": distribution,
+            "monthly_trends": trends,
+            "district_stats": districts,
+        }
+
+    return await _cached_analytics_payload(request, "analytics-overview-v2", compute)
+
+
+async def get_cached_network_graph(
+    request=None,
+    district: str | None = None,
+    crime_type: str | None = None,
+    limit: int = 200,
+) -> dict[str, Any]:
+    """Return a cached Cytoscape network graph for a normalized filter set."""
+    normalized = f"{district or '*'}|{crime_type or '*'}|{limit}".casefold()
+    digest = hashlib.sha256(normalized.encode("utf-8")).hexdigest()[:20]
+    cache_key = f"network-graph-v2-{digest}"
+
+    async def compute() -> dict[str, Any]:
+        from network import get_network_data
+        return await get_network_data(district=district, crime_type=crime_type, limit=limit)
+
+    return await _cached_analytics_payload(request, cache_key, compute)
 
 
 # ─── Dashboard Overview Stats ─────────────────────────────────────────────────

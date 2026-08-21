@@ -47,7 +47,8 @@ from analytics import (
     get_repeat_offenders, search_firs, get_fir_detail, get_related_cases,
     get_police_station_stats, get_yearly_comparison, get_sociological_insights,
     get_financial_link_analysis, get_crime_forecast, get_explainable_intelligence,
-    get_advanced_intelligence_summary, get_submission_readiness
+    get_advanced_intelligence_summary, get_submission_readiness,
+    get_cached_analytics_overview, get_cached_network_graph
 )
 from network   import get_network_data, get_shared_offender_network
 from ai_service import chat, generate_case_summary, get_investigation_recommendations, clear_session
@@ -573,9 +574,16 @@ async def _record_forecast_alerts(user: dict | None = None) -> dict:
 # ═══════════════════════════════════════════════════════════════════════════════
 
 @app.get("/api/analytics/overview")
-async def analytics_overview():
+async def analytics_overview(request: Request):
     """Dashboard KPI overview: total FIRs, crimes, offenders, victims."""
-    return await get_overview_stats()
+    payload = await get_cached_analytics_overview(request)
+    return payload["overview"]
+
+
+@app.get("/api/analytics/cached-overview")
+async def analytics_cached_overview(request: Request):
+    """Precomputed dashboard overview, distributions, trends, and districts."""
+    return await get_cached_analytics_overview(request)
 
 
 @app.get("/api/analytics/crime-types")
@@ -1174,6 +1182,7 @@ async def get_offender(
 
 @app.get("/api/network")
 async def criminal_network(
+    request: Request,
     district:   Optional[str] = Query(None),
     crime_type: Optional[str] = Query(None),
     limit:      int           = Query(150, le=300)
@@ -1181,7 +1190,12 @@ async def criminal_network(
     """Criminal network graph data for Cytoscape.js visualization."""
     district = _validate_filter(district, "district", max_length=80)
     crime_type = _validate_filter(crime_type, "crime_type", max_length=80)
-    return await get_network_data(district=district, crime_type=crime_type, limit=limit)
+    return await get_cached_network_graph(
+        request,
+        district=district,
+        crime_type=crime_type,
+        limit=limit,
+    )
 
 
 @app.get("/api/network/offender/{offender_id}")
