@@ -24,8 +24,7 @@
         "reports/*.pdf",
         ".vscode",
         ".idea",
-        "start_server.bat",
-        "frontend"
+        "start_server.bat"
       ]
     }
   ],

@@ -1,7 +1,6 @@
 .git/**
 .appsail_deps/**
 .appsail_runtime/**
-.appsail_linux/**
 .venv/**
 venv/**
 env/**
