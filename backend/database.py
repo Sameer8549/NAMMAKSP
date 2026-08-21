@@ -11,6 +11,8 @@ import os
 import asyncio
 import logging
 import hashlib
+import time
+from typing import Any
 # pyrefly: ignore [missing-import]
 import aiosqlite
 import pandas as pd
@@ -29,6 +31,20 @@ logger = logging.getLogger(__name__)
 BASE_DIR   = Path(__file__).resolve().parent.parent
 DATA_DIR   = BASE_DIR / os.getenv("DATA_DIR", "data")
 DB_PATH    = BASE_DIR / os.getenv("NAMMAKSP_DB_PATH", "namma_ksp.db")
+
+# Catalyst is the primary read store in AppSail. Missing/unavailable managed
+# tables transparently fall back to the bundled SQLite snapshot.
+USE_CATALYST_STORE = os.getenv("USE_CATALYST_STORE", "true").strip().lower() in {
+    "1", "true", "yes", "on"
+}
+CATALYST_TABLES = {
+    "firs": os.getenv("NAMMAKSP_DATASTORE_TABLE_FIRS", "").strip(),
+    "offenders": os.getenv("NAMMAKSP_DATASTORE_TABLE_OFFENDERS", "").strip(),
+    "relationships": os.getenv("NAMMAKSP_DATASTORE_TABLE_RELATIONSHIPS", "").strip(),
+}
+_CATALYST_ROWS_TTL_SECONDS = int(os.getenv("CATALYST_ROW_CACHE_TTL_SECONDS", "60"))
+_catalyst_rows_cache: dict[str, tuple[float, list[dict[str, Any]]]] = {}
+_catalyst_rows_lock = asyncio.Lock()
 
 # ─── CSV file map ─────────────────────────────────────────────────────────────
 CSV_FILES = {
@@ -362,6 +378,119 @@ async def _ingest_optional_csvs(db: aiosqlite.Connection) -> None:
 
 
 # ─── Query Helpers ────────────────────────────────────────────────────────────
+
+def _normalized_managed_row(row: dict[str, Any]) -> dict[str, Any]:
+    """Normalize Catalyst column names to the lowercase REST representation."""
+    return {
+        str(key).lower(): value
+        for key, value in row.items()
+        if str(key).upper() not in {"CREATORID", "MODIFIEDBY"}
+    }
+
+
+async def _get_catalyst_rows(table_key: str) -> list[dict[str, Any]]:
+    """Read a Catalyst Data Store table with a short process-local read cache."""
+    table_id = CATALYST_TABLES.get(table_key, "")
+    if not USE_CATALYST_STORE or not table_id:
+        raise RuntimeError(f"Catalyst table is not configured: {table_key}")
+
+    now = time.monotonic()
+    cached = _catalyst_rows_cache.get(table_key)
+    if cached and now - cached[0] < _CATALYST_ROWS_TTL_SECONDS:
+        return cached[1]
+
+    async with _catalyst_rows_lock:
+        cached = _catalyst_rows_cache.get(table_key)
+        if cached and time.monotonic() - cached[0] < _CATALYST_ROWS_TTL_SECONDS:
+            return cached[1]
+
+        def read_rows() -> list[dict[str, Any]]:
+            # zcatalyst_sdk.initialize() obtains AppSail's service credentials;
+            # get_paged_rows() reads at most 1,000 rows per SDK request.
+            import zcatalyst_sdk
+
+            table = zcatalyst_sdk.initialize().datastore().table(table_id)
+            rows: list[dict[str, Any]] = []
+            next_token: str | None = None
+            while True:
+                page = table.get_paged_rows(next_token=next_token, max_rows=1000)
+                rows.extend(_normalized_managed_row(row) for row in page.get("data", []))
+                next_token = page.get("next_token")
+                if not next_token:
+                    break
+            return rows
+
+        try:
+            rows = await asyncio.to_thread(read_rows)
+        except Exception as exc:
+            logger.warning("Catalyst Data Store read failed for %s: %s", table_key, exc)
+            raise RuntimeError(f"Catalyst Data Store read failed for {table_key}") from exc
+
+        _catalyst_rows_cache[table_key] = (time.monotonic(), rows)
+        return rows
+
+
+async def get_fir_by_id(fir_id: str) -> dict[str, Any] | None:
+    """Return one verified FIR from Catalyst, with SQLite continuity fallback."""
+    normalized_id = fir_id.strip().upper().replace("-", "")
+    if USE_CATALYST_STORE and CATALYST_TABLES["firs"]:
+        try:
+            rows = await _get_catalyst_rows("firs")
+            return next(
+                (row for row in rows if str(row.get("fir_id", "")).upper().replace("-", "") == normalized_id),
+                None,
+            )
+        except Exception:
+            logger.exception("Falling back to SQLite for FIR lookup")
+    return await fetch_one(
+        "SELECT * FROM firs WHERE UPPER(REPLACE(fir_id, '-', '')) = ? LIMIT 1",
+        (normalized_id,),
+    )
+
+
+async def search_offenders(query_dict: dict[str, Any]) -> list[dict[str, Any]]:
+    """Search offender attributes using Catalyst or a parameterized SQLite query."""
+    allowed = {"offender_id", "name", "district", "gender", "risk_category"}
+    filters = {
+        key: str(value).strip()
+        for key, value in query_dict.items()
+        if key in allowed and value is not None and str(value).strip()
+    }
+    limit = min(max(int(query_dict.get("limit", 50)), 1), 200)
+
+    if USE_CATALYST_STORE and CATALYST_TABLES["offenders"]:
+        try:
+            rows = await _get_catalyst_rows("offenders")
+            return [
+                row for row in rows
+                if all(value.casefold() in str(row.get(key, "")).casefold() for key, value in filters.items())
+            ][:limit]
+        except Exception:
+            logger.exception("Falling back to SQLite for offender search")
+
+    clauses = [f"LOWER({key}) LIKE ?" for key in filters]
+    params = tuple(f"%{value.lower()}%" for value in filters.values())
+    where = f" WHERE {' AND '.join(clauses)}" if clauses else ""
+    return await fetch_all(
+        f"SELECT * FROM offenders{where} ORDER BY previous_firs DESC LIMIT ?",
+        params + (limit,),
+    )
+
+
+async def get_criminal_network_edges() -> list[dict[str, Any]]:
+    """Return the verified relationship edge registry from the managed store."""
+    if USE_CATALYST_STORE and CATALYST_TABLES["relationships"]:
+        try:
+            return await _get_catalyst_rows("relationships")
+        except Exception:
+            logger.exception("Falling back to SQLite for criminal-network edges")
+    return await fetch_all(
+        """
+        SELECT offender_id, victim_id, fir_id, relationship_type
+        FROM relationships
+        ORDER BY id ASC
+        """
+    )
 
 async def fetch_all(query: str, params: tuple = ()) -> list[dict]:
     """Execute a SELECT and return list of row dicts."""
