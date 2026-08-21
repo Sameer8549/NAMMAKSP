@@ -20,7 +20,7 @@ from typing import Optional
 import uvicorn
 from fastapi import FastAPI, HTTPException, Query, BackgroundTasks, Depends, Header, UploadFile, File, Request
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse, JSONResponse, StreamingResponse
+from fastapi.responses import FileResponse, JSONResponse, Response, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field, field_validator
 from dotenv import load_dotenv
@@ -62,7 +62,7 @@ from catalyst_auth import AUTH_MODE, DEMO_MODE, get_all_catalyst_users, get_curr
 from catalyst_services import get_catalyst_service_matrix
 from catalyst_runtime import (
     cache_get_json, cache_put_json, datastore_probe, quickml_predict,
-    search as catalyst_search, upload_report,
+    search as catalyst_search, upload_report, download_report, list_report_objects,
 )
 from report    import (
     generate_case_report, generate_district_report, generate_chat_log_report,
@@ -1554,10 +1554,16 @@ async def generate_recommendations_report_endpoint(request: RecommendationsRepor
 
 @app.get("/api/reports/list")
 
-async def list_reports(user: dict = Depends(get_current_user)):
+async def list_reports(http_request: Request, user: dict = Depends(get_current_user)):
     """List all generated PDF reports."""
     reports = await list_report_archive(100)
     seen = {r["filename"] for r in reports}
+    stratus = await list_report_objects(http_request)
+    if stratus["used"]:
+        for report in stratus["data"]:
+            if report["filename"] not in seen:
+                reports.append(report)
+                seen.add(report["filename"])
     if REPORTS_DIR.exists():
         for f in sorted(REPORTS_DIR.glob("*.pdf"), reverse=True):
             if f.name not in seen:
@@ -1585,7 +1591,21 @@ async def download_report_file(filename: str, http_request: Request, user: dict 
     
     pdf_path = REPORTS_DIR / filename
     if not pdf_path.exists():
-        raise HTTPException(status_code=404, detail=f"Report '{filename}' not found")
+        archived = await download_report(http_request, filename)
+        if not archived["used"]:
+            raise HTTPException(status_code=404, detail=f"Report '{filename}' not found")
+        await log_audit(
+            user.get("username"), user.get("role"), "REPORT_DOWNLOAD", "reports",
+            f"Downloaded {filename} from Catalyst Stratus", _client_ip(http_request),
+            user_id=user.get("user_id", ""),
+        )
+        return Response(
+            content=archived["data"], media_type="application/pdf",
+            headers={
+                "Content-Disposition": f'attachment; filename="{filename}"',
+                "Cache-Control": "no-cache",
+            },
+        )
     await log_audit(
         user.get("username"), user.get("role"),
         "REPORT_DOWNLOAD", "reports",
@@ -1606,7 +1626,7 @@ async def download_report_file(filename: str, http_request: Request, user: dict 
 
 
 @app.get("/api/reports/qr/{filename}")
-async def open_report_from_qr(filename: str):
+async def open_report_from_qr(filename: str, http_request: Request):
     """
     Public QR endpoint for generated PDF reports.
     The QR embedded inside a report opens this URL directly.
@@ -1615,7 +1635,16 @@ async def open_report_from_qr(filename: str):
 
     pdf_path = REPORTS_DIR / filename
     if not pdf_path.exists():
-        raise HTTPException(status_code=404, detail=f"Report '{filename}' not found")
+        archived = await download_report(http_request, filename)
+        if not archived["used"]:
+            raise HTTPException(status_code=404, detail=f"Report '{filename}' not found")
+        return Response(
+            content=archived["data"], media_type="application/pdf",
+            headers={
+                "Content-Disposition": f'inline; filename="{filename}"',
+                "Cache-Control": "public, max-age=86400",
+            },
+        )
 
     return FileResponse(
         path=str(pdf_path),

@@ -167,6 +167,53 @@ async def upload_report(request, pdf_path: str) -> dict:
         return _result("local-appsail", False, error=str(exc))
 
 
+async def download_report(request, filename: str) -> dict:
+    """Download a persisted report from Catalyst Stratus."""
+    bucket_name = config_value("CATALYST_STRATUS_BUCKET").strip()
+    if not enabled("CATALYST_STRATUS_ENABLED") or not bucket_name:
+        return _result("local-appsail", False, error="Catalyst Stratus is not configured")
+
+    def run():
+        return _app(request).stratus().bucket(bucket_name).get_object(f"reports/{filename}")
+
+    try:
+        data = await asyncio.to_thread(run)
+        return _result("catalyst-stratus", bool(data), data, "" if data else "Empty Stratus object")
+    except Exception as exc:
+        return _result("local-appsail", False, error=str(exc))
+
+
+async def list_report_objects(request=None, limit: int = 1000) -> dict:
+    """List persisted PDFs so pre-ledger Stratus reports remain discoverable."""
+    bucket_name = config_value("CATALYST_STRATUS_BUCKET").strip()
+    if not enabled("CATALYST_STRATUS_ENABLED") or not bucket_name:
+        return _result("local-appsail", False, error="Catalyst Stratus is not configured")
+
+    def run():
+        response = _app(request).stratus().bucket(bucket_name).list_paged_objects(
+            max_keys=min(max(limit, 1), 1000), prefix="reports/", order_by="desc"
+        )
+        objects = []
+        for item in response.get("contents", []):
+            details = getattr(item, "object_details", {}) or {}
+            key = str(details.get("key") or "")
+            filename = key.removeprefix("reports/")
+            if filename.endswith(".pdf"):
+                objects.append({
+                    "filename": filename, "report_type": "archived", "subject": "",
+                    "size_kb": round(float(details.get("size") or 0) / 1024, 1),
+                    "created_at": details.get("last_modified") or details.get("created_time"),
+                    "storage_mode": "catalyst-stratus",
+                    "storage_uri": f"stratus://{bucket_name}/{key}", "status": "ready",
+                })
+        return objects
+
+    try:
+        return _result("catalyst-stratus", True, await asyncio.to_thread(run))
+    except Exception as exc:
+        return _result("local-appsail", False, error=str(exc))
+
+
 async def quickml_predict(request, features: dict[str, str | int | float | bool]) -> dict:
     endpoint_key = os.getenv("NAMMAKSP_QUICKML_ENDPOINT_KEY", "").strip()
     if not enabled("NAMMAKSP_QUICKML_ENABLED") or not endpoint_key:
