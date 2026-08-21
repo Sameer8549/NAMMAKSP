@@ -55,8 +55,9 @@ def get_catalyst_service_matrix() -> dict:
 
     services = [
         CatalystService(1, "Serverless functions/backend logic", "Catalyst Serverless Functions",
-                        "adapter-ready", "The daily intelligence refresh contract is ready for a deployed Function/Event Function target.",
-                        ["/api/jobs/daily-intelligence-refresh"], ["CATALYST_FUNCTION_REFRESH_URL"]),
+                        "active" if _resource("CATALYST_FUNCTION_REFRESH_ID", "") else "adapter-ready",
+                        "Catalyst functions `dashboard_api` and `refresh_jobs` execute dashboard and scheduled intelligence workloads.",
+                        ["/api/jobs/daily-intelligence-refresh"], ["CATALYST_FUNCTION_REFRESH_ID", "CATALYST_FUNCTION_DASHBOARD_ID"]),
         CatalystService(2, "Docker image deployment", "Catalyst AppSail custom OCI runtime",
                         "not-required", "NAMMA KSP uses the AppSail managed Python runtime; no custom Docker/OCI image is required.",
                         [], []),
@@ -124,10 +125,10 @@ def get_catalyst_service_matrix() -> dict:
                         "not-required" if not _enabled("CATALYST_CONNECTIONS_ENABLED") else "configured", "External AI providers use API keys, not OAuth. A Connection is only required when a genuine OAuth provider is introduced.",
                         ["/api/chat", "/api/tts"], ["CATALYST_CONNECTIONS_ENABLED"]),
         CatalystService(20, "Scheduled jobs/cron", "Catalyst Cron / Job Scheduling",
-                        "console-configured", "Daily forecast and early-warning refresh has a Catalyst Cron-compatible internal endpoint.",
+                        "active" if _enabled("CATALYST_CRON_ENABLED") else "console-configured", "Daily forecast and early-warning refresh has a Catalyst Cron-compatible internal endpoint.",
                         ["/api/internal/cron/daily-intelligence-refresh", "/api/jobs/daily-intelligence-refresh"], ["CATALYST_CRON_KEY", "CATALYST_CRON_ENABLED"]),
         CatalystService(21, "In-project events", "Catalyst Signals + Event Functions",
-                        "console-created", "Signals publisher `namma_ksp_events` and event `early_warning_alert` are created; backend receiver records Catalyst events.",
+                        "active" if _enabled("CATALYST_SIGNALS_ENABLED") else "console-created", "Signals publisher `namma_ksp_events` and event `early_warning_alert` are created; backend receiver records Catalyst events.",
                         ["/api/internal/signals/early-warning", "/api/alerts/early-warning"], ["CATALYST_SIGNALS_KEY", "CATALYST_SIGNALS_ENABLED"]),
         CatalystService(22, "Cross-app event bus", "Catalyst Signals",
                         "not-required", "The MVP has one Catalyst application, so cross-app event routing is not required.",
@@ -145,7 +146,7 @@ def get_catalyst_service_matrix() -> dict:
                         "Web Push Notifications console is active and provides SDK enablement code; targeting requires Catalyst-authenticated end users.",
                         ["/api/alerts/early-warning"], ["CATALYST_PUSH_ENABLED"]),
         CatalystService(26, "CI/CD", "Catalyst Pipelines",
-                        "console-created", "Pipeline `namma_ksp_ci` exists; GitHub authorization is required before repository-triggered execution.",
+                        "configured" if _enabled("CATALYST_PIPELINE_ENABLED") else "console-created", "Pipeline `namma_ksp_ci` exists; GitHub authorization is required before repository-triggered execution.",
                         [], ["CATALYST_PIPELINE_ENABLED"]),
     ]
 

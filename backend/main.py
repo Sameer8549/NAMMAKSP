@@ -12,6 +12,7 @@ import uuid
 import re
 import time
 import json
+import hashlib
 from collections import defaultdict
 from pathlib import Path
 from datetime import datetime, UTC
@@ -63,6 +64,7 @@ from catalyst_services import get_catalyst_service_matrix
 from catalyst_runtime import (
     cache_get_json, cache_put_json, datastore_probe, quickml_predict,
     search as catalyst_search, upload_report, download_report, list_report_objects,
+    nosql_append_evidence,
 )
 from report    import (
     generate_case_report, generate_district_report, generate_chat_log_report,
@@ -1201,6 +1203,14 @@ async def chat_endpoint(request: ChatRequest, http_request: Request, user: dict 
     session_id = request.session_id or str(uuid.uuid4())
     try:
         result = await chat(session_id, request.message, request.language)
+        await nosql_append_evidence(http_request, session_id, {
+            "created_at": datetime.now(UTC).isoformat(),
+            "query_sha256": hashlib.sha256(request.message.encode("utf-8")).hexdigest(),
+            "language": request.language,
+            "user_id": user.get("user_id", ""),
+            "provider": result.get("provider", "") if isinstance(result, dict) else "",
+            "response_chars": len(str(result.get("response", ""))) if isinstance(result, dict) else 0,
+        })
         await log_audit(
             user.get("username"), user.get("role"),
             "AI_CHAT_QUERY", "chat",

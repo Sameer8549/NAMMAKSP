@@ -5,6 +5,7 @@ from __future__ import annotations
 import asyncio
 import json
 import os
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
@@ -99,6 +100,28 @@ async def datastore_list_events(event_kind: str, limit: int = 100, request=None)
         return _result("catalyst-datastore", True, await asyncio.to_thread(run))
     except Exception as exc:
         return _result("sqlite", False, error=str(exc))
+
+
+async def nosql_append_evidence(request, session_id: str, payload: dict[str, Any]) -> dict:
+    """Persist privacy-minimized AI evidence metadata in Catalyst NoSQL."""
+    table_id = config_value("CATALYST_NOSQL_TABLE_EVIDENCE").strip()
+    if not enabled("CATALYST_NOSQL_ENABLED") or not table_id:
+        return _result("audit-ledger", False, error="Catalyst NoSQL is not configured")
+
+    def run():
+        created_at = payload.get("created_at") or datetime.now(timezone.utc).isoformat()
+        item = {
+            "session_id": {"S": session_id},
+            "created_at": {"S": created_at},
+            "event_type": {"S": "ai_evidence"},
+            "payload": {"S": json.dumps(payload, separators=(",", ":"), default=str)},
+        }
+        return _app(request).nosql().get_table(table_id).insert_items({"item": item, "return": "NEW"})
+
+    try:
+        return _result("catalyst-nosql", True, await asyncio.to_thread(run))
+    except Exception as exc:
+        return _result("audit-ledger", False, error=str(exc))
 
 
 async def search(request, term: str, table_columns: dict[str, list[str]]) -> dict:
