@@ -13,7 +13,6 @@ __pycache__/**
 .env
 .vscode/**
 .idea/**
-frontend/**
 tmp/**
 tools/**
 docs/**
