@@ -495,30 +495,6 @@ function authGuard() {
   return _authGuardPromise;
 }
 
-function initOperationalDesign() {
-  const main = document.querySelector('.app-main, main');
-  if (main) {
-    if (!main.id) main.id = 'main-content';
-    main.setAttribute('tabindex', '-1');
-
-    if (!document.querySelector('.skip-link')) {
-      const skipLink = document.createElement('a');
-      skipLink.className = 'skip-link';
-      skipLink.href = `#${main.id}`;
-      skipLink.textContent = 'Skip to intelligence workspace';
-      document.body.prepend(skipLink);
-    }
-
-    requestAnimationFrame(() => main.classList.add('design-enter'));
-  }
-
-  document.querySelectorAll('.nav-item.active, .sidebar-nav a.active').forEach(item => {
-    item.setAttribute('aria-current', 'page');
-  });
-
-  document.documentElement.classList.remove('auth-pending');
-}
-
 // ─── Login ────────────────────────────────────────────────────────────────────
 async function handleLogin(e) {
   e.preventDefault();
@@ -733,7 +709,7 @@ function showToast(message, type = 'info') {
     background:${colors[type]||colors.info};color:#fff;
     padding:12px 20px;border-radius:8px;font-size:13px;font-weight:500;
     box-shadow:0 4px 20px rgba(0,0,0,.25);max-width:360px;
-    animation:slideUp .3s ease;font-family:Outfit,Arial,sans-serif;
+    animation:slideUp .3s ease;font-family:Inter,sans-serif;
   `;
   toast.textContent = message;
   document.body.appendChild(toast);
@@ -2491,7 +2467,7 @@ function renderHeatmapMarkers(district, crimeType) {
       color, fillColor: color, fillOpacity: 0.5, weight: 2, radius
     }).addTo(_leafletMap);
     circle.bindPopup(
-      '<div style="font-family:Outfit,Arial,sans-serif;min-width:160px">' +
+      '<div style="font-family:Inter,sans-serif;min-width:160px">' +
       '<div style="font-size:13px;font-weight:700;color:#1A202C;margin-bottom:4px">' + h.district + '</div>' +
       '<div style="font-size:12px;color:#6B7280">' + (h.police_station || '') + '</div>' +
       '<div style="font-size:13px;font-weight:600;color:' + color + ';margin-top:6px">' + h.crime_count + ' crimes</div>' +
@@ -4894,7 +4870,6 @@ window.filterFIRTable = filterFIRTable;
   // Run on every page load
   document.addEventListener('DOMContentLoaded', async () => {
     if (!await authGuard()) return;
-    initOperationalDesign();
     initDarkMode();
     initISTClock();
     initKeyboardShortcuts();
