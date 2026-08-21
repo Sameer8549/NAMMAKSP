@@ -54,7 +54,7 @@ def _get_groq_client() -> Groq:
             base_url=os.getenv("LOCAL_LLM_BASE_URL", "http://127.0.0.1:11434/v1"),
         )
     else:
-        api_key = os.getenv("GROQ_API_KEY")
+        api_key = os.getenv("GROQ_API_KEY") or os.getenv("GROQ_RUNTIME_KEY")
         if not api_key:
             raise RuntimeError("GROQ_API_KEY is not configured")
         _groq_client = Groq(api_key=api_key)

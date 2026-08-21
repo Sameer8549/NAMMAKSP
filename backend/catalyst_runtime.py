@@ -238,7 +238,10 @@ async def list_report_objects(request=None, limit: int = 1000) -> dict:
 
 
 async def quickml_predict(request, features: dict[str, str | int | float | bool]) -> dict:
-    endpoint_key = os.getenv("NAMMAKSP_QUICKML_ENDPOINT_KEY", "").strip()
+    endpoint_key = (
+        os.getenv("NAMMAKSP_QUICKML_ENDPOINT_KEY")
+        or os.getenv("QUICKML_RUNTIME_KEY", "")
+    ).strip()
     if not enabled("NAMMAKSP_QUICKML_ENABLED") or not endpoint_key:
         return _result("local-analytics", False, error="QuickML endpoint key is not configured")
     org_id = config_value("CATALYST_ORG_ID").strip()

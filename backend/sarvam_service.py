@@ -21,7 +21,7 @@ load_dotenv()
 logger = logging.getLogger(__name__)
 
 SARVAM_BASE_URL = os.getenv("SARVAM_BASE_URL", "https://api.sarvam.ai").rstrip("/")
-SARVAM_API_KEY = os.getenv("SARVAM_API_KEY", "")
+SARVAM_API_KEY = os.getenv("SARVAM_API_KEY") or os.getenv("SARVAM_RUNTIME_KEY", "")
 SARVAM_STT_MODEL = os.getenv("SARVAM_STT_MODEL", "saaras:v3")
 SARVAM_TTS_MODEL = os.getenv("SARVAM_TTS_MODEL", "bulbul:v3")
 SARVAM_TRANSLATE_MODEL = os.getenv("SARVAM_TRANSLATE_MODEL", "mayura:v1")
