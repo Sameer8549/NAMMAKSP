@@ -180,6 +180,8 @@ html[data-theme="dark"] {
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 html {
   font-family: var(--font-ui);
+  max-width: 100%;
+  overflow-x: hidden;
   scroll-behavior: smooth;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -1178,7 +1180,7 @@ html.auth-ready body { animation: kspPageIn var(--dur-normal) var(--ease-out) fo
 /* ─── CHAT ───────────────────────────────────────────────────────────────── */
 .chat-layout {
   max-width: 1500px; margin: auto;
-  height: calc(100dvh - var(--header-height) - 132px); min-height: 600px;
+  height: calc(100dvh - var(--header-height) - 180px); min-height: 520px;
   display: grid; grid-template-columns: minmax(0,1fr) 290px;
   border: 1px solid var(--color-border); border-radius: var(--radius);
   background: var(--color-surface); box-shadow: var(--shadow-sm); overflow: hidden;
@@ -1419,7 +1421,7 @@ button:focus-visible, a:focus-visible { border-radius: var(--radius); }
   .login-right { background: var(--navy-950); border-left: none; min-height: 100dvh; align-items: flex-start; padding-top: var(--space-2xl); }
   .login-mobile-logo { display: flex; }
   .login-mobile-logo img { max-height: 74px !important; }
-  .chat-layout { height: calc(100dvh - var(--header-height) - 170px); min-height: 540px; }
+  .chat-layout { height: calc(100dvh - var(--header-height) - 240px); min-height: 480px; }
   .synthetic-data-notice { left: 0; }
   .fir-drawer, .dashboard-analytics-drawer { width: 100%; }
 }
