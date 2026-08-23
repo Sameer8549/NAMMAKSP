@@ -11,9 +11,9 @@ This document maps the ten challenge capabilities to demonstrable product eviden
 | 5 | Offender profiling | Implemented | Repeat-offender detection, transparent risk scoring, behavioral factors, linked cases, and dossier PDF. |
 | 6 | Investigator decision support | Implemented | Case summaries, related cases, available FIR chronology, recommendations, and report exports. |
 | 7 | Financial link analysis | Prototype | Suspicious account graph and FIR linkage using explicitly labelled synthetic AML-style demonstration transactions. |
-| 8 | Forecasting and early warning | Prototype | Explainable moving-average forecasts, district deviations, persistent alerts, and scheduled-refresh-compatible endpoint. |
+| 8 | Forecasting and early warning | Prototype | Explainable moving-average forecasts, district deviations, persistent alerts, scheduled refresh, and an audited assign/acknowledge/resolve lifecycle. Forecasting remains prototype-grade until a production model is operationally validated. |
 | 9 | Explainable AI | Implemented | Evidence trails, source tables, transparent risk factors, confidence guidance, and auditable sensitive actions. |
-| 10 | Access and governance | Prototype | Automatic role detection, protected APIs, admin/investigator permissions, persistent audit logs, and report archive. |
+| 10 | Access and governance | Implemented for synthetic demo | Five server-enforced roles, capability-scoped APIs, field projection and pseudonymization, persistent audit logs, alert transition evidence, report archive, and role-specific workspaces. Production identity federation and retention governance remain deployment prerequisites. |
 
 ## Dataset Evidence
 

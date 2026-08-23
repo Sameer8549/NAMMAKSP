@@ -309,6 +309,11 @@ to “active” through environment flags.
 - Enforce server-side role permissions and PII redaction.
 - Produce a submission evidence manifest from live runtime probes.
 
+Checkpoint status: application implementation complete. The early-warning
+ledger now supports server-enforced assignment, acknowledgement and resolution,
+with persistent transition records and actor-attributed audit events. Final
+Catalyst runtime proof remains part of the Phase 5 deployment gate.
+
 ### Phase 5: Release gate and Catalyst deployment
 
 - Run unit, API, security, analytics and report tests.

@@ -5327,3 +5327,5 @@ body[data-workspace="policymaker-intelligence-brief"] .role-workspace-summary { 
 [data-theme=dark] .chat-table-wrap,[data-theme=dark] .chat-table{background:#111e2d;border-color:#314258}
 [data-theme=dark] .chat-table th{background:#172537;color:#cbd8e5}
 [data-theme=dark] .chat-table th,[data-theme=dark] .chat-table td{border-color:#314258}
+.warning-ledger-assignment{display:flex;align-items:center;gap:8px;margin:8px 0;color:#5d6b7c;font-size:11px}
+.warning-ledger-assignment b{color:#1e5aa8;font-size:12px}

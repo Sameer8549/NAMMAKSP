@@ -39,7 +39,7 @@ mimetypes.add_type("application/pdf", ".pdf")
 from database  import (
     init_db, get_db_stats, get_er_schema_status, log_audit, fetch_one, fetch_all,
     record_report_archive, list_report_archive, list_audit_events, record_alert_event,
-    list_alert_events, record_job_run, list_job_runs
+    list_alert_events, transition_alert_event, record_job_run, list_job_runs
 )
 from analytics import (
     get_overview_stats, get_crime_type_distribution, get_monthly_trends,
@@ -477,6 +477,16 @@ class CatalystSignalRequest(BaseModel):
         return _clean_text(value, "signal field", max_length=500, required=False)
 
 
+class AlertTransitionRequest(BaseModel):
+    assignee: Optional[str] = Field(default=None, max_length=80)
+    note: Optional[str] = Field(default=None, max_length=500)
+
+    @field_validator("assignee", "note")
+    @classmethod
+    def validate_optional_text(cls, value: str | None) -> str | None:
+        return _clean_text(value, "alert transition field", max_length=500, required=False)
+
+
 # ─── Auth Session Registry & Dependencies ─────────────────────────────────────
 ACTIVE_SESSIONS = {}
 LOGIN_ATTEMPTS = defaultdict(list)
@@ -772,6 +782,77 @@ async def early_warning_alerts(
 ):
     """Persistent early-warning events generated from forecast/advanced intelligence."""
     return await list_alert_events(limit)
+
+
+async def _apply_alert_transition(
+    alert_id: int,
+    transition: str,
+    payload: AlertTransitionRequest,
+    user: dict,
+    http_request: Request,
+) -> dict:
+    assignee = payload.assignee or ""
+    if transition == "assign" and not assignee:
+        raise HTTPException(status_code=422, detail="assignee is required")
+    if transition == "resolve" and not payload.note:
+        raise HTTPException(status_code=422, detail="resolution note is required")
+    if transition == "acknowledge" and not has_capability(user, "alert:read_command"):
+        current = await fetch_one(
+            "SELECT assigned_to FROM alert_events WHERE id = ?", (alert_id,)
+        )
+        if not current:
+            raise HTTPException(status_code=404, detail=f"Alert {alert_id} not found")
+        if str(current.get("assigned_to") or "").casefold() != str(user.get("username") or "").casefold():
+            raise HTTPException(status_code=403, detail="This alert is not assigned to the current user")
+    try:
+        alert = await transition_alert_event(
+            alert_id,
+            transition,
+            user.get("username", "unknown"),
+            assignee=assignee,
+            resolution=payload.note or "",
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=409, detail=str(exc)) from exc
+    if not alert:
+        raise HTTPException(status_code=404, detail=f"Alert {alert_id} not found")
+    await log_audit(
+        user.get("username"), user.get("role"),
+        f"ALERT_{transition.upper()}", f"alerts/{alert_id}",
+        f"Alert {transition}; assignee={assignee or '-'}; note={payload.note or '-'}",
+        _client_ip(http_request), user_id=user.get("user_id", ""),
+    )
+    return alert
+
+
+@app.post("/api/alerts/{alert_id}/assign")
+async def assign_early_warning(
+    alert_id: int,
+    payload: AlertTransitionRequest,
+    http_request: Request,
+    user: dict = Depends(require_any_capability("alert:assign")),
+):
+    return await _apply_alert_transition(alert_id, "assign", payload, user, http_request)
+
+
+@app.post("/api/alerts/{alert_id}/acknowledge")
+async def acknowledge_early_warning(
+    alert_id: int,
+    payload: AlertTransitionRequest,
+    http_request: Request,
+    user: dict = Depends(require_any_capability("alert:read_assigned", "alert:read_command")),
+):
+    return await _apply_alert_transition(alert_id, "acknowledge", payload, user, http_request)
+
+
+@app.post("/api/alerts/{alert_id}/resolve")
+async def resolve_early_warning(
+    alert_id: int,
+    payload: AlertTransitionRequest,
+    http_request: Request,
+    user: dict = Depends(require_any_capability("alert:resolve")),
+):
+    return await _apply_alert_transition(alert_id, "resolve", payload, user, http_request)
 
 
 @app.post("/api/jobs/daily-intelligence-refresh")

@@ -852,38 +852,72 @@ function renderEarlyWarningAlert(alert) {
   const action = alert.recommended_action || alert.action || 'Review linked cases and district trend evidence.';
   const key = `${district}|${title}|${time}`;
   const reviewed = getReviewedWarnings().includes(key);
+  const status = String(alert.status || 'open').toLowerCase();
+  const role = getRole();
+  const username = getUsername();
+  const canAcknowledge = status === 'assigned' && (
+    role === 'Supervisor' || String(alert.assigned_to || '').toLowerCase() === String(username || '').toLowerCase()
+  );
+  const supervisorControls = role === 'Supervisor' ? `
+    ${status === 'open' ? `<button type="button" onclick="transitionWarning(${Number(alert.id)}, 'assign')">Assign officer</button>` : ''}
+    ${canAcknowledge ? `<button type="button" onclick="transitionWarning(${Number(alert.id)}, 'acknowledge')">Acknowledge</button>` : ''}
+    ${['open', 'assigned', 'acknowledged'].includes(status) ? `<button type="button" onclick="transitionWarning(${Number(alert.id)}, 'resolve')">Resolve</button>` : ''}
+  ` : (canAcknowledge ? `<button type="button" onclick="transitionWarning(${Number(alert.id)}, 'acknowledge')">Acknowledge</button>` : '');
   return `<article class="warning-ledger-item severity-${escapeHTML(severity)}${reviewed ? ' reviewed' : ''}">
     <div class="warning-ledger-marker" aria-hidden="true"></div>
     <div class="warning-ledger-content">
-      <div class="warning-ledger-meta"><span>${escapeHTML(severity)}</span><span>${escapeHTML(district)}</span></div>
+      <div class="warning-ledger-meta"><span>${escapeHTML(severity)}</span><span>${escapeHTML(district)}</span><span>${escapeHTML(status)}</span></div>
       <strong>${escapeHTML(title)}</strong>
       <p>${escapeHTML(detail)}</p>
+      ${alert.assigned_to ? `<div class="warning-ledger-assignment"><span>Assigned to</span><b>${escapeHTML(alert.assigned_to)}</b></div>` : ''}
       <div class="warning-ledger-action"><span>Recommended response</span><b>${escapeHTML(action)}</b></div>
       ${time ? `<time>${escapeHTML(formatOperationalDate(time))}</time>` : ''}
       <div class="warning-ledger-controls">
         <button type="button" onclick="openWarningDistrict(decodeURIComponent('${encodeURIComponent(district)}'))">District analytics</button>
         <a href="chat.html?q=${encodeURIComponent(`Assess the verified early warning for ${district}: ${title}`)}">Ask AI</a>
-        <button type="button" class="warning-review-btn" onclick="markWarningReviewed(this, decodeURIComponent('${encodeURIComponent(key)}'))">${reviewed ? 'Reviewed' : 'Mark reviewed'}</button>
+        ${supervisorControls}
       </div>
     </div>
   </article>`;
 }
 
 function renderNotificationCenter(alerts) {
-  const open = alerts.filter(alert => String(alert.status || 'open').toLowerCase() === 'open');
+  const open = alerts.filter(alert => String(alert.status || 'open').toLowerCase() !== 'resolved');
   const high = open.filter(alert => ['critical', 'high'].includes(String(alert.severity || alert.alert_level || '').toLowerCase())).length;
   const districts = new Set(open.map(alert => alert.district || alert.area).filter(Boolean)).size;
-  const reviewed = getReviewedWarnings().length;
+  const acknowledged = alerts.filter(alert => String(alert.status || '').toLowerCase() === 'acknowledged').length;
   return `
     <div class="warning-center-summary">
       <div><span>Open signals</span><strong>${open.length}</strong></div>
       <div><span>High priority</span><strong>${high}</strong></div>
       <div><span>Districts</span><strong>${districts}</strong></div>
-      <div><span>Reviewed</span><strong>${reviewed}</strong></div>
+      <div><span>Acknowledged</span><strong>${acknowledged}</strong></div>
     </div>
     <div class="warning-center-label"><span>Ranked operational signals</span><span>Live analytics ledger</span></div>
     ${alerts.map(renderEarlyWarningAlert).join('')}`;
 }
+
+async function transitionWarning(alertId, transition) {
+  const payload = transition === 'assign'
+    ? { assignee: 'officer' }
+    : transition === 'resolve'
+      ? { note: 'Supervisor verified the mitigation response and closed the warning.' }
+      : {};
+  try {
+    await apiFetch(`/api/alerts/${alertId}/${transition}`, {
+      method: 'POST', body: JSON.stringify(payload)
+    });
+    showToast(`Alert ${transition} completed`, 'success');
+    const response = await apiFetch('/api/alerts/early-warning?limit=12');
+    const alerts = Array.isArray(response) ? response : (response?.alerts || response?.data || []);
+    updateNotificationBadge(alerts);
+    const body = document.querySelector('.intelligence-drawer-body');
+    if (body) body.innerHTML = renderNotificationCenter(alerts);
+  } catch (error) {
+    showToast(`Alert update failed: ${error.message}`, 'error');
+  }
+}
+window.transitionWarning = transitionWarning;
 
 function getReviewedWarnings() {
   try { return JSON.parse(localStorage.getItem('namma_reviewed_warnings') || '[]'); }
@@ -912,7 +946,7 @@ function formatOperationalDate(value) {
 }
 
 function updateNotificationBadge(alerts) {
-  const count = alerts.filter(alert => String(alert.status || 'open').toLowerCase() === 'open').length;
+  const count = alerts.filter(alert => String(alert.status || 'open').toLowerCase() !== 'resolved').length;
   document.querySelectorAll('.header-icon-btn[aria-label="Notifications"] .badge-dot').forEach(dot => {
     dot.hidden = count === 0;
     dot.dataset.count = String(count);

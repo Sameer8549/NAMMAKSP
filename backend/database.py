@@ -184,11 +184,19 @@ CREATE TABLE IF NOT EXISTS report_archive (
 CREATE TABLE IF NOT EXISTS alert_events (
     id          INTEGER PRIMARY KEY AUTOINCREMENT,
     created_at  TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at  TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
     severity    TEXT NOT NULL,
     district    TEXT,
     signal      TEXT NOT NULL,
     detail      TEXT,
-    status      TEXT NOT NULL DEFAULT 'open'
+    status      TEXT NOT NULL DEFAULT 'open',
+    assigned_to TEXT,
+    assigned_by TEXT,
+    acknowledged_by TEXT,
+    acknowledged_at TEXT,
+    resolved_by TEXT,
+    resolved_at TEXT,
+    resolution TEXT
 );
 
 -- Operational job ledger for Catalyst Cron / manual refresh runs.
@@ -241,6 +249,22 @@ async def init_db() -> None:
                 audit_columns = {row[1] for row in await cur.fetchall()}
             if "user_id" not in audit_columns:
                 await db.execute("ALTER TABLE audit_logs ADD COLUMN user_id TEXT")
+            async with db.execute("PRAGMA table_info(alert_events)") as cur:
+                alert_columns = {row[1] for row in await cur.fetchall()}
+            alert_migrations = {
+                "updated_at": "TEXT",
+                "assigned_to": "TEXT",
+                "assigned_by": "TEXT",
+                "acknowledged_by": "TEXT",
+                "acknowledged_at": "TEXT",
+                "resolved_by": "TEXT",
+                "resolved_at": "TEXT",
+                "resolution": "TEXT",
+            }
+            for column, column_type in alert_migrations.items():
+                if column not in alert_columns:
+                    await db.execute(f"ALTER TABLE alert_events ADD COLUMN {column} {column_type}")
+            await db.execute("UPDATE alert_events SET updated_at = COALESCE(updated_at, created_at)")
             await db.commit()
             logger.info("Schema created / verified.")
 
@@ -667,13 +691,80 @@ async def list_alert_events(limit: int = 50) -> list[dict]:
         return managed["data"]
     return await fetch_all(
         """
-        SELECT id, created_at, severity, district, signal, detail, status
+        SELECT id, created_at, updated_at, severity, district, signal, detail, status,
+               assigned_to, assigned_by, acknowledged_by, acknowledged_at,
+               resolved_by, resolved_at, resolution
         FROM alert_events
         ORDER BY id DESC
         LIMIT ?
         """,
         (limit,)
     )
+
+
+async def transition_alert_event(
+    alert_id: int,
+    transition: str,
+    actor: str,
+    assignee: str = "",
+    resolution: str = "",
+) -> dict | None:
+    """Apply a validated early-warning lifecycle transition and return the event."""
+    current = await fetch_one("SELECT * FROM alert_events WHERE id = ?", (alert_id,))
+    if not current:
+        return None
+
+    status = str(current.get("status") or "open").lower()
+    if transition == "assign":
+        if status == "resolved":
+            raise ValueError("Resolved alerts cannot be reassigned")
+        await execute_write(
+            """
+            UPDATE alert_events
+            SET status = 'assigned', assigned_to = ?, assigned_by = ?,
+                updated_at = CURRENT_TIMESTAMP
+            WHERE id = ?
+            """,
+            (assignee, actor, alert_id),
+        )
+    elif transition == "acknowledge":
+        if status not in {"open", "assigned"}:
+            raise ValueError("Only open or assigned alerts can be acknowledged")
+        await execute_write(
+            """
+            UPDATE alert_events
+            SET status = 'acknowledged', acknowledged_by = ?,
+                acknowledged_at = CURRENT_TIMESTAMP, updated_at = CURRENT_TIMESTAMP
+            WHERE id = ?
+            """,
+            (actor, alert_id),
+        )
+    elif transition == "resolve":
+        if status not in {"open", "assigned", "acknowledged"}:
+            raise ValueError("Alert is already resolved")
+        await execute_write(
+            """
+            UPDATE alert_events
+            SET status = 'resolved', resolved_by = ?, resolved_at = CURRENT_TIMESTAMP,
+                resolution = ?, updated_at = CURRENT_TIMESTAMP
+            WHERE id = ?
+            """,
+            (actor, resolution, alert_id),
+        )
+    else:
+        raise ValueError("Unsupported alert transition")
+
+    updated = await fetch_one("SELECT * FROM alert_events WHERE id = ?", (alert_id,))
+    from catalyst_runtime import datastore_append_event
+    await datastore_append_event("alert_transition", {
+        "alert_id": alert_id,
+        "transition": transition,
+        "actor": actor,
+        "assignee": assignee,
+        "resolution": resolution,
+        "status": updated.get("status") if updated else "unknown",
+    })
+    return updated
 
 
 async def record_job_run(job_name: str, status: str, detail: str = "", actor: str = "") -> None:
