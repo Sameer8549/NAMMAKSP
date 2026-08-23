@@ -10,7 +10,6 @@
         ".codex",
         ".env",
         ".appsail_deps",
-        ".appsail_linux",
         ".pytest_cache",
         "venv",
         ".venv",
