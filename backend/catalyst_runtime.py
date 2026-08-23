@@ -370,7 +370,6 @@ async def smartbrowz_pdf(request, html: str) -> dict:
             pdf_options={
                 "format": "A4",
                 "print_background": True,
-                "margin": {"top": "12mm", "right": "12mm", "bottom": "12mm", "left": "12mm"},
             },
         )
         return response.content

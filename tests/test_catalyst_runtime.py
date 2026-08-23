@@ -95,7 +95,7 @@ class CatalystRuntimeTests(unittest.TestCase):
         call = app.smart_browz.return_value.convert_to_pdf.call_args
         self.assertEqual(call.args[0], "<h1>NAMMA KSP</h1>")
         self.assertEqual(call.kwargs["pdf_options"]["format"], "A4")
-        self.assertIn("margin", call.kwargs["pdf_options"])
+        self.assertNotIn("margin", call.kwargs["pdf_options"])
 
     def test_managed_service_verification_records_only_live_results(self):
         ok = {"provider": "catalyst", "used": True, "data": {}, "error": ""}
