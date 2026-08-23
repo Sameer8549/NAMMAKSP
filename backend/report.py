@@ -10,6 +10,7 @@ import os
 import io
 import logging
 import re
+from html import escape as _xml_escape
 from datetime import datetime
 from pathlib import Path
 from urllib.parse import quote
@@ -208,8 +209,8 @@ def _styles():
                        leading=12, shaping=True)
     add("label",       fontName=FONT_BOLD, fontSize=8, textColor=BLACK, leading=11, shaping=True)
     add("value",       fontName=FONT_REGULAR, fontSize=8, textColor=BLACK, leading=11, shaping=True)
-    add("ai_text",     fontName=FONT_REGULAR, fontSize=8, textColor=BLACK,
-                       leading=12, shaping=True)
+    add("ai_text",     fontName=FONT_REGULAR, fontSize=7.6, textColor=BLACK,
+                       leading=10, shaping=True)
     add("disclaimer",  fontName=FONT_REGULAR, fontSize=7.5,   textColor=BLACK,
                        leading=11, shaping=True)
     add("red_bold",    fontName=FONT_BOLD, fontSize=7.5, textColor=KSP_RED, leading=11, shaping=True)
@@ -437,8 +438,21 @@ def _clean_report_line(line: str) -> str:
 def _format_chat_message_to_flowables(content: str, style) -> list:
     flowables = []
     lines = content.split("\n")
-    
-    for idx, line in enumerate(lines):
+
+    def table_cells(value: str) -> list[str]:
+        return [cell.strip() for cell in value.strip().strip("|").split("|")]
+
+    def is_table_row(value: str) -> bool:
+        stripped = value.strip()
+        return stripped.startswith("|") and stripped.endswith("|") and stripped.count("|") >= 2
+
+    def is_table_divider(value: str) -> bool:
+        cells = table_cells(value) if is_table_row(value) else []
+        return bool(cells) and all(re.fullmatch(r":?-{3,}:?", cell) for cell in cells)
+
+    idx = 0
+    while idx < len(lines):
+        line = lines[idx]
         raw_line = line
         line = _clean_report_line(raw_line)
         if not line:
@@ -446,8 +460,51 @@ def _format_chat_message_to_flowables(content: str, style) -> list:
             # small paragraph gap without reserving a large empty block.
             if not _MARKDOWN_RULE_RE.fullmatch(str(raw_line).strip()):
                 flowables.append(Spacer(1, 2))
+            idx += 1
             continue
-            
+
+        if is_table_row(line) and idx + 1 < len(lines) and is_table_divider(lines[idx + 1]):
+            headers = table_cells(line)
+            rows = []
+            idx += 2
+            while idx < len(lines) and is_table_row(lines[idx]) and not is_table_divider(lines[idx]):
+                row = table_cells(lines[idx])
+                rows.append(row + [""] * max(0, len(headers) - len(row)))
+                idx += 1
+            cell_style = ParagraphStyle(
+                name=f"ai_table_{idx}_{id(content)}", parent=style,
+                fontSize=7.2, leading=9, spaceAfter=0,
+            )
+            table_data = [
+                [Paragraph(_format_markdown_to_html(_xml_escape(cell)), cell_style) for cell in headers]
+            ]
+            table_data.extend([
+                [Paragraph(_format_markdown_to_html(_xml_escape(cell)), cell_style) for cell in row[:len(headers)]]
+                for row in rows
+            ])
+            available_width = 18.6 * cm
+            weights = [max(10, min(36, len(header))) for header in headers]
+            weight_total = sum(weights) or len(headers)
+            table = Table(
+                table_data,
+                colWidths=[available_width * weight / weight_total for weight in weights],
+                repeatRows=1,
+            )
+            table.setStyle(TableStyle([
+                ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#EAF0F6")),
+                ("FONTNAME", (0, 0), (-1, 0), FONT_BOLD),
+                ("TEXTCOLOR", (0, 0), (-1, 0), colors.HexColor("#24384E")),
+                ("BOX", (0, 0), (-1, -1), 0.4, colors.HexColor("#AEBBC8")),
+                ("INNERGRID", (0, 0), (-1, -1), 0.3, colors.HexColor("#CBD5DF")),
+                ("VALIGN", (0, 0), (-1, -1), "TOP"),
+                ("LEFTPADDING", (0, 0), (-1, -1), 4),
+                ("RIGHTPADDING", (0, 0), (-1, -1), 4),
+                ("TOPPADDING", (0, 0), (-1, -1), 3),
+                ("BOTTOMPADDING", (0, 0), (-1, -1), 3),
+            ]))
+            flowables.extend([table, Spacer(1, 4)])
+            continue
+
         # Match bullet points or numbered lists
         is_bullet = line.startswith("•") or line.startswith("-") or line.startswith("* ")
         is_numbered = re.match(r'^\d+\.\s', line) is not None
@@ -471,44 +528,42 @@ def _format_chat_message_to_flowables(content: str, style) -> list:
                 firstLineIndent=-8,
                 spaceAfter=2
             )
-            marker = "•" if is_bullet else line.split(".", 1)[0] + "."
+            marker = "-" if is_bullet else line.split(".", 1)[0] + "."
             flowables.append(Paragraph(f"{marker} {formatted_text}", bullet_style))
         else:
             escaped_text = line.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
             formatted_text = _format_markdown_to_html(escaped_text)
             flowables.append(Paragraph(formatted_text, style))
             flowables.append(Spacer(1, 2))
-            
+        idx += 1
+
     return flowables
 
 def _parse_ai_summary(summary: str) -> list:
-    summary = "\n".join(
+    cleaned = "\n".join(
         line for line in str(summary or "").splitlines()
         if not _MARKDOWN_RULE_RE.fullmatch(line.strip())
     ).strip()
-    # Find all matches of **Heading**
-    pattern = r'\*\*([^*]+?)\*\*'
-    matches = list(re.finditer(pattern, summary))
-    
-    if not matches:
-        return [("Intro", summary)]
-        
+    if not cleaned:
+        return [("Intro", "AI assessment unavailable.")]
+
     sections = []
-    
-    # Text before the first heading
-    first_start = matches[0].start()
-    if first_start > 0:
-        intro_text = summary[:first_start].strip()
-        if intro_text:
-            sections.append(("Intro", intro_text))
-            
-    for idx, match in enumerate(matches):
-        heading = match.group(1).strip()
-        start_pos = match.end()
-        end_pos = matches[idx+1].start() if idx + 1 < len(matches) else len(summary)
-        body = summary[start_pos:end_pos].strip()
+    heading = "Intro"
+    body_lines = []
+    for line in cleaned.splitlines():
+        stripped = line.strip()
+        match = re.fullmatch(r"\*\*(?:\d+\.\s*)?(.+?)\*\*:?", stripped)
+        if match:
+            body = "\n".join(body_lines).strip()
+            if body:
+                sections.append((heading, body))
+            heading = match.group(1).strip()
+            body_lines = []
+        else:
+            body_lines.append(line)
+    body = "\n".join(body_lines).strip()
+    if body or not sections:
         sections.append((heading, body))
-        
     return sections
 
 def _ai_box(styles, summary: str) -> list:
