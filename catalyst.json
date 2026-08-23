@@ -13,6 +13,8 @@
         "venv",
         ".venv",
         "tmp",
+        "output",
+        "tools",
         "docs",
         "catalyst-debug.log",
         "script.md",
