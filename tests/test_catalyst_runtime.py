@@ -92,11 +92,13 @@ class CatalystRuntimeTests(unittest.TestCase):
              patch.object(catalyst_runtime, "search", AsyncMock(return_value=failed)), \
              patch.object(catalyst_runtime, "list_report_objects", AsyncMock(return_value=ok)), \
              patch.object(catalyst_runtime, "nosql_append_evidence", AsyncMock(return_value=ok)), \
+             patch.object(catalyst_runtime, "quickml_predict", AsyncMock(return_value=ok)), \
              patch.object(catalyst_runtime, "datastore_append_event", AsyncMock(return_value=ok)):
             proofs = asyncio.run(catalyst_runtime.verify_managed_services(object()))
         self.assertTrue(proofs["datastore"]["verified"])
         self.assertFalse(proofs["search"]["verified"])
         self.assertEqual(proofs["search"]["error"], "down")
+        self.assertTrue(proofs["quickml"]["verified"])
 
 
 if __name__ == "__main__":

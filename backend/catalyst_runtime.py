@@ -314,9 +314,22 @@ async def verify_managed_services(request) -> dict[str, dict[str, Any]]:
     })
     _record_proof("nosql", evidence_result)
 
+    quickml_result = await quickml_predict(request, {
+        "FIR_ID": "FIR00001",
+        "Crime_Type": "Vehicle Theft",
+        "Date": "2022-11-25",
+        "District": "Kalaburagi",
+        "Police_Station": "East PS",
+        "Location_ID": "LOC012",
+        "Status": "Open",
+        "Offender_ID": "OFF01714",
+        "Victim_ID": "VIC01256",
+    })
+    _record_proof("quickml", quickml_result)
+
     event_result = await datastore_append_event("service_verification", {
         "nonce": nonce,
-        "services": ["datastore", "cache", "search", "stratus", "nosql"],
+        "services": ["datastore", "cache", "search", "stratus", "nosql", "quickml"],
     }, request)
     _record_proof("event_ledger", event_result)
     return get_live_service_proofs()
