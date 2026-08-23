@@ -65,6 +65,24 @@ class CatalystRuntimeTests(unittest.TestCase):
         self.assertFalse(result["used"])
         self.assertIn("unavailable", result["error"])
 
+    def test_nosql_evidence_insert_uses_supported_return_mode(self):
+        app = Mock()
+        table = app.nosql.return_value.get_table.return_value
+        table.insert_items.return_value = {"status": "success"}
+        env = {
+            "NAMMAKSP_NOSQL_ENABLED": "true",
+            "NAMMAKSP_NOSQL_TABLE_EVIDENCE": "evidence-table",
+        }
+        with patch.dict(os.environ, env, clear=True), patch.object(catalyst_runtime, "_app", return_value=app):
+            result = asyncio.run(catalyst_runtime.nosql_append_evidence(
+                object(), "session-1", {"event_type": "verification"}
+            ))
+
+        self.assertTrue(result["used"])
+        payload = table.insert_items.call_args.args[0]
+        self.assertEqual(payload["return"], "NULL")
+        self.assertEqual(payload["item"]["session_id"], {"S": "session-1"})
+
     def test_managed_service_verification_records_only_live_results(self):
         ok = {"provider": "catalyst", "used": True, "data": {}, "error": ""}
         failed = {"provider": "fallback", "used": False, "data": None, "error": "down"}

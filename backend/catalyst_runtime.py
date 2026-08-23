@@ -152,7 +152,7 @@ async def nosql_append_evidence(request, session_id: str, payload: dict[str, Any
             "event_type": {"S": "ai_evidence"},
             "payload": {"S": json.dumps(payload, separators=(",", ":"), default=str)},
         }
-        return _app(request).nosql().get_table(table_id).insert_items({"item": item, "return": "NEW"})
+        return _app(request).nosql().get_table(table_id).insert_items({"item": item, "return": "NULL"})
 
     try:
         return _result("catalyst-nosql", True, await asyncio.to_thread(run))
