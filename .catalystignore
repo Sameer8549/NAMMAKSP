@@ -1,6 +1,8 @@
 .git/**
 .appsail_deps/**
 .appsail_runtime/**
+.appsail_linux/**
+.pytest_cache/**
 .venv/**
 venv/**
 env/**
@@ -17,6 +19,7 @@ tools/**
 docs/**
 reports/*.pdf
 namma_ksp.db
+*.db
 *.db-wal
 *.db-shm
 catalyst-debug.log
