@@ -64,7 +64,7 @@ from sarvam_service import (
 from catalyst_auth import AUTH_MODE, DEMO_MODE, get_all_catalyst_users, get_current_catalyst_user
 from authorization import (
     ROLES, canonical_role, enrich_identity, has_capability,
-    project_case_payload, workspace_for,
+    project_case_payload, stable_alias, workspace_for,
 )
 from catalyst_services import get_catalyst_service_matrix
 from catalyst_runtime import (
@@ -205,6 +205,7 @@ async def startup():
 # ─── Validation Helpers & Pydantic Models ─────────────────────────────────────
 FIR_ID_RE = re.compile(r"^FIR\d{5}$")
 OFFENDER_ID_RE = re.compile(r"^OFF\d{5}$")
+OFFENDER_ALIAS_RE = re.compile(r"^ENTITY-[A-F0-9]{10}$")
 SESSION_ID_RE = re.compile(r"^[A-Za-z0-9_.:-]{1,80}$")
 SAFE_TEXT_RE = re.compile(r"^[\w\s.,:/()&+-]+$", re.UNICODE)
 DATE_RE = re.compile(r"^\d{4}-\d{2}-\d{2}$")
@@ -242,6 +243,25 @@ def _validate_offender_id(value: str) -> str:
     if not OFFENDER_ID_RE.match(cleaned):
         raise ValueError("Offender ID must match OFF00000 format")
     return cleaned
+
+
+async def _resolve_offender_id(value: str) -> str:
+    """Resolve a role-safe offender reference to its internal registry ID."""
+    cleaned = value.strip().upper()
+    if OFFENDER_ID_RE.fullmatch(cleaned):
+        return cleaned
+    if not OFFENDER_ALIAS_RE.fullmatch(cleaned):
+        raise HTTPException(
+            status_code=422,
+            detail="Offender ID must match OFF00000 or ENTITY-XXXXXXXXXX format",
+        )
+
+    rows = await fetch_all("SELECT offender_id FROM offenders")
+    for row in rows:
+        candidate = str(row.get("offender_id", "")).upper()
+        if candidate and stable_alias(candidate) == cleaned:
+            return candidate
+    raise HTTPException(status_code=404, detail=f"Offender {cleaned} not found")
 
 
 def _validate_report_filename(filename: str) -> str:
@@ -1332,7 +1352,7 @@ async def get_offender(
     )),
 ):
     """Full offender profile with FIR history and risk score."""
-    offender_id = _validate_offender_id(offender_id)
+    offender_id = await _resolve_offender_id(offender_id)
     profile = await get_offender_profile(offender_id)
     if not profile:
         raise HTTPException(status_code=404, detail=f"Offender {offender_id} not found")
@@ -1380,7 +1400,7 @@ async def offender_network(
     )),
 ):
     """Focused sub-network around a specific offender."""
-    result = await get_shared_offender_network(_validate_offender_id(offender_id))
+    result = await get_shared_offender_network(await _resolve_offender_id(offender_id))
     return project_case_payload(result, user)
 
 

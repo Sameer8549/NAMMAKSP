@@ -164,7 +164,8 @@ _DIRECT_IDENTIFIER_KEYS = {
 }
 
 
-def _stable_alias(value: Any, prefix: str = "ENTITY") -> str:
+def stable_alias(value: Any, prefix: str = "ENTITY") -> str:
+    """Return the deterministic, non-reversible alias used in projected records."""
     digest = hashlib.sha256(str(value or "unknown").encode("utf-8")).hexdigest()[:10].upper()
     return f"{prefix}-{digest}"
 
@@ -180,9 +181,9 @@ def pseudonymize_record(value: Any) -> Any:
     for key, item in value.items():
         normalized = str(key).casefold()
         if normalized in _DIRECT_IDENTIFIER_KEYS:
-            projected[key] = _stable_alias(item, "SUBJECT")
+            projected[key] = stable_alias(item, "SUBJECT")
         elif normalized in {"offender_id", "victim_id", "accused_id", "suspect_id"}:
-            projected[key] = _stable_alias(item)
+            projected[key] = stable_alias(item)
         else:
             projected[key] = pseudonymize_record(item)
     return projected

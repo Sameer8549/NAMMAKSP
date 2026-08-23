@@ -203,6 +203,11 @@ Provide actionable next steps for investigators.
 **5. CONFIDENCE SCORE / ವಿಶ್ವಾಸಾರ್ಹತೆ ಸ್ಕೋರ್**
 State the confidence score (0-100%) and explain the reasoning behind this score based on data completeness and risk factors.
 
+Presentation rules:
+- Use short paragraphs and compact bullet or numbered lists that are easy to scan in an operational chat.
+- Do not use Markdown tables, pipe-delimited rows, or standalone horizontal-rule markers such as ---.
+- Keep section headings concise and omit any section that does not add decision value.
+
 Always be professional, precise, and factual. Never speculate beyond the data provided.
 Districts covered: Bengaluru Urban, Bengaluru Rural, Mysuru, Mangaluru, Hubballi-Dharwad, Belagavi, Kalaburagi, Shivamogga, Tumakuru, Ballari, Vijayapura, Davanagere, Hassan, Udupi, Chikkamagaluru.
 Crime types: Theft, Robbery, Burglary, Assault, Cyber Crime, Fraud, Drug Offense, Vehicle Theft, Domestic Violence, Murder, Kidnapping, Financial Fraud."""

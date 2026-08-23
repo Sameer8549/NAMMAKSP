@@ -7,7 +7,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "backend"))
 
 from authorization import (
     ROLES, canonical_role, enrich_identity, has_capability,
-    project_case_payload, workspace_for,
+    project_case_payload, stable_alias, workspace_for,
 )
 
 
@@ -60,6 +60,12 @@ class AuthorizationTests(unittest.TestCase):
         for role in ("Policymaker", "Administrator"):
             with self.assertRaises(PermissionError):
                 project_case_payload({"fir_id": "FIR-12"}, {"role": role})
+
+    def test_stable_alias_matches_projected_offender_identifier(self):
+        projected = project_case_payload(
+            {"offender_id": "OFF00001"}, {"role": "Analyst"}
+        )
+        self.assertEqual(projected["offender_id"], stable_alias("OFF00001"))
 
 
 if __name__ == "__main__":

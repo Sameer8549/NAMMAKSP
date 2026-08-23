@@ -418,10 +418,6 @@ async function getWorkspaceContract() {
   return _workspaceContractPromise;
 }
 
-function workspaceModuleLabel(value) {
-  return String(value || '').split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
-}
-
 function applyWorkspaceNavigation(contract) {
   const allowed = new Set(contract?.navigation || []);
   const pageMap = {
@@ -437,31 +433,15 @@ function applyWorkspaceNavigation(contract) {
 
 function applyWorkspaceDashboard(contract) {
   if (!contract || (location.pathname.split('/').pop() || '') !== 'dashboard.html') return;
+  if (contract.role === 'Administrator') {
+    location.replace('users.html');
+    return;
+  }
   document.body.dataset.workspace = contract.workspace_id;
   const title = document.querySelector('.dashboard-command-header .page-title');
   const subtitle = document.querySelector('.dashboard-command-header .page-subtitle');
   if (title) title.textContent = contract.title;
   if (subtitle) subtitle.textContent = contract.purpose;
-
-  const header = document.querySelector('.dashboard-command-header');
-  if (header && !document.getElementById('role-workspace-summary')) {
-    const section = document.createElement('section');
-    section.id = 'role-workspace-summary';
-    section.className = 'role-workspace-summary';
-    section.setAttribute('aria-label', `${contract.role} workspace capabilities`);
-    section.innerHTML = `
-      <div class="role-workspace-heading">
-        <div><span>${escapeHTML(contract.role)} workspace</span><strong>${escapeHTML(contract.title)}</strong></div>
-        <div class="workspace-security-meta"><b>${escapeHTML(contract.disclosure_mode)}</b><span>${escapeHTML(contract.data_classification)} data</span></div>
-      </div>
-      <div class="role-workspace-modules">
-        ${(contract.modules || []).map((module, index) => `<div class="role-workspace-module"><span>${String(index + 1).padStart(2, '0')}</span><strong>${escapeHTML(workspaceModuleLabel(module))}</strong></div>`).join('')}
-      </div>
-      <div class="role-workspace-actions">
-        ${(contract.primary_actions || []).map(action => `<span>${escapeHTML(action)}</span>`).join('')}
-      </div>`;
-    header.insertAdjacentElement('afterend', section);
-  }
 
   const selectors = {
     stats: '.dashboard-stat-grid', visual: '.dashboard-visual-section',
@@ -535,7 +515,9 @@ async function apiFetch(path, opts = {}) {
   }
   if (!res.ok) {
     const err = await res.json().catch(() => ({ detail: res.statusText }));
-    throw new Error(err.detail || res.statusText);
+    const requestError = new Error(err.detail || res.statusText);
+    requestError.status = res.status;
+    throw requestError;
   }
   return res.json();
 }
@@ -2713,15 +2695,44 @@ function formatChatContent(text) {
     listType = '';
   };
 
-  lines.forEach(rawLine => {
+  const tableCells = line => line.trim().replace(/^\||\|$/g, '').split('|').map(cell => cell.trim());
+  const isTableRow = line => /^\s*\|.+\|\s*$/.test(line);
+  const isTableDivider = line => {
+    if (!isTableRow(line)) return false;
+    const cells = tableCells(line);
+    return cells.length > 0 && cells.every(cell => /^:?-{3,}:?$/.test(cell));
+  };
+
+  for (let index = 0; index < lines.length; index += 1) {
+    const rawLine = lines[index];
     const line = rawLine.trim();
-    if (!line) { flushParagraph(); flushList(); return; }
+    if (!line) { flushParagraph(); flushList(); continue; }
+
+    if (/^(?:-{3,}|_{3,}|\*{3,})$/.test(line)) {
+      flushParagraph(); flushList();
+      blocks.push('<hr>');
+      continue;
+    }
+
+    if (isTableRow(line) && isTableDivider(lines[index + 1] || '')) {
+      flushParagraph(); flushList();
+      const headers = tableCells(line);
+      const rows = [];
+      index += 2;
+      while (index < lines.length && isTableRow(lines[index]) && !isTableDivider(lines[index])) {
+        rows.push(tableCells(lines[index]));
+        index += 1;
+      }
+      index -= 1;
+      blocks.push(`<div class="chat-table-wrap"><table class="chat-table"><thead><tr>${headers.map(cell => `<th>${parseInlineMarkdown(cell)}</th>`).join('')}</tr></thead><tbody>${rows.map(row => `<tr>${headers.map((_, cellIndex) => `<td>${parseInlineMarkdown(row[cellIndex] || '')}</td>`).join('')}</tr>`).join('')}</tbody></table></div>`);
+      continue;
+    }
 
     const heading = line.match(/^\*\*(?:\d+\.\s*)?(.+?)\*\*:?$/);
     if (heading) {
       flushParagraph(); flushList();
       blocks.push(`<h3>${parseInlineMarkdown(heading[1])}</h3>`);
-      return;
+      continue;
     }
 
     const numbered = line.match(/^\d+\.\s+(.+)$/);
@@ -2732,12 +2743,12 @@ function formatChatContent(text) {
       if (listType && listType !== nextType) flushList();
       listType = nextType;
       list.push((numbered || bulleted)[1]);
-      return;
+      continue;
     }
 
     flushList();
     paragraph.push(line);
-  });
+  }
 
   flushParagraph();
   flushList();
@@ -3969,6 +3980,10 @@ async function loadEarlyWarningAlerts({ silent = false } = {}) {
       </div>
     `).join('');
   } catch (err) {
+    if (err.status === 403) {
+      list.closest('.card')?.setAttribute('hidden', '');
+      return;
+    }
     list.innerHTML = '<div class="ops-muted">Failed to load early-warning alerts.</div>';
     if (!silent) showToast('Failed to load alerts: ' + err.message, 'error');
   }
