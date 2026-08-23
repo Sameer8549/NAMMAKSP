@@ -327,9 +327,22 @@ async def verify_managed_services(request) -> dict[str, dict[str, Any]]:
     })
     _record_proof("quickml", quickml_result)
 
+    zia_result = await zia_text_analysis(
+        request, ["Synthetic vehicle theft report from Kalaburagi."], None
+    )
+    _record_proof("zia_text_analytics", zia_result)
+
+    smartbrowz_result = await smartbrowz_pdf(
+        request, "<html><body><h1>NAMMA KSP</h1><p>Managed service verification.</p></body></html>"
+    )
+    _record_proof("smartbrowz", smartbrowz_result)
+
     event_result = await datastore_append_event("service_verification", {
         "nonce": nonce,
-        "services": ["datastore", "cache", "search", "stratus", "nosql", "quickml"],
+        "services": [
+            "datastore", "cache", "search", "stratus", "nosql", "quickml",
+            "zia_text_analytics", "smartbrowz",
+        ],
     }, request)
     _record_proof("event_ledger", event_result)
     return get_live_service_proofs()
@@ -352,10 +365,13 @@ async def smartbrowz_pdf(request, html: str) -> dict:
         return _result("reportlab", False, error="Catalyst SmartBrowz is not enabled")
 
     def run():
-        response = _app(request).smartbrowz().convert_to_pdf(
+        response = _app(request).smart_browz().convert_to_pdf(
             html,
-            pdf_options={"format": "A4", "print_background": True},
-            page_options={"margin": {"top": "12mm", "right": "12mm", "bottom": "12mm", "left": "12mm"}},
+            pdf_options={
+                "format": "A4",
+                "print_background": True,
+                "margin": {"top": "12mm", "right": "12mm", "bottom": "12mm", "left": "12mm"},
+            },
         )
         return response.content
 

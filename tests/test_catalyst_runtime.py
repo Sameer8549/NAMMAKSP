@@ -83,6 +83,20 @@ class CatalystRuntimeTests(unittest.TestCase):
         self.assertEqual(payload["return"], "NULL")
         self.assertEqual(payload["item"]["session_id"], {"S": "session-1"})
 
+    def test_smartbrowz_uses_sdk_component_and_valid_pdf_options(self):
+        app = Mock()
+        response = Mock(content=b"%PDF-test")
+        app.smart_browz.return_value.convert_to_pdf.return_value = response
+        with patch.dict(os.environ, {"NAMMAKSP_SMARTBROWZ_ENABLED": "true"}, clear=True), \
+             patch.object(catalyst_runtime, "_app", return_value=app):
+            result = asyncio.run(catalyst_runtime.smartbrowz_pdf(object(), "<h1>NAMMA KSP</h1>"))
+
+        self.assertTrue(result["used"])
+        call = app.smart_browz.return_value.convert_to_pdf.call_args
+        self.assertEqual(call.args[0], "<h1>NAMMA KSP</h1>")
+        self.assertEqual(call.kwargs["pdf_options"]["format"], "A4")
+        self.assertIn("margin", call.kwargs["pdf_options"])
+
     def test_managed_service_verification_records_only_live_results(self):
         ok = {"provider": "catalyst", "used": True, "data": {}, "error": ""}
         failed = {"provider": "fallback", "used": False, "data": None, "error": "down"}
@@ -93,12 +107,16 @@ class CatalystRuntimeTests(unittest.TestCase):
              patch.object(catalyst_runtime, "list_report_objects", AsyncMock(return_value=ok)), \
              patch.object(catalyst_runtime, "nosql_append_evidence", AsyncMock(return_value=ok)), \
              patch.object(catalyst_runtime, "quickml_predict", AsyncMock(return_value=ok)), \
+             patch.object(catalyst_runtime, "zia_text_analysis", AsyncMock(return_value=ok)), \
+             patch.object(catalyst_runtime, "smartbrowz_pdf", AsyncMock(return_value=ok)), \
              patch.object(catalyst_runtime, "datastore_append_event", AsyncMock(return_value=ok)):
             proofs = asyncio.run(catalyst_runtime.verify_managed_services(object()))
         self.assertTrue(proofs["datastore"]["verified"])
         self.assertFalse(proofs["search"]["verified"])
         self.assertEqual(proofs["search"]["error"], "down")
         self.assertTrue(proofs["quickml"]["verified"])
+        self.assertTrue(proofs["zia_text_analytics"]["verified"])
+        self.assertTrue(proofs["smartbrowz"]["verified"])
 
 
 if __name__ == "__main__":
