@@ -41,6 +41,19 @@ class AiReliabilityTests(unittest.TestCase):
         self.assertIn("only help", result["response"].lower())
         self.assertIn("crime-intelligence", result["response"].lower())
 
+    def test_arithmetic_is_deterministic_and_never_sent_to_llm(self):
+        with patch.object(ai_service, "_safe_chat_completion") as completion:
+            result = asyncio.run(ai_service.chat("unit-math", "1+2+3", "en-US"))
+
+        completion.assert_not_called()
+        self.assertEqual(result["response"], "6")
+        self.assertEqual(result["model"], "deterministic-calculator")
+        self.assertEqual(result["tokens_used"], 0)
+
+    def test_unsafe_arithmetic_is_not_evaluated(self):
+        self.assertIsNone(ai_service._try_safe_arithmetic("__import__('os').system('echo bad')"))
+        self.assertIsNone(ai_service._try_safe_arithmetic("2 ** 100"))
+
     def test_chat_returns_sources_and_caches_fallback(self):
         completion = SimpleNamespace(usage=SimpleNamespace(total_tokens=42))
 
@@ -86,6 +99,22 @@ class AiReliabilityTests(unittest.TestCase):
         self.assertEqual(messages[1]["role"], "system")
         self.assertIn("refuse to hallucinate", messages[1]["content"])
         self.assertIn("FIR99999", result["evidence"])
+
+    def test_chat_persists_role_bound_history_in_catalyst_cache(self):
+        managed_miss = {"provider": "catalyst-cache", "used": True, "data": None, "error": ""}
+        managed_write = {"provider": "catalyst-cache", "used": True, "data": {}, "error": ""}
+        with patch.object(ai_service, "cache_get_json", new=AsyncMock(return_value=managed_miss)), \
+             patch.object(ai_service, "cache_put_json", new=AsyncMock(return_value=managed_write)) as writer:
+            result = asyncio.run(ai_service.chat(
+                "managed-session", "hi", "en-US", runtime_request=object(),
+                user={"role": "Policymaker", "disclosure_mode": "aggregate-only"},
+            ))
+
+        self.assertEqual(result["model"], "conversation-router")
+        writer.assert_awaited_once()
+        history = writer.await_args.args[2]
+        self.assertIn("Authenticated role: Policymaker", history[0]["content"])
+        self.assertIn("aggregate-only", history[0]["content"])
 
 
 if __name__ == "__main__":

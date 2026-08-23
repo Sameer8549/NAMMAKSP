@@ -150,7 +150,7 @@ CREATE TABLE IF NOT EXISTS socio_economic_indicators (
 CREATE TABLE IF NOT EXISTS users (
     username      TEXT PRIMARY KEY,
     password_hash TEXT NOT NULL,
-    role          TEXT NOT NULL -- 'Admin' or 'Investigator'
+    role          TEXT NOT NULL
 );
 
 -- Audit logs for governance and traceability
@@ -248,20 +248,23 @@ async def init_db() -> None:
             async with db.execute("SELECT COUNT(*) FROM users") as cur:
                 user_count = (await cur.fetchone())[0]
             demo_mode = os.getenv("DEMO_MODE", "false").strip().lower() == "true"
-            if user_count == 0 and demo_mode:
-                logger.info("Seeding default users...")
-                admin_hash = hash_password("admin123")
-                officer_hash = hash_password("officer123")
-                await db.execute(
-                    "INSERT INTO users (username, password_hash, role) VALUES (?, ?, ?)",
-                    ("admin", admin_hash, "Admin")
+            if demo_mode:
+                logger.info("Ensuring synthetic role demonstration users exist...")
+                demo_users = (
+                    ("admin", "admin123", "Administrator"),
+                    ("officer", "officer123", "Investigator"),
+                    ("analyst", "analyst123", "Analyst"),
+                    ("supervisor", "supervisor123", "Supervisor"),
+                    ("policymaker", "policy123", "Policymaker"),
                 )
-                await db.execute(
-                    "INSERT INTO users (username, password_hash, role) VALUES (?, ?, ?)",
-                    ("officer", officer_hash, "Investigator")
-                )
+                for username, password, role in demo_users:
+                    await db.execute(
+                        "INSERT OR IGNORE INTO users (username, password_hash, role) VALUES (?, ?, ?)",
+                        (username, hash_password(password), role),
+                    )
+                await db.execute("UPDATE users SET role = 'Administrator' WHERE role = 'Admin'")
                 await db.commit()
-                logger.info("Default users seeded.")
+                logger.info("Synthetic role demonstration users ready.")
 
             # Check if data already loaded
             async with db.execute("SELECT COUNT(*) FROM firs") as cur:
@@ -622,6 +625,23 @@ async def record_alert_event(
     status: str = "open"
 ) -> None:
     """Record an early-warning event, de-duplicated by current day/signal/district."""
+    from catalyst_runtime import datastore_append_event
+
+    existing = await fetch_one(
+        """
+        SELECT id FROM alert_events
+        WHERE date(created_at) = date('now')
+          AND severity = ? AND COALESCE(district, '') = ? AND signal = ?
+        LIMIT 1
+        """,
+        (severity, district, signal),
+    )
+    if existing:
+        return
+    await datastore_append_event("alert", {
+        "severity": severity, "signal": signal, "district": district,
+        "detail": detail, "status": status,
+    })
     await execute_write(
         """
         INSERT INTO alert_events (severity, district, signal, detail, status)
@@ -640,6 +660,11 @@ async def record_alert_event(
 
 async def list_alert_events(limit: int = 50) -> list[dict]:
     """Return newest early-warning events."""
+    from catalyst_runtime import datastore_list_events
+
+    managed = await datastore_list_events("alert", limit)
+    if managed["used"]:
+        return managed["data"]
     return await fetch_all(
         """
         SELECT id, created_at, severity, district, signal, detail, status
@@ -653,6 +678,11 @@ async def list_alert_events(limit: int = 50) -> list[dict]:
 
 async def record_job_run(job_name: str, status: str, detail: str = "", actor: str = "") -> None:
     """Record a Catalyst Cron/manual operational job run."""
+    from catalyst_runtime import datastore_append_event
+
+    await datastore_append_event("job", {
+        "job_name": job_name, "status": status, "detail": detail, "actor": actor,
+    })
     await execute_write(
         "INSERT INTO job_runs (job_name, status, detail, actor) VALUES (?, ?, ?, ?)",
         (job_name, status, detail, actor)
@@ -661,6 +691,11 @@ async def record_job_run(job_name: str, status: str, detail: str = "", actor: st
 
 async def list_job_runs(limit: int = 20) -> list[dict]:
     """Return newest operational job runs."""
+    from catalyst_runtime import datastore_list_events
+
+    managed = await datastore_list_events("job", limit)
+    if managed["used"]:
+        return managed["data"]
     return await fetch_all(
         """
         SELECT id, started_at, job_name, status, detail, actor

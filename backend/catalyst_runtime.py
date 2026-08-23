@@ -3,14 +3,20 @@
 from __future__ import annotations
 
 import asyncio
+import contextvars
 import json
 import os
+import time
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
 
 FALSE_VALUES = {"", "0", "false", "no", "off"}
+_request_context: contextvars.ContextVar[Any | None] = contextvars.ContextVar(
+    "namma_ksp_catalyst_request", default=None
+)
+_live_service_proofs: dict[str, dict[str, Any]] = {}
 
 
 def config_value(name: str, default: str = "") -> str:
@@ -23,13 +29,43 @@ def enabled(name: str) -> bool:
     return config_value(name).strip().casefold() not in FALSE_VALUES
 
 
+def set_request_context(request: Any) -> contextvars.Token:
+    """Bind one ASGI request for all nested Catalyst SDK adapters."""
+    return _request_context.set(request)
+
+
+def reset_request_context(token: contextvars.Token) -> None:
+    """Release the request binding after the response has completed."""
+    _request_context.reset(token)
+
+
 def _app(request=None):
     import zcatalyst_sdk
-    return zcatalyst_sdk.initialize(req=request) if request is not None else zcatalyst_sdk.initialize()
+    active_request = request if request is not None else _request_context.get()
+    return (
+        zcatalyst_sdk.initialize(req=active_request)
+        if active_request is not None
+        else zcatalyst_sdk.initialize()
+    )
 
 
 def _result(provider: str, used: bool, data: Any = None, error: str = "") -> dict:
     return {"provider": provider, "used": used, "data": data, "error": error}
+
+
+def get_live_service_proofs() -> dict[str, dict[str, Any]]:
+    return dict(_live_service_proofs)
+
+
+def _record_proof(service: str, result: dict) -> dict:
+    proof = {
+        "verified": bool(result.get("used")),
+        "provider": result.get("provider", ""),
+        "error": result.get("error", ""),
+        "verified_at": datetime.now(timezone.utc).isoformat(),
+    }
+    _live_service_proofs[service] = proof
+    return proof
 
 
 async def datastore_probe(request=None) -> dict:
@@ -253,3 +289,94 @@ async def quickml_predict(request, features: dict[str, str | int | float | bool]
         return _result("catalyst-quickml", True, data)
     except Exception as exc:
         return _result("local-analytics", False, error=str(exc))
+
+
+async def verify_managed_services(request) -> dict[str, dict[str, Any]]:
+    """Execute real managed-service operations and retain process-local proof."""
+    _record_proof("datastore", await datastore_probe(request))
+
+    nonce = f"service-proof-{int(time.time())}"
+    cache_write = await cache_put_json(request, nonce, {"ok": True}, expiry_hours=1)
+    cache_read = await cache_get_json(request, nonce) if cache_write["used"] else cache_write
+    _record_proof("cache", cache_read)
+
+    search_result = await search(request, "FIR", {
+        config_value("CATALYST_SEARCH_TABLE_FIRS", "namma_ksp_firs"):
+            ["FIR_ID", "Crime_Type", "District", "Police_Station", "Status"]
+    })
+    _record_proof("search", search_result)
+    _record_proof("stratus", await list_report_objects(request, limit=1))
+
+    evidence_result = await nosql_append_evidence(request, nonce, {
+        "created_at": datetime.now(timezone.utc).isoformat(),
+        "event_type": "managed_service_verification",
+        "privacy": "no_case_data",
+    })
+    _record_proof("nosql", evidence_result)
+
+    event_result = await datastore_append_event("service_verification", {
+        "nonce": nonce,
+        "services": ["datastore", "cache", "search", "stratus", "nosql"],
+    }, request)
+    _record_proof("event_ledger", event_result)
+    return get_live_service_proofs()
+
+
+async def zia_text_analysis(request, documents: list[str], keywords: list[str] | None = None) -> dict:
+    """Run Catalyst Zia Text Analytics against privacy-reviewed text."""
+    if not enabled("CATALYST_ZIA_SERVICES_ENABLED"):
+        return _result("unavailable", False, error="Catalyst Zia Services is not enabled")
+    try:
+        data = await asyncio.to_thread(_app(request).zia().get_text_analytics, documents, keywords)
+        return _result("catalyst-zia", True, data)
+    except Exception as exc:
+        return _result("unavailable", False, error=str(exc))
+
+
+async def smartbrowz_pdf(request, html: str) -> dict:
+    """Convert trusted report HTML to PDF using Catalyst SmartBrowz."""
+    if not enabled("CATALYST_SMARTBROWZ_ENABLED"):
+        return _result("reportlab", False, error="Catalyst SmartBrowz is not enabled")
+
+    def run():
+        response = _app(request).smartbrowz().convert_to_pdf(
+            html,
+            pdf_options={"format": "A4", "print_background": True},
+            page_options={"margin": {"top": "12mm", "right": "12mm", "bottom": "12mm", "left": "12mm"}},
+        )
+        return response.content
+
+    try:
+        return _result("catalyst-smartbrowz", True, await asyncio.to_thread(run))
+    except Exception as exc:
+        return _result("reportlab", False, error=str(exc))
+
+
+async def send_catalyst_mail(
+    request, recipients: list[str], subject: str, content: str
+) -> dict:
+    """Send transactional mail through a verified Catalyst Mail sender."""
+    sender = config_value("CATALYST_MAIL_SENDER").strip()
+    if not enabled("CATALYST_MAIL_ENABLED") or not sender:
+        return _result("unavailable", False, error="Catalyst Mail sender is not configured")
+    payload = {
+        "from_email": sender, "to_email": recipients, "subject": subject,
+        "content": content, "html_mode": False, "display_name": "NAMMA KSP",
+    }
+    try:
+        data = await asyncio.to_thread(_app(request).email().send_mail, payload)
+        return _result("catalyst-mail", True, data)
+    except Exception as exc:
+        return _result("unavailable", False, error=str(exc))
+
+
+async def send_catalyst_push(request, recipients: list[str], message: str) -> dict:
+    """Send a Web Push notification to Catalyst user IDs."""
+    if not enabled("CATALYST_PUSH_ENABLED"):
+        return _result("unavailable", False, error="Catalyst Web Push is not enabled")
+    try:
+        web = _app(request).push_notification().web()
+        data = await asyncio.to_thread(web.send_notification, message, recipients)
+        return _result("catalyst-push", bool(data), data, "" if data else "Catalyst rejected notification")
+    except Exception as exc:
+        return _result("unavailable", False, error=str(exc))

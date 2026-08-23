@@ -423,14 +423,29 @@ def _format_markdown_to_html(text: str) -> str:
             html_parts2.append(part)
     return "".join(html_parts2)
 
+
+_MARKDOWN_RULE_RE = re.compile(r"^\s*(?:-{3,}|_{3,}|\*{3,})\s*$")
+
+
+def _clean_report_line(line: str) -> str:
+    """Remove Markdown-only decoration that must never appear in official PDFs."""
+    stripped = str(line or "").strip()
+    if not stripped or _MARKDOWN_RULE_RE.fullmatch(stripped):
+        return ""
+    return re.sub(r"^#{1,6}\s+", "", stripped).strip()
+
 def _format_chat_message_to_flowables(content: str, style) -> list:
     flowables = []
     lines = content.split("\n")
     
     for idx, line in enumerate(lines):
-        line = line.strip()
+        raw_line = line
+        line = _clean_report_line(raw_line)
         if not line:
-            flowables.append(Spacer(1, 3))
+            # Separator-only lines are discarded; true blank lines receive a
+            # small paragraph gap without reserving a large empty block.
+            if not _MARKDOWN_RULE_RE.fullmatch(str(raw_line).strip()):
+                flowables.append(Spacer(1, 2))
             continue
             
         # Match bullet points or numbered lists
@@ -467,6 +482,10 @@ def _format_chat_message_to_flowables(content: str, style) -> list:
     return flowables
 
 def _parse_ai_summary(summary: str) -> list:
+    summary = "\n".join(
+        line for line in str(summary or "").splitlines()
+        if not _MARKDOWN_RULE_RE.fullmatch(line.strip())
+    ).strip()
     # Find all matches of **Heading**
     pattern = r'\*\*([^*]+?)\*\*'
     matches = list(re.finditer(pattern, summary))
@@ -515,9 +534,7 @@ def _ai_box(styles, summary: str) -> list:
     
     for heading, body in sections:
         if heading == "Intro":
-            html_body = _format_markdown_to_html(body)
-            content.append(Paragraph(html_body, styles["ai_text"]))
-            content.append(Spacer(1, 4))
+            content.extend(_format_chat_message_to_flowables(body, styles["ai_text"]))
         else:
             # Heading paragraph (bold black text)
             hd_p = Paragraph(heading, ParagraphStyle(
@@ -525,12 +542,9 @@ def _ai_box(styles, summary: str) -> list:
                 spaceBefore=6, spaceAfter=2
             ))
             # Body paragraph with HTML styling
-            html_body = _format_markdown_to_html(body)
-            body_p = Paragraph(html_body, styles["ai_text"])
-            
+            hd_p.keepWithNext = True
             content.append(hd_p)
-            content.append(body_p)
-            content.append(Spacer(1, 4))
+            content.extend(_format_chat_message_to_flowables(body, styles["ai_text"]))
             
     content.append(HRFlowable(
         width="100%", thickness=0.5, color=colors.black,
@@ -949,4 +963,3 @@ async def generate_recommendations_report(district: str = None, crime_type: str 
     doc.build(story, canvasmaker=NumberedCanvas)
     logger.info("AI Recommendations report generated: %s", pdf_path)
     return str(pdf_path)
-

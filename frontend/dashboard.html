@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en" class="auth-pending">
 <head>
   <meta charset="UTF-8" />
@@ -11,7 +11,7 @@
   <link rel="stylesheet" href="style.css" />
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.2/dist/chart.umd.min.js"></script>
 </head>
-<body>
+<body class="dashboard-v4">
   <header class="app-header">
     <div class="header-left">
       <button id="hamburger-btn" class="hamburger-btn" aria-label="Toggle sidebar"><span></span><span></span><span></span></button>
@@ -57,11 +57,11 @@
       </nav>
     </aside>
     <div id="sidebar-overlay" class="sidebar-overlay"></div>
-    <main id="app-main" class="app-main">
-      <div class="page-header">
+    <main id="app-main" class="app-main dashboard-workspace">
+      <div class="page-header dashboard-command-header">
         <div>
           <h1 class="page-title">Intelligence Dashboard</h1>
-          <div class="page-subtitle">Overview &mdash; Karnataka State &middot; As of 17 June 2025</div>
+          <div class="page-subtitle">Overview &mdash; Karnataka State &middot; <span id="dashboard-date-subtitle"></span></div>
         </div>
         <div class="flex gap-sm">
           <button class="btn btn-outline" onclick="showToast('Data refreshed','success')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>Refresh</button>
@@ -73,7 +73,7 @@
           <a href="reports.html" class="btn btn-accent">Generate Report</a>
         </div>
       </div>
-      <div class="kpi-grid">
+      <div class="kpi-grid dashboard-stat-grid" aria-label="Statewide crime overview">
         <div class="kpi-card primary">
           <div class="kpi-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg></div>
           <div class="kpi-number" id="kpi-total-firs">—</div><div class="kpi-label">Total FIRs</div>
@@ -95,20 +95,20 @@
           <div class="kpi-trend neutral"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="5" y1="12" x2="19" y2="12"/></svg>All districts monitored</div>
         </div>
       </div>
-      <div class="section">
-        <div style="display:grid;grid-template-columns:3fr 2fr;gap:var(--space-lg)">
-          <div class="card">
+      <div class="section dashboard-visual-section">
+        <div class="dashboard-visual-grid">
+          <div class="card dashboard-chart-panel dashboard-chart-primary">
             <div class="card-header"><span class="card-title">Crime Trends &mdash; Last 12 Months</span><span class="text-muted text-sm">FIRs registered &middot; 2025</span></div>
-            <div class="chart-container" style="height:260px"><canvas id="crime-bar-chart"></canvas></div>
+            <div class="chart-container react-analytics-host" id="crime-bar-chart-host" style="height:260px"><canvas id="crime-bar-chart"></canvas></div>
           </div>
-          <div class="card">
+          <div class="card dashboard-chart-panel dashboard-chart-secondary">
             <div class="card-header"><span class="card-title">Crime Type Distribution</span><span class="text-muted text-sm">All districts</span></div>
-            <div class="chart-container" style="height:260px"><canvas id="crime-donut-chart"></canvas></div>
+            <div class="chart-container react-analytics-host" id="crime-donut-chart-host" style="height:260px"><canvas id="crime-donut-chart"></canvas></div>
           </div>
         </div>
       </div>
-      <div class="section">
-        <div class="card">
+      <div class="section dashboard-intelligence-section">
+        <div class="card dashboard-intelligence-panel">
           <div class="card-header">
             <span class="card-title">Advanced Intelligence &amp; Early Warning</span>
             <span class="text-muted text-sm">Criminology, socio-demographic, financial-link and explainable analytics</span>
@@ -118,7 +118,7 @@
           </div>
         </div>
       </div>
-      <div class="section">
+      <div class="section dashboard-briefing-section">
         <div class="card strategic-briefing-card">
           <div class="card-header">
             <span class="card-title">AI Strategic Briefing</span>
@@ -129,7 +129,7 @@
           </div>
         </div>
       </div>
-      <div class="section card">
+      <div class="section card dashboard-cases-panel">
         <div class="card-header"><span class="card-title">Recent FIRs</span><a href="reports.html" class="card-link">View All &rarr;</a></div>
         <div class="fir-filter-chips" id="fir-filter-chips" style="margin-bottom:var(--space-sm)">
           <button class="fir-chip active" onclick="filterFIRTable(this,'all')">All</button>
@@ -146,9 +146,9 @@
           </table>
         </div>
       </div>
-      <div class="section">
+      <div class="section dashboard-district-section">
         <div class="flex-between mb-md">
-          <h2 style="font-size:17px;font-weight:700;color:var(--color-text)">District Overview &mdash; Karnataka</h2>
+          <h2 class="dashboard-section-title">District Overview &mdash; Karnataka</h2>
           <a href="heatmap.html" class="card-link">View Heatmap &rarr;</a>
         </div>
         <div class="district-grid" id="district-grid">
@@ -175,6 +175,9 @@
   <script src="https://static.zohocdn.com/catalyst/sdk/js/4.0.0/catalystWebSDK.js"></script>
   <script src="/__catalyst/sdk/init.js"></script>
   <script src="app.js"></script>
+  <script src="assets/react.production.min.js"></script>
+  <script src="assets/react-dom.production.min.js"></script>
+  <script src="analytics-react.js"></script>
   <!-- ── Page Progress Bar ── -->
   <div id="page-progress-bar"></div>
   <!-- ── Global Search Modal (Ctrl+K) ── -->

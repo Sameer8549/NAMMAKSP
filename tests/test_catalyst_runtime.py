@@ -3,7 +3,7 @@ import os
 import sys
 import unittest
 from pathlib import Path
-from unittest.mock import Mock, patch
+from unittest.mock import AsyncMock, Mock, patch
 
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "backend"))
@@ -35,6 +35,27 @@ class CatalystRuntimeTests(unittest.TestCase):
         self.assertTrue(result["used"])
         app.quick_ml.return_value.predict.assert_called_once_with("test-key", {"feature": 1})
 
+    def test_nested_sdk_calls_inherit_active_request_context(self):
+        request = object()
+        sdk = Mock()
+        sdk.initialize.return_value = Mock()
+        token = catalyst_runtime.set_request_context(request)
+        try:
+            with patch.dict(sys.modules, {"zcatalyst_sdk": sdk}):
+                catalyst_runtime._app()
+        finally:
+            catalyst_runtime.reset_request_context(token)
+        sdk.initialize.assert_called_once_with(req=request)
+
+    def test_request_context_is_released_after_reset(self):
+        sdk = Mock()
+        sdk.initialize.return_value = Mock()
+        token = catalyst_runtime.set_request_context(object())
+        catalyst_runtime.reset_request_context(token)
+        with patch.dict(sys.modules, {"zcatalyst_sdk": sdk}):
+            catalyst_runtime._app()
+        sdk.initialize.assert_called_once_with()
+
     def test_search_failure_falls_back_without_hiding_error(self):
         app = Mock()
         app.search.return_value.execute_search_query.side_effect = RuntimeError("unavailable")
@@ -43,6 +64,21 @@ class CatalystRuntimeTests(unittest.TestCase):
             result = asyncio.run(catalyst_runtime.search(object(), "FIR00001", {"firs": ["fir_id"]}))
         self.assertFalse(result["used"])
         self.assertIn("unavailable", result["error"])
+
+    def test_managed_service_verification_records_only_live_results(self):
+        ok = {"provider": "catalyst", "used": True, "data": {}, "error": ""}
+        failed = {"provider": "fallback", "used": False, "data": None, "error": "down"}
+        with patch.object(catalyst_runtime, "datastore_probe", AsyncMock(return_value=ok)), \
+             patch.object(catalyst_runtime, "cache_put_json", AsyncMock(return_value=ok)), \
+             patch.object(catalyst_runtime, "cache_get_json", AsyncMock(return_value=ok)), \
+             patch.object(catalyst_runtime, "search", AsyncMock(return_value=failed)), \
+             patch.object(catalyst_runtime, "list_report_objects", AsyncMock(return_value=ok)), \
+             patch.object(catalyst_runtime, "nosql_append_evidence", AsyncMock(return_value=ok)), \
+             patch.object(catalyst_runtime, "datastore_append_event", AsyncMock(return_value=ok)):
+            proofs = asyncio.run(catalyst_runtime.verify_managed_services(object()))
+        self.assertTrue(proofs["datastore"]["verified"])
+        self.assertFalse(proofs["search"]["verified"])
+        self.assertEqual(proofs["search"]["error"], "down")
 
 
 if __name__ == "__main__":

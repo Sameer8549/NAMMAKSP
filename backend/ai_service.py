@@ -1,13 +1,15 @@
 """
 ai_service.py — NAMMA KSP
 ──────────────────────────────
-Conversational crime intelligence powered by Groq (mistral-saba-24b).
+Conversational crime intelligence powered by Groq with model failover.
 Every AI response includes reasoning, evidence, and data citations.
 """
 
 import os
 import logging
 import re
+import ast
+import operator
 from collections import OrderedDict
 from typing import AsyncGenerator
 
@@ -26,6 +28,7 @@ from sarvam_service import (
     translate_text,
     transcribe_audio as sarvam_transcribe_audio,
 )
+from catalyst_runtime import cache_get_json, cache_put_json
 
 load_dotenv()
 logger = logging.getLogger(__name__)
@@ -40,6 +43,16 @@ if LLM_PROVIDER_MODE == "local":
     MODEL = os.getenv("LOCAL_LLM_MODEL", "llama3.1:8b")
 else:
     MODEL = os.getenv("GROQ_MODEL", "openai/gpt-oss-120b")
+
+GROQ_FALLBACK_MODELS = tuple(
+    model.strip()
+    for model in os.getenv(
+        "GROQ_FALLBACK_MODELS",
+        "qwen/qwen3.6-27b,openai/gpt-oss-20b,groq/compound-mini",
+    ).split(",")
+    if model.strip()
+)
+_active_model = MODEL
 
 
 def _get_groq_client() -> Groq:
@@ -62,20 +75,77 @@ def _get_groq_client() -> Groq:
 
 
 def _safe_chat_completion(messages: list[dict], **kwargs):
-    """Redact outbound text and rehydrate provider output locally."""
+    """Redact outbound text, fail over retired models, and restore output locally."""
+    global _active_model
     redactor = PiiRedactor()
-    response = _get_groq_client().chat.completions.create(
-        model=MODEL,
-        messages=redactor.redact_messages(messages),
-        **kwargs,
-    )
-    content = redactor.restore(response.choices[0].message.content or "")
-    return response, content
+    redacted_messages = redactor.redact_messages(messages)
+    candidates = list(dict.fromkeys((_active_model, MODEL, *GROQ_FALLBACK_MODELS)))
+    last_error: Exception | None = None
+
+    for model in candidates:
+        try:
+            response = _get_groq_client().chat.completions.create(
+                model=model,
+                messages=redacted_messages,
+                **kwargs,
+            )
+            _active_model = model
+            content = redactor.restore(response.choices[0].message.content or "")
+            return response, content
+        except Exception as exc:
+            status_code = getattr(exc, "status_code", None)
+            body = getattr(exc, "body", None) or {}
+            error = body.get("error", body) if isinstance(body, dict) else {}
+            error_code = str(error.get("code", "")) if isinstance(error, dict) else ""
+            message = str(error.get("message", exc)) if isinstance(error, dict) else str(exc)
+            unavailable = status_code == 404 or error_code in {"model_not_found", "model_decommissioned"} or "does not exist" in message.lower()
+            if not unavailable:
+                raise
+            last_error = exc
+            logger.warning("Groq model %s is unavailable; trying the next configured model", model)
+
+    raise RuntimeError("No configured Groq chat model is currently available") from last_error
 
 # ─── Conversation History Store (in-memory per session) ──────────────────────
 _sessions: dict[str, list[dict]] = {}
 _response_cache: OrderedDict[str, dict] = OrderedDict()
 _RESPONSE_CACHE_LIMIT = int(os.getenv("LLM_RESPONSE_CACHE_SIZE", "100"))
+
+
+def _role_system_policy(user: dict | None) -> str:
+    role = str((user or {}).get("role") or "Investigator")
+    disclosure = str((user or {}).get("disclosure_mode") or "case-scoped-pii")
+    return (
+        f"Authenticated role: {role}. Disclosure mode: {disclosure}. "
+        "Never reveal information beyond this disclosure mode. "
+        "For aggregate-only or administrative-metadata users, refuse requests for "
+        "case identities, offender identities, victim identities, addresses, or contact data."
+    )
+
+
+async def _load_session(session_id: str, runtime_request=None) -> list[dict]:
+    if session_id in _sessions:
+        return _sessions[session_id]
+    if runtime_request is not None:
+        managed = await cache_get_json(runtime_request, f"chat-session:{session_id}")
+        if managed["used"] and isinstance(managed.get("data"), list):
+            _sessions[session_id] = managed["data"]
+            return _sessions[session_id]
+    _sessions[session_id] = [{"role": "system", "content": SYSTEM_PROMPT}]
+    return _sessions[session_id]
+
+
+async def _persist_session(session_id: str, runtime_request=None) -> None:
+    history = _sessions.get(session_id, [])
+    if len(history) > 42:
+        history = [history[0]] + history[-40:]
+        _sessions[session_id] = history
+    if runtime_request is not None:
+        managed = await cache_put_json(
+            runtime_request, f"chat-session:{session_id}", history, expiry_hours=24
+        )
+        if not managed["used"]:
+            logger.warning("Catalyst chat-session cache unavailable: %s", managed.get("error"))
 
 
 def _query_pattern(message: str, language: str) -> str:
@@ -429,6 +499,64 @@ FOLLOW_UP_TERMS = {
     "more", "details", "explain", "compare", "why", "how", "ಇದು", "ಅದು", "ಅವರ",
 }
 
+_ARITHMETIC_OPERATORS = {
+    ast.Add: operator.add,
+    ast.Sub: operator.sub,
+    ast.Mult: operator.mul,
+    ast.Div: operator.truediv,
+    ast.FloorDiv: operator.floordiv,
+    ast.Mod: operator.mod,
+    ast.Pow: operator.pow,
+    ast.UAdd: operator.pos,
+    ast.USub: operator.neg,
+}
+
+
+def _try_safe_arithmetic(message: str) -> int | float | None:
+    """Evaluate a small numeric expression without exposing Python eval."""
+    expression = message.strip().replace("×", "*").replace("÷", "/").replace("^", "**")
+    expression = re.sub(r"^(?:what is|calculate|compute)\s+", "", expression, flags=re.IGNORECASE)
+    expression = expression.rstrip(" ?=")
+    if not expression or len(expression) > 80 or not re.fullmatch(r"[\d\s+\-*/%.()]+", expression):
+        return None
+
+    try:
+        tree = ast.parse(expression, mode="eval")
+    except (SyntaxError, ValueError):
+        return None
+
+    node_count = 0
+
+    def evaluate(node):
+        nonlocal node_count
+        node_count += 1
+        if node_count > 40:
+            raise ValueError("expression is too complex")
+        if isinstance(node, ast.Expression):
+            return evaluate(node.body)
+        if isinstance(node, ast.Constant) and type(node.value) in {int, float}:
+            if abs(node.value) > 1_000_000_000:
+                raise ValueError("operand is too large")
+            return node.value
+        if isinstance(node, ast.UnaryOp) and type(node.op) in _ARITHMETIC_OPERATORS:
+            return _ARITHMETIC_OPERATORS[type(node.op)](evaluate(node.operand))
+        if isinstance(node, ast.BinOp) and type(node.op) in _ARITHMETIC_OPERATORS:
+            left = evaluate(node.left)
+            right = evaluate(node.right)
+            if isinstance(node.op, ast.Pow) and (abs(right) > 8 or abs(left) > 1_000_000):
+                raise ValueError("power operation is too large")
+            result = _ARITHMETIC_OPERATORS[type(node.op)](left, right)
+            if abs(result) > 1_000_000_000_000:
+                raise ValueError("result is too large")
+            return result
+        raise ValueError("unsupported expression")
+
+    try:
+        result = evaluate(tree)
+    except (ArithmeticError, TypeError, ValueError, OverflowError):
+        return None
+    return int(result) if isinstance(result, float) and result.is_integer() else result
+
 
 def _is_ksp_domain_query(message: str, has_history: bool) -> bool:
     """Allow only Karnataka Police/crime-intelligence questions into the LLM path."""
@@ -456,7 +584,9 @@ def _domain_refusal(language: str) -> str:
 async def chat(
     session_id: str,
     user_message: str,
-    language: str = "en-US"
+    language: str = "en-US",
+    runtime_request=None,
+    user: dict | None = None,
 ) -> dict:
     """
     Process a chat message and return AI response with reasoning.
@@ -470,35 +600,52 @@ async def chat(
       }
     """
     clean_message = user_message.strip()
+    history = await _load_session(session_id, runtime_request)
+    history[0] = {
+        "role": "system",
+        "content": f"{SYSTEM_PROMPT}\n\n{_role_system_policy(user)}",
+    }
+
+    arithmetic_result = _try_safe_arithmetic(clean_message)
+    if arithmetic_result is not None:
+        ai_reply = str(arithmetic_result)
+        history.extend([
+            {"role": "user", "content": clean_message},
+            {"role": "assistant", "content": ai_reply},
+        ])
+        await _persist_session(session_id, runtime_request)
+        return {
+            "response": ai_reply,
+            "evidence": "Deterministic arithmetic evaluator",
+            "sources": [],
+            "cached": False,
+            "session_id": session_id,
+            "model": "deterministic-calculator",
+            "tokens_used": 0,
+        }
 
     # Handle conversational turns without inventing crime analysis.
     normalized = clean_message.lower().strip(" .,!?")
     greetings = {"hi", "hello", "hey", "hii", "good morning", "good afternoon", "good evening", "ನಮಸ್ಕಾರ", "ಹಾಯ್"}
     thanks = {"thanks", "thank you", "thankyou", "ok thanks", "ಧನ್ಯವಾದ", "ಧನ್ಯವಾದಗಳು"}
     if normalized in greetings or normalized in thanks:
-        if session_id not in _sessions:
-            _sessions[session_id] = [{"role": "system", "content": SYSTEM_PROMPT}]
         if normalized in thanks:
             ai_reply = "ಸ್ವಾಗತ. ಇನ್ನೇನಾದರೂ ತನಿಖಾ ಸಹಾಯ ಬೇಕಿದ್ದರೆ ಕೇಳಿ." if language == "kn-IN" else "You're welcome. Ask whenever you need more investigative support."
         else:
             ai_reply = "ನಮಸ್ಕಾರ. ಇಂದು ಯಾವ ಪ್ರಕರಣ ಅಥವಾ ಅಪರಾಧ ಮಾದರಿಯನ್ನು ಪರಿಶೀಲಿಸಬೇಕು?" if language == "kn-IN" else "Hello. What case, offender, location, or crime pattern would you like to investigate?"
-        _sessions[session_id].extend([
+        history.extend([
             {"role": "user", "content": clean_message},
             {"role": "assistant", "content": ai_reply},
         ])
+        await _persist_session(session_id, runtime_request)
         return {"response": ai_reply, "evidence": "", "sources": [], "cached": False, "session_id": session_id, "model": "conversation-router", "tokens_used": 0}
-
-    # Initialize session
-    if session_id not in _sessions:
-        _sessions[session_id] = [{"role": "system", "content": SYSTEM_PROMPT}]
-
-    history = _sessions[session_id]
     if not _is_ksp_domain_query(clean_message, len(history) > 1):
         ai_reply = _domain_refusal(language)
         history.extend([
             {"role": "user", "content": clean_message},
             {"role": "assistant", "content": ai_reply},
         ])
+        await _persist_session(session_id, runtime_request)
         return {
             "response": ai_reply,
             "evidence": "",
@@ -574,6 +721,7 @@ If the selected language is Kannada, write in clean, grammatically correct Kanna
         cached = _cached_response(cache_key)
         if cached:
             logger.warning("LLM unavailable for %s; returning cached response: %s", cache_key, exc)
+            history.pop()
             return {
                 **cached,
                 "session_id": session_id,
@@ -601,9 +749,7 @@ If the selected language is Kannada, write in clean, grammatically correct Kanna
     # Store assistant response (clean, without augmented context)
     history.append({"role": "assistant", "content": ai_reply})
 
-    # Keep history bounded (last 20 turns)
-    if len(history) > 42:
-        _sessions[session_id] = [history[0]] + history[-40:]
+    await _persist_session(session_id, runtime_request)
 
     result = {
         "response":   ai_reply,
@@ -611,7 +757,7 @@ If the selected language is Kannada, write in clean, grammatically correct Kanna
         "sources":    sources,
         "cached":     False,
         "session_id": session_id,
-        "model":      MODEL,
+        "model":      _active_model,
         "response_depth": profile["name"],
         "tokens_used": response.usage.total_tokens if response.usage else 0
     }
@@ -681,7 +827,7 @@ Structure your response as:
         "summary":   summary,
         "fir_data":  detail,
         "related":   related,
-        "model":     MODEL
+        "model":     _active_model
     }
 
 
@@ -745,7 +891,7 @@ Provide:
     return {
         "recommendations": recommendations,
         "data_context": stats[:5],
-        "model": MODEL
+        "model": _active_model
     }
 
 

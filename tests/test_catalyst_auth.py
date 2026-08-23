@@ -24,6 +24,23 @@ class CatalystAuthTests(unittest.TestCase):
         self.assertEqual(user["user_id"], "123")
         self.assertEqual(user["role"], "Investigator")
         self.assertEqual(user["auth_provider"], "catalyst")
+        self.assertIn("case:read_assigned", user["capabilities"])
+
+    def test_all_challenge_roles_are_normalized(self):
+        expected = {
+            "Crime Analyst": "Analyst",
+            "Supervisor": "Supervisor",
+            "Policy Maker": "Policymaker",
+            "App Administrator": "Administrator",
+        }
+        for catalyst_role, application_role in expected.items():
+            with self.subTest(catalyst_role=catalyst_role):
+                user = normalize_catalyst_user({
+                    "status": "ACTIVE",
+                    "user_id": catalyst_role,
+                    "role_details": {"role_name": catalyst_role},
+                })
+                self.assertEqual(user["role"], application_role)
 
     def test_unknown_role_is_denied(self):
         with self.assertRaises(HTTPException) as raised:

@@ -8,10 +8,9 @@
 // TTS/STT/translation are handled server-side through Sarvam AI where configured.
 
 // ─── Config ───────────────────────────────────────────────────────────────────
-const LOCAL_API_BASE = 'http://127.0.0.1:8000';
 const CATALYST_APPSAIL_BASE = 'https://namma-ksp-50043229029.development.catalystappsail.in';
 const API_BASE = (window.location.protocol === 'file:' || ['127.0.0.1', 'localhost'].includes(window.location.hostname))
-  ? LOCAL_API_BASE
+  ? 'http://127.0.0.1:8000'
   : (window.location.hostname.endsWith('catalystappsail.in') ? window.location.origin : CATALYST_APPSAIL_BASE);
 
 // ─── Bilingual Translation Engine ─────────────────────────────────────────────
@@ -324,6 +323,7 @@ function getToken()    { return sessionStorage.getItem('cl_token'); }
 function getUsername() { return sessionStorage.getItem('cl_username'); }
 function getRole()     { return sessionStorage.getItem('cl_role'); }
 let _authConfigPromise = null;
+let _workspaceContractPromise = null;
 
 function getAuthConfig() {
   if (!_authConfigPromise) {
@@ -341,11 +341,18 @@ function normalizeCatalystBrowserUser(raw) {
   const roleName = raw?.role_details?.role_name || '';
   const adminRoles = ['admin', 'app admin', 'app administrator'];
   const investigatorRoles = ['investigator'];
+  const analystRoles = ['analyst', 'crime analyst'];
+  const supervisorRoles = ['supervisor'];
+  const policymakerRoles = ['policymaker', 'policy maker'];
   const roleKey = roleName.toLowerCase();
-  if (!adminRoles.includes(roleKey) && !investigatorRoles.includes(roleKey)) {
+  if (![...adminRoles, ...investigatorRoles, ...analystRoles, ...supervisorRoles, ...policymakerRoles].includes(roleKey)) {
     throw new Error('Catalyst role is not authorized for NAMMA KSP');
   }
-  const role = adminRoles.includes(roleKey) ? 'Admin' : 'Investigator';
+  const role = adminRoles.includes(roleKey) ? 'Administrator'
+    : analystRoles.includes(roleKey) ? 'Analyst'
+    : supervisorRoles.includes(roleKey) ? 'Supervisor'
+    : policymakerRoles.includes(roleKey) ? 'Policymaker'
+    : 'Investigator';
   const fullName = [raw?.first_name, raw?.last_name].filter(Boolean).join(' ').trim();
   return {
     username: fullName || raw?.email_id || 'Catalyst User',
@@ -376,7 +383,7 @@ async function initCatalystLogin() {
   const user = await getCatalystBrowserUser();
   if (user) {
     setSession('', user.username, user.role);
-    location.replace('dashboard.html');
+    location.replace(consumeAuthReturnPath());
     return;
   }
   if (catalystLogin && window.catalyst?.auth?.signIn) {
@@ -399,6 +406,101 @@ function clearSession() {
     // Remove credentials created by older deployments.
     localStorage.removeItem(k);
   });
+}
+
+async function getWorkspaceContract() {
+  if (!_workspaceContractPromise) {
+    _workspaceContractPromise = apiFetch('/api/workspace/me').catch(error => {
+      console.error('Workspace contract unavailable', error);
+      return null;
+    });
+  }
+  return _workspaceContractPromise;
+}
+
+function workspaceModuleLabel(value) {
+  return String(value || '').split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
+}
+
+function applyWorkspaceNavigation(contract) {
+  const allowed = new Set(contract?.navigation || []);
+  const pageMap = {
+    'dashboard.html': 'dashboard', 'chat.html': 'chat', 'network.html': 'network',
+    'heatmap.html': 'heatmap', 'offenders.html': 'offenders', 'reports.html': 'reports',
+    'users.html': 'users', 'audit.html': 'audit'
+  };
+  document.querySelectorAll('.nav-item[data-page]').forEach(item => {
+    const key = pageMap[item.dataset.page];
+    if (key) item.hidden = !allowed.has(key);
+  });
+}
+
+function applyWorkspaceDashboard(contract) {
+  if (!contract || (location.pathname.split('/').pop() || '') !== 'dashboard.html') return;
+  document.body.dataset.workspace = contract.workspace_id;
+  const title = document.querySelector('.dashboard-command-header .page-title');
+  const subtitle = document.querySelector('.dashboard-command-header .page-subtitle');
+  if (title) title.textContent = contract.title;
+  if (subtitle) subtitle.textContent = contract.purpose;
+
+  const header = document.querySelector('.dashboard-command-header');
+  if (header && !document.getElementById('role-workspace-summary')) {
+    const section = document.createElement('section');
+    section.id = 'role-workspace-summary';
+    section.className = 'role-workspace-summary';
+    section.setAttribute('aria-label', `${contract.role} workspace capabilities`);
+    section.innerHTML = `
+      <div class="role-workspace-heading">
+        <div><span>${escapeHTML(contract.role)} workspace</span><strong>${escapeHTML(contract.title)}</strong></div>
+        <div class="workspace-security-meta"><b>${escapeHTML(contract.disclosure_mode)}</b><span>${escapeHTML(contract.data_classification)} data</span></div>
+      </div>
+      <div class="role-workspace-modules">
+        ${(contract.modules || []).map((module, index) => `<div class="role-workspace-module"><span>${String(index + 1).padStart(2, '0')}</span><strong>${escapeHTML(workspaceModuleLabel(module))}</strong></div>`).join('')}
+      </div>
+      <div class="role-workspace-actions">
+        ${(contract.primary_actions || []).map(action => `<span>${escapeHTML(action)}</span>`).join('')}
+      </div>`;
+    header.insertAdjacentElement('afterend', section);
+  }
+
+  const selectors = {
+    stats: '.dashboard-stat-grid', visual: '.dashboard-visual-section',
+    intelligence: '.dashboard-intelligence-section', briefing: '.dashboard-briefing-section',
+    cases: '.dashboard-cases-panel', districts: '.dashboard-district-section'
+  };
+  const visibleByRole = {
+    Investigator: ['stats', 'visual', 'cases', 'districts'],
+    Analyst: ['stats', 'visual', 'intelligence', 'districts'],
+    Supervisor: ['stats', 'visual', 'intelligence', 'briefing', 'cases', 'districts'],
+    Policymaker: ['stats', 'visual', 'intelligence', 'briefing', 'districts'],
+    Administrator: []
+  };
+  const visible = new Set(visibleByRole[contract.role] || []);
+  Object.entries(selectors).forEach(([key, selector]) => {
+    const element = document.querySelector(selector);
+    if (element) element.hidden = !visible.has(key);
+  });
+}
+
+async function initRoleWorkspace() {
+  const contract = await getWorkspaceContract();
+  if (!contract) return;
+  sessionStorage.setItem('cl_role', contract.role);
+  applyWorkspaceNavigation(contract);
+  applyWorkspaceDashboard(contract);
+}
+
+function rememberAuthReturnPath() {
+  const page = location.pathname.split('/').pop() || 'dashboard.html';
+  if (page === 'index.html') return;
+  const safePage = /^(dashboard|chat|network|heatmap|offenders|reports|users|audit)\.html$/.test(page) ? page : 'dashboard.html';
+  sessionStorage.setItem('cl_auth_return', `${safePage}${location.search || ''}`);
+}
+
+function consumeAuthReturnPath() {
+  const target = sessionStorage.getItem('cl_auth_return') || 'dashboard.html';
+  sessionStorage.removeItem('cl_auth_return');
+  return /^(dashboard|chat|network|heatmap|offenders|reports|users|audit)\.html(?:\?[^#]*)?$/.test(target) ? target : 'dashboard.html';
 }
 
 function injectSyntheticDataNotice() {
@@ -426,8 +528,9 @@ async function apiFetch(path, opts = {}) {
   if (token) headers['Authorization'] = `Bearer ${token}`;
   const res = await fetch(`${API_BASE}${path}`, { ...opts, headers, credentials: 'include' });
   if (res.status === 401) {
+    rememberAuthReturnPath();
     clearSession();
-    location.replace('index.html');
+    location.replace('index.html?reason=session-expired');
     return null;
   }
   if (!res.ok) {
@@ -468,8 +571,9 @@ function authGuard() {
 
     const user = config.demo_mode ? (token ? await validateStoredSession(token) : null) : await getCatalystBrowserUser();
     if (!user) {
+      if (!isLogin) rememberAuthReturnPath();
       clearSession();
-      if (!isLogin) location.replace('index.html');
+      if (!isLogin) location.replace('index.html?reason=session-expired');
       return isLogin;
     }
 
@@ -477,7 +581,7 @@ function authGuard() {
     sessionStorage.setItem('cl_role', user.role);
 
     if (isLogin) {
-      location.replace('dashboard.html');
+      location.replace(consumeAuthReturnPath());
       return false;
     }
 
@@ -486,6 +590,7 @@ function authGuard() {
     initHeaderActions();
     highlightActiveNav();
     initAdminGating();
+    await initRoleWorkspace();
     initPasswordToggle();
     initModals();
     document.documentElement.classList.remove('auth-pending');
@@ -531,7 +636,7 @@ async function handleLogin(e) {
     const json = await data.json();
 
     setSession(json.token, json.username, json.role);
-    location.href = 'dashboard.html';
+    location.href = consumeAuthReturnPath();
   } catch (err) {
     showLoginError(err.message);
     btn.disabled = false;
@@ -637,11 +742,11 @@ function applyUserUI() {
 function initAdminGating() {
   const role = getRole();
   document.querySelectorAll('.nav-admin-only').forEach(el => {
-    el.style.display = role === 'Admin' ? '' : 'none';
+    el.style.display = role === 'Administrator' ? '' : 'none';
   });
   // If non-admin lands on users.html, redirect
   const page = location.pathname.split('/').pop();
-  if (page === 'users.html' && role !== 'Admin') {
+  if (page === 'users.html' && role !== 'Administrator') {
     showToast('Admin access required', 'error');
     setTimeout(() => location.href = 'dashboard.html', 1500);
   }
@@ -675,44 +780,182 @@ function initSidebar() {
   }
 
   hamburger.addEventListener('click', () => {
-    // Mobile view toggles
-    sidebar.classList.toggle('mobile-open');
-    if (overlay) overlay.classList.toggle('active');
-    
-    // Desktop view toggles
-    sidebar.classList.toggle('collapsed');
-    if (main) main.classList.toggle('sidebar-collapsed');
-    
-    // Save collapsed state
-    localStorage.setItem('cl_sidebar_collapsed', sidebar.classList.contains('collapsed'));
+    const isMobile = window.matchMedia('(max-width: 768px)').matches;
+    if (isMobile) {
+      const isOpen = sidebar.classList.toggle('mobile-open');
+      if (overlay) overlay.classList.toggle('active', isOpen);
+      document.body.classList.toggle('sidebar-open', isOpen);
+      hamburger.setAttribute('aria-expanded', String(isOpen));
+      return;
+    }
+
+    const isNowCollapsed = sidebar.classList.toggle('collapsed');
+    if (main) main.classList.toggle('sidebar-collapsed', isNowCollapsed);
+    hamburger.setAttribute('aria-expanded', String(!isNowCollapsed));
+    localStorage.setItem('cl_sidebar_collapsed', String(isNowCollapsed));
   });
 
   if (overlay) {
     overlay.addEventListener('click', () => {
       sidebar.classList.remove('mobile-open');
       overlay.classList.remove('active');
+      document.body.classList.remove('sidebar-open');
+      hamburger.setAttribute('aria-expanded', 'false');
     });
   }
 }
 
 // ─── Notifications Panel ──────────────────────────────────────────────────────
-function toggleNotifications() {
-  showToast('No new notifications', 'info');
+async function toggleNotifications() {
+  const panel = ensureIntelligenceDrawer();
+  const isOpen = panel.classList.toggle('open');
+  document.getElementById('intelligence-drawer-overlay')?.classList.toggle('open', isOpen);
+  if (!isOpen) return;
+
+  const body = panel.querySelector('.intelligence-drawer-body');
+  body.innerHTML = renderPanelSkeleton(4);
+  try {
+    const response = await apiFetch('/api/alerts/early-warning?limit=12');
+    const alerts = Array.isArray(response) ? response : (response?.alerts || response?.data || []);
+    updateNotificationBadge(alerts);
+    body.innerHTML = alerts.length ? renderNotificationCenter(alerts) : `
+      <div class="operational-empty">
+        <div class="operational-empty-icon" aria-hidden="true">✓</div>
+        <strong>No active early warnings</strong>
+        <span>The intelligence ledger has no current warning events.</span>
+      </div>`;
+  } catch (error) {
+    body.innerHTML = `
+      <div class="operational-empty operational-error">
+        <strong>Early warnings are unavailable</strong>
+        <span>${escapeHTML(error.message || 'Check the connection and try again.')}</span>
+        <button class="btn btn-outline btn-sm" type="button" onclick="toggleNotifications();toggleNotifications()">Retry</button>
+      </div>`;
+  }
+}
+
+function ensureIntelligenceDrawer() {
+  let panel = document.getElementById('intelligence-drawer');
+  if (panel) return panel;
+  const overlay = document.createElement('div');
+  overlay.id = 'intelligence-drawer-overlay';
+  overlay.className = 'intelligence-drawer-overlay';
+  overlay.addEventListener('click', closeIntelligenceDrawer);
+  panel = document.createElement('aside');
+  panel.id = 'intelligence-drawer';
+  panel.className = 'intelligence-drawer';
+  panel.setAttribute('aria-label', 'Early warning intelligence');
+  panel.innerHTML = `
+    <div class="intelligence-drawer-header">
+      <div><span class="drawer-kicker">Operational ledger</span><h2>Early warning intelligence</h2></div>
+      <button class="btn btn-ghost btn-icon" type="button" onclick="closeIntelligenceDrawer()" aria-label="Close early warnings">×</button>
+    </div>
+    <div class="intelligence-drawer-body"></div>
+    <div class="intelligence-drawer-footer"><a class="btn btn-primary btn-sm" href="dashboard.html">Open command dashboard</a></div>`;
+  document.body.append(overlay, panel);
+  return panel;
+}
+
+function closeIntelligenceDrawer() {
+  document.getElementById('intelligence-drawer')?.classList.remove('open');
+  document.getElementById('intelligence-drawer-overlay')?.classList.remove('open');
+}
+
+function renderEarlyWarningAlert(alert) {
+  const severity = String(alert.severity || alert.alert_level || 'medium').toLowerCase();
+  const district = alert.district || alert.area || 'Statewide';
+  const title = alert.signal || alert.crime_type || 'Intelligence warning';
+  const detail = alert.detail || alert.recommended_action || 'Review the underlying intelligence signal.';
+  const time = alert.created_at || alert.timestamp || '';
+  const action = alert.recommended_action || alert.action || 'Review linked cases and district trend evidence.';
+  const key = `${district}|${title}|${time}`;
+  const reviewed = getReviewedWarnings().includes(key);
+  return `<article class="warning-ledger-item severity-${escapeHTML(severity)}${reviewed ? ' reviewed' : ''}">
+    <div class="warning-ledger-marker" aria-hidden="true"></div>
+    <div class="warning-ledger-content">
+      <div class="warning-ledger-meta"><span>${escapeHTML(severity)}</span><span>${escapeHTML(district)}</span></div>
+      <strong>${escapeHTML(title)}</strong>
+      <p>${escapeHTML(detail)}</p>
+      <div class="warning-ledger-action"><span>Recommended response</span><b>${escapeHTML(action)}</b></div>
+      ${time ? `<time>${escapeHTML(formatOperationalDate(time))}</time>` : ''}
+      <div class="warning-ledger-controls">
+        <button type="button" onclick="openWarningDistrict(decodeURIComponent('${encodeURIComponent(district)}'))">District analytics</button>
+        <a href="chat.html?q=${encodeURIComponent(`Assess the verified early warning for ${district}: ${title}`)}">Ask AI</a>
+        <button type="button" class="warning-review-btn" onclick="markWarningReviewed(this, decodeURIComponent('${encodeURIComponent(key)}'))">${reviewed ? 'Reviewed' : 'Mark reviewed'}</button>
+      </div>
+    </div>
+  </article>`;
+}
+
+function renderNotificationCenter(alerts) {
+  const open = alerts.filter(alert => String(alert.status || 'open').toLowerCase() === 'open');
+  const high = open.filter(alert => ['critical', 'high'].includes(String(alert.severity || alert.alert_level || '').toLowerCase())).length;
+  const districts = new Set(open.map(alert => alert.district || alert.area).filter(Boolean)).size;
+  const reviewed = getReviewedWarnings().length;
+  return `
+    <div class="warning-center-summary">
+      <div><span>Open signals</span><strong>${open.length}</strong></div>
+      <div><span>High priority</span><strong>${high}</strong></div>
+      <div><span>Districts</span><strong>${districts}</strong></div>
+      <div><span>Reviewed</span><strong>${reviewed}</strong></div>
+    </div>
+    <div class="warning-center-label"><span>Ranked operational signals</span><span>Live analytics ledger</span></div>
+    ${alerts.map(renderEarlyWarningAlert).join('')}`;
+}
+
+function getReviewedWarnings() {
+  try { return JSON.parse(localStorage.getItem('namma_reviewed_warnings') || '[]'); }
+  catch (_) { return []; }
+}
+
+function markWarningReviewed(button, key) {
+  const reviewed = new Set(getReviewedWarnings());
+  reviewed.add(key);
+  localStorage.setItem('namma_reviewed_warnings', JSON.stringify([...reviewed].slice(-100)));
+  button.textContent = 'Reviewed';
+  button.closest('.warning-ledger-item')?.classList.add('reviewed');
+}
+
+function openWarningDistrict(district) {
+  closeIntelligenceDrawer();
+  if (document.getElementById('dashboard-analytics-drawer')) openDashboardDistrictAnalytics(district);
+  else window.location.href = `heatmap.html?district=${encodeURIComponent(district)}`;
+}
+
+function formatOperationalDate(value) {
+  const date = new Date(value);
+  return Number.isNaN(date.getTime()) ? String(value) : new Intl.DateTimeFormat('en-IN', {
+    day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit'
+  }).format(date);
+}
+
+function updateNotificationBadge(alerts) {
+  const count = alerts.filter(alert => String(alert.status || 'open').toLowerCase() === 'open').length;
+  document.querySelectorAll('.header-icon-btn[aria-label="Notifications"] .badge-dot').forEach(dot => {
+    dot.hidden = count === 0;
+    dot.dataset.count = String(count);
+  });
+}
+
+function renderPanelSkeleton(count = 3) {
+  return Array.from({ length: count }, () => '<div class="panel-skeleton"><span></span><span></span><span></span></div>').join('');
 }
 
 // ─── Toast ────────────────────────────────────────────────────────────────────
 function showToast(message, type = 'info') {
-  const colors = { success:'#166534', error:'#991B1B', info:'#1D4ED8', warning:'#92400E' };
+  let region = document.getElementById('toast-region');
+  if (!region) {
+    region = document.createElement('div');
+    region.id = 'toast-region';
+    region.className = 'toast-region';
+    region.setAttribute('aria-live', 'polite');
+    document.body.appendChild(region);
+  }
   const toast = document.createElement('div');
-  toast.style.cssText = `
-    position:fixed;bottom:24px;right:24px;z-index:9999;
-    background:${colors[type]||colors.info};color:#fff;
-    padding:12px 20px;border-radius:8px;font-size:13px;font-weight:500;
-    box-shadow:0 4px 20px rgba(0,0,0,.25);max-width:360px;
-    animation:slideUp .3s ease;font-family:Inter,sans-serif;
-  `;
-  toast.textContent = message;
-  document.body.appendChild(toast);
+  toast.className = `operational-toast toast-${type}`;
+  toast.innerHTML = `<span class="toast-status" aria-hidden="true"></span><span>${escapeHTML(message)}</span><button type="button" aria-label="Dismiss notification">×</button>`;
+  toast.querySelector('button').addEventListener('click', () => toast.remove());
+  region.appendChild(toast);
   setTimeout(() => toast.remove(), 4000);
 }
 
@@ -838,7 +1081,78 @@ function renderKPIs(data) {
 let _barChartInstance = null;
 let _donutChartInstance = null;
 
+const dimensionalChartShadow = {
+  id: 'dimensionalChartShadow',
+  beforeDatasetDraw(chart) {
+    const { ctx } = chart;
+    ctx.save();
+    ctx.shadowColor = 'rgba(8, 20, 38, 0.22)';
+    ctx.shadowBlur = 14;
+    ctx.shadowOffsetX = 0;
+    ctx.shadowOffsetY = 8;
+  },
+  afterDatasetDraw(chart) {
+    chart.ctx.restore();
+  }
+};
+
+const donutIntelligenceLabel = {
+  id: 'donutIntelligenceLabel',
+  afterDatasetsDraw(chart) {
+    if (chart.config.type !== 'doughnut') return;
+    const { ctx, chartArea } = chart;
+    const total = chart.data.datasets[0].data.reduce((sum, value) => sum + Number(value || 0), 0);
+    const x = (chartArea.left + chartArea.right) / 2;
+    const y = (chartArea.top + chartArea.bottom) / 2 - 12;
+    ctx.save();
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillStyle = document.documentElement.dataset.theme === 'dark' ? '#F8FAFC' : '#14213A';
+    ctx.font = '800 22px system-ui, sans-serif';
+    ctx.fillText(total.toLocaleString(), x, y);
+    ctx.fillStyle = document.documentElement.dataset.theme === 'dark' ? '#A9B6C8' : '#687486';
+    ctx.font = '600 10px system-ui, sans-serif';
+    ctx.fillText('TOP CRIME RECORDS', x, y + 22);
+    ctx.restore();
+  }
+};
+
+function createChartGradient(chart, topColor, bottomColor) {
+  const { ctx, chartArea } = chart;
+  if (!chartArea) return topColor;
+  const gradient = ctx.createLinearGradient(0, chartArea.top, 0, chartArea.bottom);
+  gradient.addColorStop(0, topColor);
+  gradient.addColorStop(1, bottomColor);
+  return gradient;
+}
+
+function getDashboardChartTheme() {
+  const dark = document.documentElement.dataset.theme === 'dark';
+  return {
+    text: dark ? '#AEBCCD' : '#627084',
+    grid: dark ? 'rgba(174,188,205,0.12)' : 'rgba(98,112,132,0.13)',
+    donutBorder: dark ? '#121C2A' : '#FFFFFF'
+  };
+}
+
+function syncDashboardChartsTheme() {
+  if (window.NammaAnalytics) window.NammaAnalytics.syncTheme();
+  const theme = getDashboardChartTheme();
+  if (_barChartInstance) {
+    _barChartInstance.options.scales.x.ticks.color = theme.text;
+    _barChartInstance.options.scales.y.ticks.color = theme.text;
+    _barChartInstance.options.scales.y.grid.color = theme.grid;
+    _barChartInstance.update('none');
+  }
+  if (_donutChartInstance) {
+    _donutChartInstance.options.plugins.legend.labels.color = theme.text;
+    _donutChartInstance.data.datasets[0].borderColor = theme.donutBorder;
+    _donutChartInstance.update('none');
+  }
+}
+
 function renderBarChart(trends) {
+  if (window.NammaAnalytics?.mountTrend(trends)) return;
   const canvas = document.getElementById('crime-bar-chart');
   if (!canvas || !trends?.length) return;
 
@@ -855,6 +1169,7 @@ function renderBarChart(trends) {
   });
   const counts = last12.map(r => r.count);
 
+  const theme = getDashboardChartTheme();
   _barChartInstance = new Chart(canvas, {
     type: 'bar',
     data: {
@@ -862,24 +1177,48 @@ function renderBarChart(trends) {
       datasets: [{
         label: 'FIRs',
         data: counts,
-        backgroundColor: 'rgba(28,43,74,0.8)',
-        borderColor: '#1C2B4A',
+        backgroundColor: context => createChartGradient(context.chart, '#3D9BA0', '#172B4D'),
+        hoverBackgroundColor: context => createChartGradient(context.chart, '#F1A53A', '#C46D16'),
+        borderColor: 'rgba(255,255,255,0.5)',
         borderWidth: 1,
-        borderRadius: 4
+        borderRadius: { topLeft: 8, topRight: 8, bottomLeft: 2, bottomRight: 2 },
+        borderSkipped: false,
+        maxBarThickness: 32,
+        barPercentage: 0.78,
+        categoryPercentage: 0.82
       }]
     },
     options: {
       responsive: true, maintainAspectRatio: false,
-      plugins: { legend: { display: false } },
+      interaction: { mode: 'index', intersect: false },
+      onHover: (event, elements) => { event.native.target.style.cursor = elements.length ? 'pointer' : 'default'; },
+      onClick: (_event, elements) => {
+        if (elements.length) openMonthlyCrimeIntelligence(last12[elements[0].index]);
+      },
+      animation: { duration: 680, easing: 'easeOutExpo', delay: (ctx) => ctx.dataIndex * 30 },
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          displayColors: false,
+          padding: 12,
+          cornerRadius: 6,
+          backgroundColor: 'rgba(12, 26, 48, 0.96)',
+          titleColor: '#F7B84B',
+          bodyColor: '#F8FAFC',
+          callbacks: { label: context => `${Number(context.raw || 0).toLocaleString()} FIRs registered` }
+        }
+      },
       scales: {
-        x: { grid: { display: false }, ticks: { color: '#6B7280', font: { size: 11 } } },
-        y: { grid: { color: '#F3F4F6' }, ticks: { color: '#6B7280', font: { size: 11 } } }
+        x: { grid: { display: false }, border: { display: false }, ticks: { color: theme.text, font: { size: 11, weight: 600 } } },
+        y: { beginAtZero: true, grid: { color: theme.grid }, border: { display: false }, ticks: { color: theme.text, font: { size: 11 }, maxTicksLimit: 5, callback: v => v >= 1000 ? (v/1000).toFixed(1)+'k' : v } }
       }
-    }
+    },
+    plugins: [dimensionalChartShadow]
   });
 }
 
 function renderDonutChart(crimeTypes) {
+  if (window.NammaAnalytics?.mountDistribution(crimeTypes)) return;
   const canvas = document.getElementById('crime-donut-chart');
   if (!canvas || !crimeTypes?.length) return;
 
@@ -889,8 +1228,9 @@ function renderDonutChart(crimeTypes) {
   }
 
   const top6 = crimeTypes.slice(0, 6);
-  const COLORS = ['#1C2B4A','#2A7F7F','#D4872A','#B91C1C','#166534','#7C3AED'];
+  const COLORS = ['#1C2B4A','#2A7F7F','#D4872A','#B91C1C','#166534','#64748B'];
 
+  const theme = getDashboardChartTheme();
   _donutChartInstance = new Chart(canvas, {
     type: 'doughnut',
     data: {
@@ -898,21 +1238,149 @@ function renderDonutChart(crimeTypes) {
       datasets: [{
         data: top6.map(r => r.count),
         backgroundColor: COLORS,
-        borderWidth: 2,
-        borderColor: '#fff'
+        hoverBackgroundColor: ['#2C426F','#38A7A2','#F0A43D','#D65A5A','#2D8B62','#8190A5'],
+        borderWidth: 3,
+        borderColor: theme.donutBorder,
+        hoverBorderColor: '#F7B84B',
+        hoverBorderWidth: 3,
+        hoverOffset: 12,
+        spacing: 2
       }]
     },
     options: {
       responsive: true, maintainAspectRatio: false,
+      rotation: -70,
+      onHover: (event, elements) => { event.native.target.style.cursor = elements.length ? 'pointer' : 'default'; },
+      onClick: (_event, elements) => {
+        if (elements.length) openCrimeTypeIntelligence(top6[elements[0].index]);
+      },
+      animation: { animateRotate: true, animateScale: true, duration: 900, easing: 'easeOutExpo' },
       plugins: {
         legend: {
           position: 'bottom',
-          labels: { font: { size: 11 }, color: '#374151', padding: 12 }
+          labels: { usePointStyle: true, pointStyle: 'circle', boxWidth: 7, font: { size: 10, weight: 600 }, color: theme.text, padding: 13 }
+        },
+        tooltip: {
+          padding: 12,
+          cornerRadius: 6,
+          backgroundColor: 'rgba(12, 26, 48, 0.96)',
+          titleColor: '#F7B84B',
+          bodyColor: '#F8FAFC'
         }
       },
-      cutout: '62%'
-    }
+      cutout: '68%'
+    },
+    plugins: [dimensionalChartShadow, donutIntelligenceLabel]
   });
+}
+
+function countIntelligenceValues(rows, key) {
+  const counts = new Map();
+  rows.forEach(row => {
+    const value = String(row?.[key] || 'Unknown').trim() || 'Unknown';
+    counts.set(value, (counts.get(value) || 0) + 1);
+  });
+  return [...counts.entries()].sort((a, b) => b[1] - a[1]);
+}
+
+function openAnalyticsDrawerShell(titleText, subtitleText) {
+  disposeDistrictAnalytics3D();
+  const drawer = document.getElementById('dashboard-analytics-drawer');
+  const overlay = document.getElementById('dashboard-analytics-overlay');
+  const title = document.getElementById('dashboard-analytics-title');
+  const subtitle = document.getElementById('dashboard-analytics-subtitle');
+  const body = document.getElementById('dashboard-analytics-body');
+  if (!drawer || !overlay || !body) return null;
+  drawer.classList.remove('district-analytics-popup');
+  drawer.classList.add('open');
+  overlay.classList.add('open');
+  if (title) title.textContent = titleText;
+  if (subtitle) subtitle.textContent = subtitleText;
+  body.innerHTML = '<div class="intelligence-map-loading"><span></span><strong>Building linked intelligence map...</strong><small>Grouping verified FIR evidence</small></div>';
+  return body;
+}
+
+function renderMapBranch(label, rows, contextLabel, maxValue, tone) {
+  return `<section class="intelligence-map-branch ${tone}">
+    <div class="intelligence-map-branch-title"><span></span><strong>${escapeHTML(label)}</strong></div>
+    <div class="intelligence-map-nodes">
+      ${rows.slice(0, 5).map(([name, count]) => `<a class="intelligence-map-node" href="chat.html?q=${encodeURIComponent(`Analyze ${name} within ${contextLabel}`)}">
+        <span>${escapeHTML(name)}</span><strong>${Number(count).toLocaleString()}</strong>
+        <i style="--node-strength:${Math.max(12, Math.round((count / maxValue) * 100))}%"></i>
+      </a>`).join('') || '<p class="ops-muted">No linked evidence available.</p>'}
+    </div>
+  </section>`;
+}
+
+function renderCrimeIntelligenceMap({ title, total, crimeRows, districtRows, statusRows, firs, contextLabel, chatQuery }) {
+  const maxValue = Math.max(crimeRows[0]?.[1] || 0, districtRows[0]?.[1] || 0, statusRows[0]?.[1] || 0, 1);
+  return `<div class="intelligence-map" aria-label="Linked crime intelligence map">
+    <div class="intelligence-map-root"><span>Selected intelligence</span><strong>${escapeHTML(title)}</strong><b>${Number(total).toLocaleString()} verified FIRs</b></div>
+    <div class="intelligence-map-trunk" aria-hidden="true"></div>
+    ${renderMapBranch('Crime composition', crimeRows, contextLabel, maxValue, 'crime-branch')}
+    ${renderMapBranch('District concentration', districtRows, contextLabel, maxValue, 'district-branch')}
+    ${renderMapBranch('Investigation status', statusRows, contextLabel, maxValue, 'status-branch')}
+    <section class="intelligence-map-branch fir-branch">
+      <div class="intelligence-map-branch-title"><span></span><strong>Evidence records</strong></div>
+      <div class="intelligence-map-firs">${firs.slice(0, 6).map(fir => `<button type="button" onclick="viewFIR('${escapeHTML(fir.fir_id)}')"><strong>${escapeHTML(fir.fir_id)}</strong><span>${escapeHTML(fir.crime_type)} · ${escapeHTML(fir.district)}</span><small>${escapeHTML(fir.status)}</small></button>`).join('')}</div>
+    </section>
+  </div>
+  <div class="detail-action-row intelligence-map-actions">
+    <a class="btn btn-primary btn-sm" href="chat.html?q=${encodeURIComponent(chatQuery)}">Ask AI</a>
+    <a class="btn btn-outline btn-sm" href="heatmap.html">Open Heatmap</a>
+    <a class="btn btn-outline btn-sm" href="network.html">Trace Network</a>
+    <a class="btn btn-accent btn-sm" href="reports.html">Generate Report</a>
+  </div>`;
+}
+
+async function openMonthlyCrimeIntelligence(monthRow) {
+  const monthValue = String(monthRow?.month || '');
+  if (!/^\d{4}-\d{2}$/.test(monthValue)) return;
+  const [year, month] = monthValue.split('-').map(Number);
+  const monthName = new Date(year, month - 1, 1).toLocaleString('en-IN', { month: 'long', year: 'numeric' });
+  const fromDate = `${year}-${String(month).padStart(2, '0')}-01`;
+  const lastDay = String(new Date(year, month, 0).getDate()).padStart(2, '0');
+  const body = openAnalyticsDrawerShell(`${monthName} Intelligence`, 'Crime composition, locations, status and FIR evidence');
+  if (!body) return;
+  try {
+    const firs = await apiFetch(`/api/firs?from_date=${fromDate}&to_date=${year}-${String(month).padStart(2, '0')}-${lastDay}&limit=200`);
+    const rows = Array.isArray(firs) ? firs : [];
+    body.innerHTML = renderCrimeIntelligenceMap({
+      title: monthName,
+      total: rows.length,
+      crimeRows: countIntelligenceValues(rows, 'crime_type'),
+      districtRows: countIntelligenceValues(rows, 'district'),
+      statusRows: countIntelligenceValues(rows, 'status'),
+      firs: rows,
+      contextLabel: monthName,
+      chatQuery: `Analyze the verified crime patterns, districts and investigation status for ${monthName}`
+    });
+  } catch (error) {
+    body.innerHTML = `<div class="intelligence-map-error"><strong>Unable to build the monthly map</strong><p>${escapeHTML(error.message)}</p></div>`;
+  }
+}
+
+async function openCrimeTypeIntelligence(crimeRow) {
+  const crimeType = String(crimeRow?.crime_type || '');
+  if (!crimeType) return;
+  const body = openAnalyticsDrawerShell(`${crimeType} Intelligence`, 'District concentration, case status and evidence records');
+  if (!body) return;
+  try {
+    const firs = await apiFetch(`/api/firs?crime_type=${encodeURIComponent(crimeType)}&limit=200`);
+    const rows = Array.isArray(firs) ? firs : [];
+    body.innerHTML = renderCrimeIntelligenceMap({
+      title: crimeType,
+      total: Number(crimeRow?.count || rows.length),
+      crimeRows: [['Verified sample', rows.length]],
+      districtRows: countIntelligenceValues(rows, 'district'),
+      statusRows: countIntelligenceValues(rows, 'status'),
+      firs: rows,
+      contextLabel: `${crimeType} cases`,
+      chatQuery: `Analyze verified ${crimeType} patterns, hotspot districts and investigation status`
+    });
+  } catch (error) {
+    body.innerHTML = `<div class="intelligence-map-error"><strong>Unable to build the crime map</strong><p>${escapeHTML(error.message)}</p></div>`;
+  }
 }
 
 
@@ -920,26 +1388,33 @@ function renderDistrictCards(districts) {
   const grid = document.getElementById('district-grid');
   if (!grid || !districts?.length) return;
 
-  const maxCrimes = districts[0]?.total_crimes || 1;
-  grid.innerHTML = districts.slice(0, 6).map(d => {
-    const pct  = Math.round((d.total_crimes / maxCrimes) * 100);
-    const risk = pct > 70 ? 'HIGH' : pct > 40 ? 'MEDIUM' : 'LOW';
+  const statewideTotal = districts.reduce((sum, district) => sum + Number(district.total_crimes || 0), 0) || 1;
+  const maxCrimes = Math.max(...districts.map(d => Number(d.total_crimes || 0)), 1);
+  grid.innerHTML = districts.slice(0, 6).map((d, index) => {
+    const total = Number(d.total_crimes || 0);
+    const open = Number(d.open_cases || 0);
+    const volumeIndex = Math.round((total / maxCrimes) * 100);
+    const openRate = total ? Math.round((open / total) * 100) : 0;
+    const stateShare = ((total / statewideTotal) * 100).toFixed(1);
+    const risk = openRate >= 38 || volumeIndex >= 85 ? 'HIGH' : openRate >= 28 || volumeIndex >= 55 ? 'MEDIUM' : 'LOW';
     const riskClass = risk === 'HIGH' ? 'badge-high' : risk === 'MEDIUM' ? 'badge-medium' : 'badge-low';
-    const barColor  = risk === 'HIGH' ? '#B91C1C' : risk === 'MEDIUM' ? '#D97706' : '#166534';
 
     return `
       <button class="district-card district-card-button" onclick="openDashboardDistrictAnalytics(decodeURIComponent('${encodeURIComponent(d.district || '')}'))">
-        <div class="flex-between">
-          <span class="district-name">${d.district}</span>
+        <div class="district-card-head">
+          <span class="district-rank">${String(index + 1).padStart(2, '0')}</span>
+          <span class="district-name">${escapeHTML(d.district)}</span>
           <span class="badge ${riskClass}">${risk}</span>
         </div>
-        <div class="district-count">${Number(d.total_crimes).toLocaleString()}</div>
-        <div class="text-muted text-sm mb-sm">crimes registered · ${d.open_cases} open</div>
-        <div class="district-sparkline">
-          ${[0.4,0.55,0.65,0.75,0.88,1].map((h,i) =>
-            `<div class="sparkline-bar" style="height:${Math.round(h*pct)}%;background:${barColor};opacity:${0.4+i*0.12}"></div>`
-          ).join('')}
+        <div class="district-metric-grid">
+          <div><strong>${total.toLocaleString()}</strong><span>registered</span></div>
+          <div><strong>${open.toLocaleString()}</strong><span>open cases</span></div>
+          <div><strong>${openRate}%</strong><span>case pressure</span></div>
         </div>
+        <div class="district-analysis-row"><span>Statewide share</span><strong>${stateShare}%</strong></div>
+        <div class="district-meter"><i style="width:${volumeIndex}%"></i></div>
+        <div class="district-analysis-row"><span>Relative workload</span><strong>${volumeIndex}/100</strong></div>
+        <div class="district-open-analytics"><span>Open district analytics</span><b aria-hidden="true">→</b></div>
       </button>`;
   }).join('');
   translatePageUI();
@@ -962,44 +1437,24 @@ function renderAdvancedIntelligence(data) {
   const topSocial = socialDistricts[0];
   const topCluster = clusters[0];
 
-  grid.innerHTML = `
-    <button class="advanced-intel-card dashboard-insight-button" onclick="openDashboardInsight('forecast')">
-      <div class="advanced-intel-title">Forecast & Early Warning</div>
-      <div class="advanced-intel-metric">${forecast.next_month_forecast || 0}</div>
-      <div class="advanced-intel-text">Projected FIRs next month · ${forecast.trend_direction || 'Stable'} trend</div>
-      <ul class="advanced-intel-list">
-        <li><span>${topWarning?.district || 'No active warning'}</span><strong>${topWarning?.alert_level || 'Stable'}</strong></li>
-        <li><span>Method</span><strong>Moving avg</strong></li>
-      </ul>
-    </button>
-    <button class="advanced-intel-card dashboard-insight-button" onclick="openDashboardInsight('socio')">
-      <div class="advanced-intel-title">Socio-Demographic Insight</div>
-      <div class="advanced-intel-metric">${socio.dominant_age_band || 'N/A'}</div>
-      <div class="advanced-intel-text">Dominant offender age band · ${socio.dominant_gender || 'N/A'}</div>
-      <ul class="advanced-intel-list">
-        <li><span>${topSocial?.district || 'No district data'}</span><strong>${Math.round(topSocial?.social_risk_index || 0)}</strong></li>
-        <li><span>Socio-economic CSV</span><strong>${socio.official_socio_economic_dataset ? 'Loaded' : 'Not uploaded'}</strong></li>
-      </ul>
-    </button>
-    <button class="advanced-intel-card dashboard-insight-button" onclick="openDashboardInsight('financial')">
-      <div class="advanced-intel-title">Financial Link Analysis</div>
-      <div class="advanced-intel-metric">${financial.suspicious_clusters || 0}</div>
-      <div class="advanced-intel-text">Suspicious cyber/financial-adjacent clusters detected</div>
-      <ul class="advanced-intel-list">
-        <li><span>${topCluster?.account || topCluster?.offender_id || 'No cluster'}</span><strong>${topCluster?.link_score || 0}</strong></li>
-        <li><span>Candidate cases</span><strong>${financial.candidate_cases || 0}</strong></li>
-      </ul>
-    </button>
-    <button class="advanced-intel-card dashboard-insight-button" onclick="openDashboardInsight('governance')">
-      <div class="advanced-intel-title">Explainability & Governance</div>
-      <div class="advanced-intel-metric">${evidence.length || 0}</div>
-      <div class="advanced-intel-text">Evidence trails available for analytics claims</div>
-      <ul class="advanced-intel-list">
-        <li><span>Roles</span><strong>${(governance.roles || []).join(', ') || 'Active'}</strong></li>
-        <li><span>Audit</span><strong>Prototype</strong></li>
-      </ul>
-    </button>
-  `;
+  const warningScore = Math.min(100, Math.max(12, Number(forecast.next_month_forecast || 0)));
+  const socialScore = Math.min(100, Math.round(topSocial?.social_risk_index || 0));
+  const financialScore = Math.min(100, Math.round(topCluster?.link_score || 0));
+  const evidenceScore = Math.min(100, evidence.length * 25);
+  const signals = [
+    { key:'forecast', label:'Forecast pressure', status:topWarning?.alert_level || forecast.trend_direction || 'Stable', score:warningScore, headline:`${Number(forecast.next_month_forecast || 0).toLocaleString()} projected FIRs`, detail:`${topWarning?.district || 'Statewide'} is the leading warning area`, metrics:[['Trend', forecast.trend_direction || 'Stable'], ['Warnings', warnings.length], ['Method', 'Moving average']] },
+    { key:'socio', label:'Social risk', status:socio.dominant_age_band || 'Profiled', score:socialScore, headline:`${topSocial?.district || 'Statewide'} risk concentration`, detail:`Dominant profile: ${socio.dominant_age_band || 'N/A'}, ${socio.dominant_gender || 'N/A'}`, metrics:[['Risk index', socialScore], ['Profiles', socialDistricts.length], ['Dataset', socio.official_socio_economic_dataset ? 'Verified' : 'Pending']] },
+    { key:'financial', label:'Financial links', status:financialScore >= 80 ? 'Priority' : 'Monitor', score:financialScore, headline:`${financial.suspicious_clusters || 0} suspicious clusters`, detail:`Top linked entity: ${topCluster?.account || topCluster?.offender_id || 'None above threshold'}`, metrics:[['Top score', financialScore], ['Candidates', financial.candidate_cases || 0], ['Clusters', financial.suspicious_clusters || 0]] },
+    { key:'governance', label:'Evidence coverage', status:evidenceScore >= 75 ? 'Strong' : 'Developing', score:evidenceScore, headline:`${evidence.length} traceable evidence trails`, detail:'Analytics claims mapped to source records and governance controls', metrics:[['Coverage', `${evidenceScore}%`], ['Roles', (governance.roles || []).length || 2], ['Audit', governance.audit_level || 'Prototype']] }
+  ];
+  grid.innerHTML = signals.map(signal => `
+    <button class="advanced-intel-card intelligence-signal" onclick="openDashboardInsight('${signal.key}')">
+      <div class="signal-head"><span>${escapeHTML(signal.label)}</span><b>${escapeHTML(signal.status)}</b></div>
+      <div class="signal-primary"><strong>${escapeHTML(signal.headline)}</strong><span>${escapeHTML(signal.detail)}</span></div>
+      <div class="signal-meter"><i style="width:${signal.score}%"></i></div>
+      <div class="signal-metrics">${signal.metrics.map(metric => `<div><span>${escapeHTML(metric[0])}</span><strong>${escapeHTML(metric[1])}</strong></div>`).join('')}</div>
+      <div class="signal-open">Inspect evidence <span aria-hidden="true">→</span></div>
+    </button>`).join('');
   translatePageUI();
 }
 
@@ -1031,66 +1486,38 @@ function renderStrategicBriefing({ overview, trends, crimeTypes, districts, rece
     `Focus on ${dominantCrime}, ${warningLevel} early warning, ${openRate}% active-case pressure, financial link score ${clusterScore}, and recommended prevention actions.`
   ].join(' ');
 
-  const decisionCards = [
-    {
-      label: 'Risk posture',
-      value: posture.label,
-      detail: posture.detail,
-      tone: posture.tone
-    },
-    {
-      label: 'Priority district',
-      value: priorityDistrict,
-      detail: `${warningLevel} warning · ${monthlyLift >= 0 ? '+' : ''}${monthlyLift}% recent momentum`,
-      tone: warningLevel === 'High' ? 'danger' : 'primary'
-    },
-    {
-      label: 'Dominant pattern',
-      value: dominantCrime,
-      detail: `${socio.dominant_age_band || 'Unknown age band'} · ${socio.dominant_gender || 'mixed demographic'}`,
-      tone: 'accent'
-    },
-    {
-      label: 'Financial signal',
-      value: `${financial.suspicious_clusters || 0} clusters`,
-      detail: `${financial.candidate_cases || 0} candidate cases · top score ${clusterScore}`,
-      tone: clusterScore >= 80 ? 'danger' : 'secondary'
-    }
-  ];
-
   const actions = buildStrategicActions({ priorityDistrict, dominantCrime, warnings, clusters, activeCases, evidenceConfidence });
 
   container.innerHTML = `
-    <div class="strategic-briefing-main">
-      <div class="strategic-posture ${posture.tone}">
-        <span>Operational posture</span>
+    <div class="briefing-overview">
+      <div class="briefing-posture ${posture.tone}">
+        <span>Current operational posture</span>
         <strong>${escapeHTML(posture.label)}</strong>
         <p>${escapeHTML(posture.detail)}</p>
       </div>
-      <div class="strategic-decision-grid">
-        ${decisionCards.map(card => `
-          <button class="strategic-decision strategic-clickable ${card.tone}" onclick="openDashboardInsight('${escapeHTML(card.label).toLowerCase().replace(/\s+/g, '-')}')">
-            <span>${escapeHTML(card.label)}</span>
-            <strong>${escapeHTML(card.value)}</strong>
-            <p>${escapeHTML(card.detail)}</p>
-          </button>
-        `).join('')}
+      <div class="briefing-signal-strip">
+        <button onclick="openDashboardInsight('priority-district')"><span>Priority district</span><strong>${escapeHTML(priorityDistrict)}</strong><small>${escapeHTML(warningLevel)} warning · ${monthlyLift >= 0 ? '+' : ''}${monthlyLift}% momentum</small></button>
+        <button onclick="openDashboardInsight('dominant-pattern')"><span>Dominant pattern</span><strong>${escapeHTML(dominantCrime)}</strong><small>${escapeHTML(socio.dominant_age_band || 'Unknown age')} · ${escapeHTML(socio.dominant_gender || 'mixed demographic')}</small></button>
+        <button onclick="openDashboardInsight('financial-signal')"><span>Link-analysis score</span><strong>${clusterScore}/100</strong><small>${Number(financial.suspicious_clusters || 0)} clusters · ${Number(financial.candidate_cases || 0)} candidate cases</small></button>
+        <button onclick="openDashboardInsight('risk-posture')"><span>Active-case pressure</span><strong>${openRate}%</strong><small>${activeCases.toLocaleString()} of ${totalFirs.toLocaleString()} FIRs active</small></button>
       </div>
     </div>
-    <div class="strategic-action-row">
-      ${actions.map(action => `
-        <button class="strategic-action strategic-clickable" onclick="openDashboardInsight('${escapeHTML(action.title).toLowerCase().replace(/\s+/g, '-')}')">
-          <span>${escapeHTML(action.priority)}</span>
-          <strong>${escapeHTML(action.title)}</strong>
-          <p>${escapeHTML(action.detail)}</p>
+    <div class="briefing-queue-head"><span>Recommended operational queue</span><span>Ranked from verified signals</span></div>
+    <div class="briefing-priority-list">
+      ${actions.map((action, index) => `
+        <button class="briefing-priority-row strategic-clickable" onclick="openDashboardInsight('${escapeHTML(action.title).toLowerCase().replace(/\s+/g, '-')}')">
+          <span class="briefing-priority-rank">${String(index + 1).padStart(2, '0')}</span>
+          <span class="briefing-priority-copy"><b>${escapeHTML(action.title)}</b><small>${escapeHTML(action.detail)}</small></span>
+          <span class="briefing-priority-level">${escapeHTML(action.priority)}</span>
+          <span class="briefing-priority-open" aria-hidden="true">→</span>
         </button>
       `).join('')}
     </div>
-    <div class="strategic-evidence-row">
+    <div class="briefing-evidence-row">
       <div>
         <span>Evidence confidence</span>
         <strong>${escapeHTML(evidenceConfidence)}</strong>
-        <p>${evidence.length || 0} explainability trails · ${Number(financial.candidate_cases || 0).toLocaleString()} financial/cyber-adjacent candidates · ${Number(socialDistricts.length || 0)} socio-economic district profiles.</p>
+        <p>${evidence.length || 0} source trails · ${Number(financial.candidate_cases || 0).toLocaleString()} financial candidates · ${Number(socialDistricts.length || 0)} district social profiles</p>
       </div>
       <div class="strategic-links">
         <a class="btn btn-primary btn-sm" href="chat.html?q=${encodeURIComponent(chatQuery)}">Ask AI</a>
@@ -1112,42 +1539,105 @@ async function openDashboardDistrictAnalytics(districtName) {
   if (!drawer || !overlay || !body) return;
 
   drawer.classList.add('open');
+  drawer.classList.add('district-analytics-popup');
   overlay.classList.add('open');
   if (title) title.textContent = `${districtName} Analytics`;
   if (subtitle) subtitle.textContent = 'District crime mix, operational pressure and linked actions';
   body.innerHTML = '<div class="advanced-intel-loading">Loading district analytics...</div>';
 
   try {
-    const [breakdown, districts, advancedIntel] = await Promise.all([
+    const [breakdown, districts, advancedIntel, districtFirs] = await Promise.all([
       apiFetch(`/api/analytics/district-crime-breakdown?district=${encodeURIComponent(districtName)}`),
       apiFetch('/api/analytics/districts'),
-      apiFetch('/api/analytics/advanced-intelligence')
+      apiFetch('/api/analytics/advanced-intelligence'),
+      apiFetch(`/api/firs?district=${encodeURIComponent(districtName)}&limit=200`)
     ]);
     const district = (districts || []).find(d => (d.district || '').toLowerCase() === districtName.toLowerCase()) || {};
     const crimes = (breakdown || []).slice(0, 6);
-    const total = crimes.reduce((sum, r) => sum + Number(r.count || 0), 0) || Number(district.total_crimes || 0);
+    const total = Number(district.total_crimes || 0) || crimes.reduce((sum, r) => sum + Number(r.count || 0), 0);
     const topCrime = crimes[0]?.crime_type || 'Mixed pattern';
     const social = (advancedIntel?.sociological?.district_social_risk || []).find(d => (d.district || '').toLowerCase() === districtName.toLowerCase());
     const warning = (advancedIntel?.forecast?.early_warnings || []).find(w => (w.district || '').toLowerCase() === districtName.toLowerCase());
+    const firs = Array.isArray(districtFirs) ? districtFirs : [];
     const risk = total > 1000 ? 'Critical' : total > 400 ? 'High' : total > 200 ? 'Medium' : 'Low';
+    const openCases = Number(district.open_cases || firs.filter(f => String(f.status || '').toLowerCase() === 'open').length);
+    const sampleOpenCases = firs.filter(f => String(f.status || '').toLowerCase() === 'open').length;
+    const investigatingCases = firs.filter(f => String(f.status || '').toLowerCase().includes('investigat')).length;
+    const closedCases = firs.filter(f => String(f.status || '').toLowerCase() === 'closed').length;
+    const casePressure = total ? Math.round((openCases / total) * 100) : 0;
+    const warningLevel = warning?.alert_level || warning?.severity || risk;
+    const warningChange = Number(warning?.change_pct || warning?.increase_pct || warning?.trend_change || 0);
+    const statusTotal = Math.max(1, sampleOpenCases + investigatingCases + closedCases);
+    const openAngle = Math.round((sampleOpenCases / statusTotal) * 360);
+    const investigatingAngle = openAngle + Math.round((investigatingCases / statusTotal) * 360);
+    const recentFirs = firs.slice(0, 5);
+    const districtTotals = (districts || []).map(d => Number(d.total_crimes || 0)).filter(Boolean).sort((a, b) => b - a);
+    const districtRank = Math.max(1, districtTotals.findIndex(value => value === total) + 1);
+    const statewideAverage = districtTotals.length ? Math.round(districtTotals.reduce((sum, value) => sum + value, 0) / districtTotals.length) : total;
+    const workloadVsAverage = statewideAverage ? Math.round(((total - statewideAverage) / statewideAverage) * 100) : 0;
+    const concentrationIndex = total ? Math.round(crimes.reduce((sum, row) => sum + Math.pow(Number(row.count || 0) / total, 2), 0) * 1000) : 0;
+    const concentrationLabel = concentrationIndex >= 180 ? 'Concentrated' : concentrationIndex >= 100 ? 'Mixed' : 'Distributed';
+    const sampleClosureRate = firs.length ? Math.round((closedCases / firs.length) * 100) : 0;
 
     body.innerHTML = `
-      <div class="detail-kpi-grid">
-        <div class="detail-kpi"><span>Total FIRs</span><strong>${Number(total || 0).toLocaleString()}</strong></div>
-        <div class="detail-kpi"><span>Open Cases</span><strong>${Number(district.open_cases || 0).toLocaleString()}</strong></div>
-        <div class="detail-kpi"><span>Top Pattern</span><strong>${escapeHTML(topCrime)}</strong></div>
-        <div class="detail-kpi"><span>Risk</span><strong>${escapeHTML(warning?.alert_level || risk)}</strong></div>
+      <div class="district-popup-summary">
+        <div class="district-popup-posture">
+          <span>Operational posture</span>
+          <strong>${escapeHTML(warningLevel)}</strong>
+          <p>${warning ? escapeHTML(warning.recommended_action || warning.detail || 'Review current early-warning evidence and district workload.') : 'No elevated early-warning event is active for this district.'}</p>
+        </div>
+        <div class="district-status-donut" style="--open-angle:${openAngle}deg;--investigating-angle:${investigatingAngle}deg"><div><strong>${casePressure}%</strong><span>case pressure</span></div></div>
       </div>
-      <div class="detail-section">
+      <div class="detail-kpi-grid district-kpi-grid">
+        <div class="detail-kpi"><span>Total FIRs</span><strong>${Number(total || 0).toLocaleString()}</strong></div>
+        <div class="detail-kpi"><span>Open Cases</span><strong>${openCases.toLocaleString()}</strong></div>
+        <div class="detail-kpi"><span>Top Pattern</span><strong>${escapeHTML(topCrime)}</strong></div>
+        <div class="detail-kpi"><span>Risk</span><strong>${escapeHTML(warningLevel)}</strong></div>
+      </div>
+      <div class="district-benchmark-strip">
+        <div><span>State rank</span><strong>#${districtRank}</strong><small>of ${districtTotals.length} monitored</small></div>
+        <div><span>Workload vs average</span><strong>${workloadVsAverage >= 0 ? '+' : ''}${workloadVsAverage}%</strong><small>${statewideAverage.toLocaleString()} FIR benchmark</small></div>
+        <div><span>Crime concentration</span><strong>${concentrationLabel}</strong><small>HHI ${concentrationIndex}</small></div>
+        <div><span>Sample closure</span><strong>${sampleClosureRate}%</strong><small>${firs.length} records reviewed</small></div>
+      </div>
+      <div class="detail-section district-interactive-chart">
+        <div class="district-section-heading"><h3>WebGL Crime Matrix</h3><span>Hover for evidence · select a signal to investigate</span></div>
+        <div class="district-3d-workbench">
+          <div id="district-3d-scene" class="district-3d-scene" role="img" aria-label="Interactive three-dimensional crime composition for ${escapeHTML(districtName)}">
+            <div class="district-3d-loading"><span></span>Building spatial intelligence view...</div>
+          </div>
+          <aside id="district-3d-insight" class="district-3d-insight" aria-live="polite">
+            <span>Selected signal</span><strong>${escapeHTML(topCrime)}</strong>
+            <b>${Number(crimes[0]?.count || 0).toLocaleString()} FIRs</b>
+            <p>Move across the columns to compare verified district crime patterns.</p>
+          </aside>
+        </div>
+        <div id="district-3d-legend" class="district-3d-legend" aria-label="Crime composition controls"></div>
+      </div>
+      <div class="district-popup-grid">
+      <div class="detail-section district-crime-mix">
         <h3>Crime Mix</h3>
         ${crimes.map(r => {
           const pct = total ? Math.round((Number(r.count || 0) / total) * 100) : 0;
           return `<div class="detail-bar-row"><span>${escapeHTML(r.crime_type)}</span><strong>${Number(r.count || 0).toLocaleString()}</strong><div><i style="width:${pct}%"></i></div></div>`;
         }).join('') || '<p>No district breakdown available.</p>'}
       </div>
-      <div class="detail-section">
+      <div class="detail-section district-status-panel">
+        <div class="district-section-heading"><h3>Investigation Status</h3><span>${firs.length} record sample</span></div>
+        <div class="district-status-row"><i class="status-open"></i><span>Open</span><strong>${sampleOpenCases.toLocaleString()}</strong></div>
+        <div class="district-status-row"><i class="status-investigating"></i><span>Investigating</span><strong>${investigatingCases.toLocaleString()}</strong></div>
+        <div class="district-status-row"><i class="status-closed"></i><span>Closed</span><strong>${closedCases.toLocaleString()}</strong></div>
+        <div class="district-evidence-note"><span>Socio-risk index</span><strong>${social ? Math.round(social.social_risk_index || 0) : 'N/A'}</strong></div>
+        <div class="district-evidence-note"><span>Warning movement</span><strong>${warningChange ? `${warningChange > 0 ? '+' : ''}${warningChange}%` : 'Stable'}</strong></div>
+      </div>
+      </div>
+      <div class="detail-section district-operational-reading">
         <h3>Operational Reading</h3>
-        <p>${escapeHTML(districtName)} shows ${escapeHTML(topCrime)} as the leading pattern with ${Number(district.open_cases || 0).toLocaleString()} open cases. ${social ? `Socio-risk index is ${Math.round(social.social_risk_index || 0)}.` : 'Socio-risk evidence is being compared against statewide patterns.'} ${warning ? `Early-warning level is ${warning.alert_level}.` : 'No high early-warning signal is active.'}</p>
+        <p>${escapeHTML(districtName)} shows ${escapeHTML(topCrime)} as the leading pattern with ${openCases.toLocaleString()} open cases and ${casePressure}% case pressure. ${social ? `The verified socio-risk index is ${Math.round(social.social_risk_index || 0)}.` : 'Socio-risk evidence is being compared against statewide patterns.'} ${warning ? `The current early-warning level is ${escapeHTML(warningLevel)}.` : 'No high early-warning signal is active.'}</p>
+      </div>
+      <div class="detail-section district-recent-firs">
+        <div class="district-section-heading"><h3>Recent District FIRs</h3><span>${recentFirs.length} verified records</span></div>
+        ${recentFirs.length ? recentFirs.map(f => `<button type="button" onclick="viewFIR('${escapeHTML(f.fir_id || '')}')"><span><b>${escapeHTML(f.fir_id || 'FIR')}</b><small>${escapeHTML(f.crime_type || 'Unclassified')}</small></span><span><small>${escapeHTML(f.status || 'Unknown')}</small><b>${escapeHTML(f.date_filed || f.date || '')}</b></span></button>`).join('') : '<p>No recent FIR records were returned.</p>'}
       </div>
       <div class="detail-action-row">
         <a class="btn btn-primary btn-sm" href="heatmap.html?district=${encodeURIComponent(districtName)}">Open Heatmap</a>
@@ -1156,6 +1646,7 @@ async function openDashboardDistrictAnalytics(districtName) {
         <a class="btn btn-accent btn-sm" href="reports.html">Report</a>
       </div>
     `;
+    renderDistrictAnalyticsWebGL(crimes, total, districtName);
   } catch (err) {
     body.innerHTML = '<div class="ops-muted">Failed to load district analytics.</div>';
     showToast('Failed to load district analytics: ' + err.message, 'error');
@@ -1163,13 +1654,359 @@ async function openDashboardDistrictAnalytics(districtName) {
   translatePageUI();
 }
 
+let _districtThreeModulePromise = null;
+let _districtThreeCleanup = null;
+
+function disposeDistrictAnalytics3D() {
+  if (typeof _districtThreeCleanup === 'function') _districtThreeCleanup();
+  _districtThreeCleanup = null;
+}
+
+function renderDistrictAnalyticsWebGL(crimes, total, districtName) {
+  const host = document.getElementById('district-3d-scene');
+  const insight = document.getElementById('district-3d-insight');
+  const legend = document.getElementById('district-3d-legend');
+  if (!host || !insight || !legend || !crimes.length) return;
+  disposeDistrictAnalytics3D();
+
+  const colors = ['#22c7b8', '#3b82f6', '#f59e0b', '#f05266', '#8b6ee8', '#42b883'];
+  legend.innerHTML = crimes.map((row, index) => `<button type="button" data-crime-index="${index}" style="--signal-color:${colors[index % colors.length]}"><i></i><span>${escapeHTML(row.crime_type || 'Unclassified')}</span><strong>${Number(row.count || 0).toLocaleString()}</strong></button>`).join('');
+  host.innerHTML = '<canvas aria-hidden="true"></canvas>';
+  const canvas = host.querySelector('canvas');
+  const gl = canvas.getContext('webgl2', { antialias: true, alpha: false, preserveDrawingBuffer: true }) || canvas.getContext('webgl', { antialias: true, alpha: false, preserveDrawingBuffer: true });
+  if (!gl) {
+    host.innerHTML = '<canvas id="district-crime-chart"></canvas>';
+    host.classList.add('district-3d-fallback');
+    renderDistrictAnalyticsFallbackChart(crimes, total, districtName);
+    return;
+  }
+
+  const vertexSource = `attribute vec2 a_position; attribute vec3 a_color; varying vec3 v_color; void main(){v_color=a_color;gl_Position=vec4(a_position,0.0,1.0);}`;
+  const fragmentSource = `precision mediump float; varying vec3 v_color; void main(){gl_FragColor=vec4(v_color,1.0);}`;
+  const compile = (type, source) => {
+    const shader = gl.createShader(type); gl.shaderSource(shader, source); gl.compileShader(shader);
+    if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) throw new Error(gl.getShaderInfoLog(shader));
+    return shader;
+  };
+  let program;
+  try {
+    program = gl.createProgram();
+    gl.attachShader(program, compile(gl.VERTEX_SHADER, vertexSource));
+    gl.attachShader(program, compile(gl.FRAGMENT_SHADER, fragmentSource));
+    gl.linkProgram(program);
+    if (!gl.getProgramParameter(program, gl.LINK_STATUS)) throw new Error(gl.getProgramInfoLog(program));
+  } catch (_error) {
+    host.innerHTML = '<canvas id="district-crime-chart"></canvas>';
+    renderDistrictAnalyticsFallbackChart(crimes, total, districtName);
+    return;
+  }
+
+  const buffer = gl.createBuffer();
+  const positionLocation = gl.getAttribLocation(program, 'a_position');
+  const colorLocation = gl.getAttribLocation(program, 'a_color');
+  const maxValue = Math.max(...crimes.map(row => Number(row.count || 0)), 1);
+  let frameId = 0;
+  let selectedIndex = 0;
+  let disposed = false;
+  const startedAt = performance.now();
+
+  const hexToRgb = hex => [parseInt(hex.slice(1, 3), 16) / 255, parseInt(hex.slice(3, 5), 16) / 255, parseInt(hex.slice(5, 7), 16) / 255];
+  const pushRect = (target, x1, y1, x2, y2, top, bottom) => {
+    target.push(x1,y1,...bottom, x2,y1,...bottom, x1,y2,...top, x1,y2,...top, x2,y1,...bottom, x2,y2,...top);
+  };
+  const updateInsight = index => {
+    selectedIndex = index;
+    const row = crimes[index];
+    const value = Number(row.count || 0);
+    const share = total ? Math.round((value / total) * 1000) / 10 : 0;
+    insight.querySelector('strong').textContent = row.crime_type || 'Unclassified';
+    insight.querySelector('b').textContent = `${value.toLocaleString()} FIRs`;
+    insight.querySelector('p').textContent = `${share}% of verified ${districtName} records. Select this signal to inspect statewide links and FIR evidence.`;
+    legend.querySelectorAll('button').forEach((button, buttonIndex) => button.classList.toggle('active', buttonIndex === index));
+  };
+  const resize = () => {
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    canvas.width = Math.max(1, Math.floor(host.clientWidth * dpr));
+    canvas.height = Math.max(1, Math.floor(host.clientHeight * dpr));
+    gl.viewport(0, 0, canvas.width, canvas.height);
+  };
+  resize();
+  const resizeObserver = new ResizeObserver(resize);
+  resizeObserver.observe(host);
+
+  const render = now => {
+    if (disposed || !host.isConnected) return;
+    const progress = Math.min(1, (now - startedAt) / 650);
+    const eased = 1 - Math.pow(1 - progress, 4);
+    gl.clearColor(0.025, 0.075, 0.13, 1);
+    gl.clear(gl.COLOR_BUFFER_BIT);
+    const vertices = [];
+    const count = crimes.length;
+    const left = -0.88;
+    const usable = 1.76;
+    const step = usable / count;
+    for (let line = 0; line < 5; line++) {
+      const y = -0.72 + line * 0.35;
+      pushRect(vertices, -0.92, y, 0.92, y + 0.004, [0.10,0.27,0.38], [0.06,0.16,0.24]);
+    }
+    crimes.forEach((row, index) => {
+      const value = Number(row.count || 0);
+      const x1 = left + index * step + step * 0.16;
+      const x2 = left + (index + 1) * step - step * 0.16;
+      const y1 = -0.72;
+      const y2 = y1 + (0.22 + (value / maxValue) * 1.42) * eased;
+      const base = hexToRgb(colors[index % colors.length]);
+      const selected = index === selectedIndex ? 1.22 : 0.88;
+      const top = base.map(v => Math.min(1, v * selected + 0.12));
+      const bottom = base.map(v => v * 0.42);
+      pushRect(vertices, x1, y1, x2, y2, top, bottom);
+    });
+    gl.useProgram(program);
+    gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertices), gl.DYNAMIC_DRAW);
+    const stride = 5 * 4;
+    gl.enableVertexAttribArray(positionLocation);
+    gl.vertexAttribPointer(positionLocation, 2, gl.FLOAT, false, stride, 0);
+    gl.enableVertexAttribArray(colorLocation);
+    gl.vertexAttribPointer(colorLocation, 3, gl.FLOAT, false, stride, 2 * 4);
+    gl.drawArrays(gl.TRIANGLES, 0, vertices.length / 5);
+    frameId = requestAnimationFrame(render);
+  };
+
+  const pick = event => {
+    const rect = canvas.getBoundingClientRect();
+    const normalized = (event.clientX - rect.left) / rect.width;
+    const index = Math.max(0, Math.min(crimes.length - 1, Math.floor((normalized - 0.06) / 0.88 * crimes.length)));
+    updateInsight(index);
+    canvas.style.cursor = 'pointer';
+  };
+  const openSelected = () => openCrimeTypeIntelligence(crimes[selectedIndex]);
+  canvas.addEventListener('pointermove', pick);
+  canvas.addEventListener('click', openSelected);
+  legend.querySelectorAll('button').forEach((button, index) => {
+    button.addEventListener('mouseenter', () => updateInsight(index));
+    button.addEventListener('focus', () => updateInsight(index));
+    button.addEventListener('click', () => openCrimeTypeIntelligence(crimes[index]));
+  });
+  updateInsight(0);
+  frameId = requestAnimationFrame(render);
+
+  _districtThreeCleanup = () => {
+    disposed = true;
+    cancelAnimationFrame(frameId);
+    resizeObserver.disconnect();
+    canvas.removeEventListener('pointermove', pick);
+    canvas.removeEventListener('click', openSelected);
+    gl.deleteBuffer(buffer);
+    gl.deleteProgram(program);
+  };
+}
+
+async function renderDistrictAnalytics3D(crimes, total, districtName) {
+  const host = document.getElementById('district-3d-scene');
+  const insight = document.getElementById('district-3d-insight');
+  const legend = document.getElementById('district-3d-legend');
+  if (!host || !insight || !legend || !crimes.length) return;
+  disposeDistrictAnalytics3D();
+
+  const colors = ['#22c7b8', '#3b82f6', '#f59e0b', '#f05266', '#8b6ee8', '#42b883'];
+  legend.innerHTML = crimes.map((row, index) => `<button type="button" data-crime-index="${index}" style="--signal-color:${colors[index % colors.length]}"><i></i><span>${escapeHTML(row.crime_type || 'Unclassified')}</span><strong>${Number(row.count || 0).toLocaleString()}</strong></button>`).join('');
+
+  try {
+    _districtThreeModulePromise ||= import('https://cdn.jsdelivr.net/npm/three@0.180.0/build/three.module.js');
+    const THREE = await _districtThreeModulePromise;
+    if (!host.isConnected) return;
+
+    host.innerHTML = '';
+    const scene = new THREE.Scene();
+    scene.fog = new THREE.FogExp2(0x071426, 0.035);
+    const camera = new THREE.PerspectiveCamera(40, 1, 0.1, 100);
+    camera.position.set(7.8, 7.1, 11.8);
+    camera.lookAt(0, 2.1, 0);
+
+    const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, preserveDrawingBuffer: true, powerPreference: 'high-performance' });
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+    renderer.outputColorSpace = THREE.SRGBColorSpace;
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    renderer.toneMappingExposure = 1.22;
+    renderer.shadowMap.enabled = true;
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    renderer.domElement.setAttribute('aria-hidden', 'true');
+    host.appendChild(renderer.domElement);
+
+    scene.add(new THREE.HemisphereLight(0xbce9ff, 0x06101e, 2.2));
+    const keyLight = new THREE.DirectionalLight(0xffffff, 3.2);
+    keyLight.position.set(6, 10, 8);
+    keyLight.castShadow = true;
+    scene.add(keyLight);
+    const rimLight = new THREE.PointLight(0x22c7b8, 34, 22);
+    rimLight.position.set(-6, 4, 5);
+    scene.add(rimLight);
+
+    const floor = new THREE.Mesh(new THREE.PlaneGeometry(16, 8), new THREE.MeshStandardMaterial({ color: 0x0a1d32, roughness: 0.72, metalness: 0.16, transparent: true, opacity: 0.92 }));
+    floor.rotation.x = -Math.PI / 2;
+    floor.position.y = -0.04;
+    floor.receiveShadow = true;
+    scene.add(floor);
+    const grid = new THREE.GridHelper(16, 24, 0x2d8da0, 0x173952);
+    grid.position.y = 0.01;
+    grid.material.transparent = true;
+    grid.material.opacity = 0.32;
+    scene.add(grid);
+
+    const maxValue = Math.max(...crimes.map(row => Number(row.count || 0)), 1);
+    const bars = [];
+    const spacing = 1.42;
+    crimes.forEach((row, index) => {
+      const value = Number(row.count || 0);
+      const height = 0.8 + (value / maxValue) * 4.4;
+      const geometry = new THREE.BoxGeometry(0.88, height, 0.96, 2, 4, 2);
+      geometry.translate(0, height / 2, 0);
+      const material = new THREE.MeshStandardMaterial({ color: new THREE.Color(colors[index % colors.length]), roughness: 0.27, metalness: 0.32, emissive: 0x000000, emissiveIntensity: 0 });
+      const bar = new THREE.Mesh(geometry, material);
+      bar.position.x = (index - (crimes.length - 1) / 2) * spacing;
+      bar.scale.y = 0.02;
+      bar.castShadow = true;
+      bar.receiveShadow = true;
+      bar.userData = { index, row, targetHeight: height };
+      scene.add(bar);
+      bars.push(bar);
+    });
+
+    const raycaster = new THREE.Raycaster();
+    const pointer = new THREE.Vector2(9, 9);
+    let selectedIndex = 0;
+    let pointerX = 0;
+    let pointerY = 0;
+    let frameId = 0;
+    let disposed = false;
+    const startedAt = performance.now();
+
+    const updateInsight = index => {
+      selectedIndex = index;
+      const row = crimes[index];
+      const value = Number(row.count || 0);
+      const share = total ? Math.round((value / total) * 1000) / 10 : 0;
+      insight.querySelector('strong').textContent = row.crime_type || 'Unclassified';
+      insight.querySelector('b').textContent = `${value.toLocaleString()} FIRs`;
+      insight.querySelector('p').textContent = `${share}% of verified ${districtName} records. Select this column to open statewide links and FIR evidence.`;
+      legend.querySelectorAll('button').forEach((button, buttonIndex) => button.classList.toggle('active', buttonIndex === index));
+      bars.forEach((bar, barIndex) => {
+        bar.material.emissive.set(barIndex === index ? colors[barIndex % colors.length] : '#000000');
+        bar.material.emissiveIntensity = barIndex === index ? 0.3 : 0;
+      });
+    };
+
+    const resize = () => {
+      const width = Math.max(host.clientWidth, 280);
+      const height = Math.max(host.clientHeight, 260);
+      renderer.setSize(width, height, false);
+      camera.aspect = width / height;
+      camera.updateProjectionMatrix();
+    };
+    resize();
+    const resizeObserver = new ResizeObserver(resize);
+    resizeObserver.observe(host);
+
+    const onPointerMove = event => {
+      const rect = renderer.domElement.getBoundingClientRect();
+      pointer.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+      pointer.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+      pointerX = pointer.x;
+      pointerY = pointer.y;
+    };
+    const onPointerLeave = () => { pointer.set(9, 9); pointerX = 0; pointerY = 0; renderer.domElement.style.cursor = 'default'; };
+    const onClick = () => openCrimeTypeIntelligence(crimes[selectedIndex]);
+    renderer.domElement.addEventListener('pointermove', onPointerMove);
+    renderer.domElement.addEventListener('pointerleave', onPointerLeave);
+    renderer.domElement.addEventListener('click', onClick);
+
+    legend.querySelectorAll('button').forEach((button, index) => {
+      button.addEventListener('mouseenter', () => updateInsight(index));
+      button.addEventListener('focus', () => updateInsight(index));
+      button.addEventListener('click', () => openCrimeTypeIntelligence(crimes[index]));
+    });
+    updateInsight(0);
+
+    const animate = now => {
+      if (disposed || !host.isConnected) return;
+      const progress = Math.min(1, (now - startedAt) / 720);
+      const eased = 1 - Math.pow(1 - progress, 4);
+      bars.forEach((bar, index) => {
+        bar.scale.y = Math.max(0.02, eased);
+        bar.rotation.y = Math.sin(now * 0.00035 + index) * 0.025;
+      });
+      camera.position.x += ((7.8 + pointerX * 0.7) - camera.position.x) * 0.035;
+      camera.position.y += ((7.1 + pointerY * 0.35) - camera.position.y) * 0.035;
+      camera.lookAt(0, 2.1, 0);
+      raycaster.setFromCamera(pointer, camera);
+      const hit = raycaster.intersectObjects(bars, false)[0];
+      renderer.domElement.style.cursor = hit ? 'pointer' : 'grab';
+      if (hit && hit.object.userData.index !== selectedIndex) updateInsight(hit.object.userData.index);
+      renderer.render(scene, camera);
+      frameId = requestAnimationFrame(animate);
+    };
+    frameId = requestAnimationFrame(animate);
+
+    _districtThreeCleanup = () => {
+      disposed = true;
+      cancelAnimationFrame(frameId);
+      resizeObserver.disconnect();
+      renderer.domElement.removeEventListener('pointermove', onPointerMove);
+      renderer.domElement.removeEventListener('pointerleave', onPointerLeave);
+      renderer.domElement.removeEventListener('click', onClick);
+      bars.forEach(bar => { bar.geometry.dispose(); bar.material.dispose(); });
+      floor.geometry.dispose();
+      floor.material.dispose();
+      renderer.dispose();
+      if (renderer.domElement.parentNode) renderer.domElement.remove();
+    };
+  } catch (error) {
+    host.innerHTML = '<canvas id="district-crime-chart"></canvas>';
+    host.classList.add('district-3d-fallback');
+    renderDistrictAnalyticsFallbackChart(crimes, total, districtName);
+  }
+}
+
+function renderDistrictAnalyticsFallbackChart(crimes, total, districtName) {
+  const canvas = document.getElementById('district-crime-chart');
+  if (!canvas || typeof Chart === 'undefined') return;
+  const existing = Chart.getChart(canvas);
+  if (existing) existing.destroy();
+  const styles = getComputedStyle(document.documentElement);
+  const textColor = styles.getPropertyValue('--color-text-muted').trim() || '#68778a';
+  const gridColor = styles.getPropertyValue('--color-border').trim() || '#d9e0e7';
+  const labels = crimes.map(row => row.crime_type || 'Unclassified');
+  const values = crimes.map(row => Number(row.count || 0));
+  new Chart(canvas, {
+    type: 'bar',
+    data: { labels, datasets: [{ label: `${districtName} FIRs`, data: values, backgroundColor: ['#287f89','#348e98','#4b9ca5','#6babb2','#8bbbc0','#abcbd0'], borderColor: '#17606a', borderWidth: 1, borderRadius: 4, barPercentage: .72 }] },
+    options: {
+      indexAxis: 'y', responsive: true, maintainAspectRatio: false,
+      interaction: { mode: 'nearest', axis: 'y', intersect: true },
+      onHover: (event, elements) => { event.native.target.style.cursor = elements.length ? 'pointer' : 'default'; },
+      onClick: (_event, elements) => { if (elements.length) openCrimeTypeIntelligence(crimes[elements[0].index]); },
+      plugins: {
+        legend: { display: false },
+        tooltip: { callbacks: { label: context => { const value = Number(context.raw || 0); const share = total ? Math.round((value / total) * 1000) / 10 : 0; return `${value.toLocaleString()} FIRs · ${share}% district share`; } } }
+      },
+      scales: {
+        x: { beginAtZero: true, grid: { color: gridColor }, ticks: { color: textColor, precision: 0, font: { size: 9 } }, border: { display: false } },
+        y: { grid: { display: false }, ticks: { color: textColor, font: { size: 10, weight: 600 } }, border: { display: false } }
+      }
+    }
+  });
+}
+
 function openDashboardInsight(topic) {
+  disposeDistrictAnalytics3D();
   const drawer = document.getElementById('dashboard-analytics-drawer');
   const overlay = document.getElementById('dashboard-analytics-overlay');
   const title = document.getElementById('dashboard-analytics-title');
   const subtitle = document.getElementById('dashboard-analytics-subtitle');
   const body = document.getElementById('dashboard-analytics-body');
   if (!drawer || !overlay || !body) return;
+  drawer.classList.remove('district-analytics-popup');
   drawer.classList.add('open');
   overlay.classList.add('open');
   const panel = buildDashboardInsightPanel(topic);
@@ -1341,7 +2178,10 @@ function buildDashboardInsightPanel(topic) {
 }
 
 function closeDashboardAnalytics() {
-  document.getElementById('dashboard-analytics-drawer')?.classList.remove('open');
+  disposeDistrictAnalytics3D();
+  const drawer = document.getElementById('dashboard-analytics-drawer');
+  drawer?.classList.remove('open');
+  drawer?.classList.remove('district-analytics-popup');
   document.getElementById('dashboard-analytics-overlay')?.classList.remove('open');
 }
 
@@ -1674,9 +2514,9 @@ function initChat() {
     }
   });
   inputEl.addEventListener('input', () => {
-    inputEl.style.height = '60px';
-    inputEl.style.height = Math.max(60, Math.min(inputEl.scrollHeight, 200)) + 'px';
-    inputEl.style.overflowY = inputEl.scrollHeight > 200 ? 'auto' : 'hidden';
+    inputEl.style.height = 'auto';
+    inputEl.style.height = Math.max(48, Math.min(inputEl.scrollHeight, 136)) + 'px';
+    inputEl.style.overflowY = inputEl.scrollHeight > 136 ? 'auto' : 'hidden';
   });
 
   // Export button
@@ -3755,6 +4595,7 @@ function toggleDarkMode() {
   document.documentElement.setAttribute('data-theme', newTheme);
   localStorage.setItem('cl_theme', newTheme);
   _updateThemeIcon(newTheme);
+  syncDashboardChartsTheme();
 }
 
 function _updateThemeIcon(theme) {
@@ -3769,6 +4610,16 @@ function initDarkMode() {
   const saved = localStorage.getItem('cl_theme') || 'light';
   document.documentElement.setAttribute('data-theme', saved);
   _updateThemeIcon(saved);
+  requestAnimationFrame(syncDashboardChartsTheme);
+}
+
+// ─── DYNAMIC DASHBOARD DATE ────────────────────────────────────────────────
+function initDashboardDate() {
+  const el = document.getElementById('dashboard-date-subtitle');
+  if (!el) return;
+  const now = new Date();
+  const opts = { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'Asia/Kolkata' };
+  el.textContent = now.toLocaleDateString('en-IN', opts);
 }
 
 // ─── IST CLOCK ───────────────────────────────────────────────────────────────
@@ -3838,10 +4689,10 @@ function _renderGSRecent() {
   }
   el.innerHTML = '<div class="global-search-section-title">Recent Searches</div>' +
     recent.map(r =>
-      `<div class="global-search-item" onclick="window.location='${r.url}'">
+      `<button type="button" class="global-search-item" onclick="_gsNavigate('${escapeHTML(r.name)}','${escapeHTML(r.type || r.sub)}','${escapeHTML(r.url || '')}')">
         <div class="global-search-item-icon" style="background:var(--color-surface-2)">${r.icon}</div>
         <div><div class="global-search-item-name">${r.name}</div><div class="global-search-item-sub">${r.sub}</div></div>
-      </div>`
+      </button>`
     ).join('');
 }
 
@@ -3859,59 +4710,56 @@ async function runGlobalSearch(query) {
   el.innerHTML = '<div class="global-search-empty">Searching...</div>';
 
   try {
-    const [firData, offData] = await Promise.allSettled([
-      apiFetch(`/api/firs?limit=100`),
-      apiFetch(`/api/offenders/high-risk?limit=100`)
+    const [searchData, offenderData] = await Promise.allSettled([
+      apiFetch(`/api/search/global?q=${encodeURIComponent(query.trim())}`),
+      apiFetch(`/api/offenders/high-risk?limit=40&search=${encodeURIComponent(query.trim())}`)
     ]);
-
+    const rawSearch = searchData.status === 'fulfilled' ? searchData.value : {};
+    const firList = Array.isArray(rawSearch) ? rawSearch : (rawSearch?.data || rawSearch?.results || []);
+    const rawOffenders = offenderData.status === 'fulfilled' ? offenderData.value : {};
+    const offList = Array.isArray(rawOffenders) ? rawOffenders : (rawOffenders?.offenders || rawOffenders?.data || []);
     const q = query.toLowerCase();
-    const firList  = firData.status  === 'fulfilled' ? (firData.value?.firs  || []) : [];
-    const offList  = offData.status  === 'fulfilled' ? (offData.value?.offenders || []) : [];
-
-    const firMatches = firList.filter(f =>
-      (f.fir_id||'').toLowerCase().includes(q) ||
-      (f.crime_type||'').toLowerCase().includes(q) ||
-      (f.district||'').toLowerCase().includes(q) ||
-      (f.accused_name||'').toLowerCase().includes(q)
-    ).slice(0, 5);
-
+    const firMatches = firList.slice(0, 8);
     const offMatches = offList.filter(o =>
-      (o.accused_name||'').toLowerCase().includes(q) ||
-      (o.offender_id||'').toLowerCase().includes(q) ||
-      (o.district||'').toLowerCase().includes(q)
+      (o.accused_name || '').toLowerCase().includes(q) ||
+      (o.offender_id || '').toLowerCase().includes(q) ||
+      (o.district || '').toLowerCase().includes(q)
     ).slice(0, 5);
-
-    // District matches from FIRs
-    const districts = [...new Set(firList.map(f => f.district).filter(Boolean))];
+    const districts = [...new Set(firList.map(f => f.district || f.District).filter(Boolean))];
     const distMatches = districts.filter(d => d.toLowerCase().includes(q)).slice(0, 3);
 
     let html = '';
     if (firMatches.length) {
       html += `<div class="global-search-section-title">FIRs (${firMatches.length})</div>`;
       firMatches.forEach(f => {
-        const url = `dashboard.html`;
-        html += `<div class="global-search-item" onclick="_gsNavigate('${f.fir_id}','fir','${url}')">
-          <div class="global-search-item-icon" style="background:rgba(28,43,74,0.1);color:var(--color-primary)">📋</div>
-          <div><div class="global-search-item-name">${f.fir_id}</div><div class="global-search-item-sub">${f.crime_type||''} &bull; ${f.district||''}</div></div>
-        </div>`;
+        const firId = f.fir_id || f.FIR_ID || f.id || 'FIR';
+        const crimeType = f.crime_type || f.Crime_Type || '';
+        const district = f.district || f.District || '';
+        html += `<button type="button" class="global-search-item" onclick="_gsNavigate('${escapeHTML(firId)}','fir','')">
+          <div class="global-search-item-icon search-icon-fir" aria-hidden="true">FIR</div>
+          <div><div class="global-search-item-name">${escapeHTML(firId)}</div><div class="global-search-item-sub">${escapeHTML(crimeType)} &bull; ${escapeHTML(district)}</div></div>
+          <span class="search-result-action">Open</span>
+        </button>`;
       });
     }
     if (offMatches.length) {
       html += `<div class="global-search-section-title">Offenders (${offMatches.length})</div>`;
       offMatches.forEach(o => {
-        html += `<div class="global-search-item" onclick="_gsNavigate('${o.offender_id}','offender','offenders.html?id=${o.offender_id}')">
-          <div class="global-search-item-icon" style="background:rgba(185,28,28,0.1);color:var(--color-danger)">👤</div>
-          <div><div class="global-search-item-name">${o.accused_name||o.offender_id}</div><div class="global-search-item-sub">${o.offender_id} &bull; ${o.district||''}</div></div>
-        </div>`;
+        html += `<button type="button" class="global-search-item" onclick="_gsNavigate('${escapeHTML(o.offender_id)}','offender','offenders.html?id=${encodeURIComponent(o.offender_id)}')">
+          <div class="global-search-item-icon search-icon-offender" aria-hidden="true">OF</div>
+          <div><div class="global-search-item-name">${escapeHTML(o.accused_name||o.offender_id)}</div><div class="global-search-item-sub">${escapeHTML(o.offender_id)} &bull; ${escapeHTML(o.district||'')}</div></div>
+          <span class="search-result-action">Profile</span>
+        </button>`;
       });
     }
     if (distMatches.length) {
       html += `<div class="global-search-section-title">Districts (${distMatches.length})</div>`;
       distMatches.forEach(d => {
-        html += `<div class="global-search-item" onclick="_gsNavigate('${d}','district','heatmap.html')">
-          <div class="global-search-item-icon" style="background:rgba(42,127,127,0.1);color:var(--color-secondary)">🗺️</div>
-          <div><div class="global-search-item-name">${d}</div><div class="global-search-item-sub">District &bull; View on Heatmap</div></div>
-        </div>`;
+        html += `<button type="button" class="global-search-item" onclick="_gsNavigate('${escapeHTML(d)}','district','heatmap.html?district=${encodeURIComponent(d)}')">
+          <div class="global-search-item-icon search-icon-district" aria-hidden="true">DT</div>
+          <div><div class="global-search-item-name">${escapeHTML(d)}</div><div class="global-search-item-sub">District &bull; View on Heatmap</div></div>
+          <span class="search-result-action">Map</span>
+        </button>`;
       });
     }
     if (!html) html = `<div class="global-search-empty">No results for "${query}"</div>`;
@@ -3921,9 +4769,74 @@ async function runGlobalSearch(query) {
   }
 }
 
-function _gsNavigate(id, type, url) {
-  _saveGSRecent({ icon: type==='fir'?'📋':type==='offender'?'👤':'🗺️', name: id, sub: type, url });
+async function initOperationalEnhancements() {
+  if (!document.querySelector('.app-header')) return;
+  document.body.classList.add('operational-ui');
+  initDimensionalAnalytics();
+
+  const headerRight = document.querySelector('.header-right');
+  if (headerRight && !document.getElementById('header-command-search')) {
+    const searchButton = document.createElement('button');
+    searchButton.id = 'header-command-search';
+    searchButton.className = 'header-command-search';
+    searchButton.type = 'button';
+    searchButton.setAttribute('aria-label', 'Search intelligence records');
+    searchButton.innerHTML = `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg><span>Search intelligence</span><kbd>Ctrl K</kbd>`;
+    searchButton.addEventListener('click', openGlobalSearch);
+    headerRight.prepend(searchButton);
+  }
+
+  document.querySelectorAll('.app-main').forEach(main => {
+    if (!main.querySelector('.workspace-context-line')) {
+      const line = document.createElement('div');
+      line.className = 'workspace-context-line';
+      line.innerHTML = `<span class="workspace-live-dot" aria-hidden="true"></span><span id="workspace-context-status">Verified synthetic intelligence workspace</span><span class="workspace-context-separator"></span><span>Role-aware access</span>`;
+      main.prepend(line);
+    }
+  });
+
+  try {
+    const summary = await apiFetch('/api/system/summary');
+    const status = document.getElementById('workspace-context-status');
+    const openAlerts = Number(summary?.alerts?.open || 0);
+    if (status) status.textContent = openAlerts ? `${openAlerts} open intelligence warning${openAlerts === 1 ? '' : 's'}` : 'Intelligence ledger current';
+    const alerts = openAlerts ? await apiFetch('/api/alerts/early-warning?limit=25').catch(() => []) : [];
+    updateNotificationBadge(Array.isArray(alerts) ? alerts : (alerts?.data || alerts?.alerts || []));
+  } catch (_) {
+    const status = document.getElementById('workspace-context-status');
+    if (status) status.textContent = 'Workspace connected';
+  }
+}
+
+function initDimensionalAnalytics() {
+  if (!window.matchMedia('(hover: hover) and (pointer: fine)').matches || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  document.querySelectorAll('.dashboard-chart-panel').forEach(card => {
+    let frame = 0;
+    card.addEventListener('pointermove', event => {
+      if (frame) cancelAnimationFrame(frame);
+      frame = requestAnimationFrame(() => {
+        const rect = card.getBoundingClientRect();
+        const rotateY = ((event.clientX - rect.left) / rect.width - 0.5) * 2.2;
+        const rotateX = (0.5 - (event.clientY - rect.top) / rect.height) * 1.6;
+        card.style.setProperty('--chart-rotate-x', `${rotateX.toFixed(2)}deg`);
+        card.style.setProperty('--chart-rotate-y', `${rotateY.toFixed(2)}deg`);
+      });
+    });
+    card.addEventListener('pointerleave', () => {
+      if (frame) cancelAnimationFrame(frame);
+      card.style.removeProperty('--chart-rotate-x');
+      card.style.removeProperty('--chart-rotate-y');
+    });
+  });
+}
+
+async function _gsNavigate(id, type, url) {
+  _saveGSRecent({ icon: type==='fir'?'FIR':type==='offender'?'OF':'DT', name: id, sub: type, type, url });
   closeGlobalSearch();
+  if (type === 'fir') {
+    await viewFIR(id);
+    return;
+  }
   window.location.href = url;
 }
 
@@ -4875,6 +5788,7 @@ window.filterFIRTable = filterFIRTable;
     initKeyboardShortcuts();
     initUniversalControls();
     initGlobalSearch();
+    initOperationalEnhancements();
     renderChatBookmarks();
 
     // Inject header language toggle and translate page UI

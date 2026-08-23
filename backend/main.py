@@ -6,6 +6,7 @@ All API routes for the NAMMA KSP platform.
 """
 
 import os
+import secrets
 import sys
 import logging
 import uuid
@@ -61,11 +62,17 @@ from sarvam_service import (
     translate_text,
 )
 from catalyst_auth import AUTH_MODE, DEMO_MODE, get_all_catalyst_users, get_current_catalyst_user
+from authorization import (
+    ROLES, canonical_role, enrich_identity, has_capability,
+    project_case_payload, workspace_for,
+)
 from catalyst_services import get_catalyst_service_matrix
 from catalyst_runtime import (
     cache_get_json, cache_put_json, datastore_probe, quickml_predict,
     search as catalyst_search, upload_report, download_report, list_report_objects,
-    nosql_append_evidence,
+    nosql_append_evidence, set_request_context, reset_request_context,
+    verify_managed_services, zia_text_analysis, smartbrowz_pdf,
+    send_catalyst_mail, send_catalyst_push,
 )
 from report    import (
     generate_case_report, generate_district_report, generate_chat_log_report,
@@ -172,6 +179,20 @@ class NoCacheMiddleware(BaseHTTPMiddleware):
 app.add_middleware(NoCacheMiddleware)
 
 
+class CatalystRequestContextMiddleware(BaseHTTPMiddleware):
+    """Make the current AppSail request available to every Catalyst SDK call."""
+
+    async def dispatch(self, request: StarletteRequest, call_next):
+        token = set_request_context(request)
+        try:
+            return await call_next(request)
+        finally:
+            reset_request_context(token)
+
+
+app.add_middleware(CatalystRequestContextMiddleware)
+
+
 # ─── Startup ──────────────────────────────────────────────────────────────────
 @app.on_event("startup")
 async def startup():
@@ -188,7 +209,7 @@ SESSION_ID_RE = re.compile(r"^[A-Za-z0-9_.:-]{1,80}$")
 SAFE_TEXT_RE = re.compile(r"^[\w\s.,:/()&+-]+$", re.UNICODE)
 DATE_RE = re.compile(r"^\d{4}-\d{2}-\d{2}$")
 VALID_LANGUAGES = {"en-US", "kn-IN", "en", "kn"}
-VALID_ROLES = {"Admin", "Investigator"}
+VALID_ROLES = set(ROLES)
 VALID_STATUSES = {"Open", "Closed", "Under Investigation"}
 
 
@@ -341,9 +362,10 @@ class UserCreate(BaseModel):
     @field_validator("role")
     @classmethod
     def validate_role(cls, value: str) -> str:
-        if value not in VALID_ROLES:
-            raise ValueError("role must be Admin or Investigator")
-        return value
+        try:
+            return canonical_role(value)
+        except ValueError as exc:
+            raise ValueError(f"role must be one of: {', '.join(ROLES)}") from exc
 
 class ChatMessage(BaseModel):
     role: str = Field(min_length=1, max_length=20)
@@ -404,6 +426,22 @@ class QuickMLPredictionRequest(BaseModel):
         if not value or len(value) > 50:
             raise ValueError("Provide between 1 and 50 QuickML features")
         return value
+
+
+class ZiaTextRequest(BaseModel):
+    documents: list[str]
+    keywords: list[str] = Field(default_factory=list)
+
+
+class CatalystMailRequest(BaseModel):
+    recipients: list[str]
+    subject: str
+    content: str
+
+
+class CatalystPushRequest(BaseModel):
+    recipients: list[str]
+    message: str
 
 class CatalystSignalRequest(BaseModel):
     event: Optional[str] = None
@@ -466,14 +504,17 @@ async def require_authenticated_api_session(request: Request, call_next):
                     content={"detail": exc.detail},
                     headers={"Cache-Control": "no-store"},
                 )
-        request.state.auth_user = user
+        try:
+            request.state.auth_user = enrich_identity(user)
+        except ValueError:
+            return JSONResponse(status_code=403, content={"detail": "Role is not authorized for NAMMA KSP"})
     return await call_next(request)
 
 
 async def get_current_user(request: Request, authorization: Optional[str] = Header(None)):
     user = getattr(request.state, "auth_user", None)
     if user:
-        return user
+        return enrich_identity(user)
     if DEMO_MODE:
         if not authorization or not authorization.startswith("Bearer "):
             raise HTTPException(status_code=401, detail="Authorization token required")
@@ -482,14 +523,30 @@ async def get_current_user(request: Request, authorization: Optional[str] = Head
         if not session or session.get("expires_at", 0) <= time.time():
             ACTIVE_SESSIONS.pop(token, None)
             raise HTTPException(status_code=401, detail="Session expired or invalid")
-        return session
-    return await get_current_catalyst_user(request)
+        return enrich_identity(session)
+    return enrich_identity(await get_current_catalyst_user(request))
 
 
 async def require_admin(user: dict = Depends(get_current_user)):
-    if user.get("role") != "Admin":
-        raise HTTPException(status_code=403, detail="Admin permissions required")
+    if not has_capability(user, "platform:admin"):
+        raise HTTPException(status_code=403, detail="Administrator permissions required")
     return user
+
+
+def require_capability(capability: str):
+    async def dependency(user: dict = Depends(get_current_user)):
+        if not has_capability(user, capability):
+            raise HTTPException(status_code=403, detail=f"Missing required capability: {capability}")
+        return user
+    return dependency
+
+
+def require_any_capability(*capabilities: str):
+    async def dependency(user: dict = Depends(get_current_user)):
+        if not any(has_capability(user, capability) for capability in capabilities):
+            raise HTTPException(status_code=403, detail="This role is not permitted to access this resource")
+        return user
+    return dependency
 
 
 async def get_offender_route_user(request: Request, authorization: Optional[str] = Header(None)):
@@ -687,7 +744,12 @@ async def analytics_advanced_intelligence(request: Request, user: dict = Depends
 
 
 @app.get("/api/alerts/early-warning")
-async def early_warning_alerts(limit: int = Query(25, ge=1, le=100), user: dict = Depends(get_current_user)):
+async def early_warning_alerts(
+    limit: int = Query(25, ge=1, le=100),
+    user: dict = Depends(require_any_capability(
+        "alert:read_assigned", "alert:read_command", "forecast:read", "forecast:read_aggregate"
+    )),
+):
     """Persistent early-warning events generated from forecast/advanced intelligence."""
     return await list_alert_events(limit)
 
@@ -716,8 +778,10 @@ async def daily_intelligence_refresh(user: dict = Depends(require_admin)):
 @app.api_route("/api/internal/cron/daily-intelligence-refresh", methods=["GET", "POST"])
 async def cron_daily_intelligence_refresh(key: str = Query("")):
     """Catalyst Cron target protected by a shared cron key."""
-    expected = os.getenv("CATALYST_CRON_KEY", "namma-ksp-cron")
-    if not expected or key != expected:
+    expected = os.getenv("CATALYST_CRON_KEY", "").strip()
+    if not expected:
+        raise HTTPException(status_code=503, detail="Cron URL authentication is not configured")
+    if not secrets.compare_digest(key, expected):
         raise HTTPException(status_code=403, detail="Invalid cron key")
     cron_user = {"username": "catalyst-cron", "role": "System"}
     result = await _record_forecast_alerts(cron_user)
@@ -738,8 +802,10 @@ async def cron_daily_intelligence_refresh(key: str = Query("")):
 @app.post("/api/internal/signals/early-warning")
 async def catalyst_signal_early_warning(payload: CatalystSignalRequest, key: str = Query("")):
     """Catalyst Signals webhook target for early-warning intelligence events."""
-    expected = os.getenv("CATALYST_SIGNALS_KEY", "namma-ksp-signals")
-    if not expected or key != expected:
+    expected = os.getenv("CATALYST_SIGNALS_KEY", "").strip()
+    if not expected:
+        raise HTTPException(status_code=503, detail="Signals webhook authentication is not configured")
+    if not secrets.compare_digest(key, expected):
         raise HTTPException(status_code=403, detail="Invalid signal key")
 
     raw_payload = payload.payload or {}
@@ -889,6 +955,21 @@ async def catalyst_datastore_status(request: Request, user: dict = Depends(requi
     return await datastore_probe(request)
 
 
+@app.post("/api/catalyst/services/verify")
+async def catalyst_services_verify(request: Request, user: dict = Depends(require_admin)):
+    """Run live SDK operations; configuration flags alone never count as proof."""
+    proofs = await verify_managed_services(request)
+    await log_audit(
+        user.get("username"), user.get("role"), "CATALYST_SERVICES_VERIFY",
+        "catalyst/services", "Executed managed Catalyst service verification", "",
+    )
+    return {
+        "verified": sum(1 for proof in proofs.values() if proof["verified"]),
+        "failed": sum(1 for proof in proofs.values() if not proof["verified"]),
+        "proofs": proofs,
+    }
+
+
 @app.get("/api/search/global")
 async def global_search(request: Request, q: str = Query(..., min_length=2, max_length=120)):
     """Use Catalyst Search when available, otherwise parameterized SQL."""
@@ -921,6 +1002,48 @@ async def quickml_prediction(body: QuickMLPredictionRequest, request: Request, u
     result = await quickml_predict(request, body.features)
     if not result["used"]:
         raise HTTPException(status_code=503, detail=result["error"])
+    return result
+
+
+@app.post("/api/zia/text-analysis")
+async def catalyst_zia_text_analysis(
+    body: ZiaTextRequest, request: Request,
+    user: dict = Depends(require_any_capability("ai:analytical", "ai:supervisory")),
+):
+    documents = [str(value).strip()[:5000] for value in body.documents[:5] if str(value).strip()]
+    if not documents:
+        raise HTTPException(status_code=400, detail="At least one document is required")
+    result = await zia_text_analysis(request, documents, body.keywords[:20] or None)
+    if not result["used"]:
+        raise HTTPException(status_code=503, detail=result["error"])
+    await log_audit(user.get("username"), user.get("role"), "ZIA_TEXT_ANALYSIS", "zia", "Analyzed privacy-reviewed text", "")
+    return result
+
+
+@app.post("/api/smartbrowz/verify")
+async def catalyst_smartbrowz_verify(request: Request, user: dict = Depends(require_admin)):
+    html = "<html><body><h1>NAMMA KSP</h1><p>SmartBrowz service verification.</p></body></html>"
+    result = await smartbrowz_pdf(request, html)
+    if not result["used"]:
+        raise HTTPException(status_code=503, detail=result["error"])
+    return Response(content=result["data"], media_type="application/pdf")
+
+
+@app.post("/api/notifications/mail")
+async def catalyst_mail_send(body: CatalystMailRequest, request: Request, user: dict = Depends(require_admin)):
+    result = await send_catalyst_mail(request, body.recipients[:20], body.subject[:200], body.content[:10000])
+    if not result["used"]:
+        raise HTTPException(status_code=503, detail=result["error"])
+    await log_audit(user.get("username"), user.get("role"), "CATALYST_MAIL_SEND", "mail", f"Sent to {len(body.recipients[:20])} recipient(s)", "")
+    return result
+
+
+@app.post("/api/notifications/push")
+async def catalyst_push_send(body: CatalystPushRequest, request: Request, user: dict = Depends(require_admin)):
+    result = await send_catalyst_push(request, body.recipients[:100], body.message[:500])
+    if not result["used"]:
+        raise HTTPException(status_code=503, detail=result["error"])
+    await log_audit(user.get("username"), user.get("role"), "CATALYST_PUSH_SEND", "push", f"Sent to {len(body.recipients[:100])} user(s)", "")
     return result
 
 
@@ -965,15 +1088,18 @@ async def login_endpoint(request: LoginRequest, http_request: Request):
     
     LOGIN_ATTEMPTS.pop(client_ip, None)
     token = str(uuid.uuid4())
-    ACTIVE_SESSIONS[token] = {
+    identity = enrich_identity({
         "username": user["username"], "role": user["role"],
         "issued_at": int(now), "expires_at": int(now + SESSION_TTL_SECONDS),
-    }
-    await log_audit(user["username"], user["role"], "LOGIN_SUCCESS", "auth", "User signed in", http_request.client.host if http_request.client else "")
+    })
+    ACTIVE_SESSIONS[token] = identity
+    await log_audit(identity["username"], identity["role"], "LOGIN_SUCCESS", "auth", "User signed in", http_request.client.host if http_request.client else "")
     return {
         "token": token,
-        "username": user["username"],
-        "role": user["role"]
+        "username": identity["username"],
+        "role": identity["role"],
+        "capabilities": identity["capabilities"],
+        "disclosure_mode": identity["disclosure_mode"],
     }
 
 
@@ -993,6 +1119,12 @@ async def logout_endpoint(http_request: Request, authorization: Optional[str] = 
 @app.get("/api/auth/me")
 async def me_endpoint(user: dict = Depends(get_current_user)):
     return user
+
+
+@app.get("/api/workspace/me")
+async def workspace_me(user: dict = Depends(get_current_user)):
+    """Return the server-authorized dashboard composition for this identity."""
+    return workspace_for(user)
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -1015,8 +1147,25 @@ async def list_users(http_request: Request, admin_user: dict = Depends(require_a
 
 
 @app.get("/api/audit/logs")
-async def list_audit_logs(limit: int = Query(100, ge=1, le=500), admin_user: dict = Depends(require_admin)):
-    return await list_audit_events(limit)
+async def list_audit_logs(
+    limit: int = Query(100, ge=1, le=500),
+    user: dict = Depends(require_any_capability("audit:read_command", "audit:read_all")),
+):
+    events = await list_audit_events(limit)
+    if has_capability(user, "audit:read_all"):
+        return events
+    administrative_actions = {
+        "USER_LIST_VIEW", "USER_CREATE", "USER_DELETE", "CATALYST_SERVICES_VIEW",
+        "CATALYST_SERVICES_VERIFY", "CATALYST_MAIL_SEND", "CATALYST_PUSH_SEND",
+    }
+    projected = []
+    for event in events:
+        if event.get("action") in administrative_actions:
+            continue
+        safe = dict(event)
+        safe.pop("ip_address", None)
+        projected.append(safe)
+    return projected
 
 
 @app.post("/api/users")
@@ -1027,8 +1176,8 @@ async def create_user(request: UserCreate, admin_user: dict = Depends(require_ad
     username = request.username.strip()
     if not username:
         raise HTTPException(status_code=400, detail="Username cannot be empty")
-    if request.role not in ["Admin", "Investigator"]:
-        raise HTTPException(status_code=400, detail="Role must be 'Admin' or 'Investigator'")
+    if request.role not in VALID_ROLES:
+        raise HTTPException(status_code=400, detail="Invalid role")
     
     # Check if exists
     existing = await fetch_one("SELECT username FROM users WHERE LOWER(username) = ?", (username.lower(),))
@@ -1107,7 +1256,10 @@ async def list_firs(
     status:     Optional[str] = Query(None),
     from_date:  Optional[str] = Query(None),
     to_date:    Optional[str] = Query(None),
-    limit:      int           = Query(50, le=200)
+    limit:      int           = Query(50, le=200),
+    user: dict = Depends(require_any_capability(
+        "case:read_assigned", "case:read_command", "analytics:read_pseudonymized"
+    )),
 ):
     """Search FIRs with optional filters."""
     crime_type = _validate_filter(crime_type, "crime_type", max_length=80)
@@ -1116,23 +1268,34 @@ async def list_firs(
         raise HTTPException(status_code=400, detail="status must be Open, Closed, or Under Investigation")
     from_date = _validate_date(from_date, "from_date")
     to_date = _validate_date(to_date, "to_date")
-    return await search_firs(crime_type, district, status, from_date, to_date, limit)
+    result = await search_firs(crime_type, district, status, from_date, to_date, limit)
+    return project_case_payload(result, user)
 
 
 @app.get("/api/firs/{fir_id}")
-async def get_fir(fir_id: str):
+async def get_fir(
+    fir_id: str,
+    user: dict = Depends(require_any_capability(
+        "case:read_assigned", "case:read_command", "analytics:read_pseudonymized"
+    )),
+):
     """Get full details for a single FIR."""
     fir_id = _validate_fir_id(fir_id)
     data = await get_fir_detail(fir_id)
     if not data:
         raise HTTPException(status_code=404, detail=f"FIR {fir_id} not found")
-    return data
+    return project_case_payload(data, user)
 
 
 @app.get("/api/firs/{fir_id}/related")
-async def fir_related_cases(fir_id: str):
+async def fir_related_cases(
+    fir_id: str,
+    user: dict = Depends(require_any_capability(
+        "case:read_assigned", "case:read_command", "analytics:read_pseudonymized"
+    )),
+):
     """Get related cases for a FIR."""
-    return await get_related_cases(_validate_fir_id(fir_id))
+    return project_case_payload(await get_related_cases(_validate_fir_id(fir_id)), user)
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -1142,24 +1305,31 @@ async def fir_related_cases(fir_id: str):
 @app.get("/api/offenders/high-risk")
 async def high_risk_offenders(
     limit: int = Query(20, le=100),
-    search: Optional[str] = Query(None)
+    search: Optional[str] = Query(None),
+    user: dict = Depends(require_any_capability(
+        "offender:read_case", "offender:read_command", "offender:read_pseudonymized"
+    )),
 ):
     """Top high-risk offenders with risk scores."""
     search = _validate_filter(search, "search", max_length=80)
-    return await get_high_risk_offenders(limit, search)
+    return project_case_payload(await get_high_risk_offenders(limit, search), user)
 
 
 @app.get("/api/offenders/repeat")
-async def repeat_offenders():
+async def repeat_offenders(user: dict = Depends(require_any_capability(
+    "offender:read_case", "offender:read_command", "offender:read_pseudonymized"
+))):
     """Repeat offenders with multiple FIRs."""
-    return await get_repeat_offenders()
+    return project_case_payload(await get_repeat_offenders(), user)
 
 
 @app.get("/api/offenders/{offender_id}")
 async def get_offender(
     offender_id: str,
     http_request: Request,
-    user: dict = Depends(get_offender_route_user),
+    user: dict = Depends(require_any_capability(
+        "offender:read_case", "offender:read_command", "offender:read_pseudonymized"
+    )),
 ):
     """Full offender profile with FIR history and risk score."""
     offender_id = _validate_offender_id(offender_id)
@@ -1173,7 +1343,7 @@ async def get_offender(
         _client_ip(http_request),
         user_id=user.get("user_id", ""),
     )
-    return profile
+    return project_case_payload(profile, user)
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -1185,23 +1355,33 @@ async def criminal_network(
     request: Request,
     district:   Optional[str] = Query(None),
     crime_type: Optional[str] = Query(None),
-    limit:      int           = Query(150, le=300)
+    limit:      int           = Query(150, le=300),
+    user: dict = Depends(require_any_capability(
+        "network:read_case", "network:read_analytical", "network:read_command"
+    )),
 ):
     """Criminal network graph data for Cytoscape.js visualization."""
     district = _validate_filter(district, "district", max_length=80)
     crime_type = _validate_filter(crime_type, "crime_type", max_length=80)
-    return await get_cached_network_graph(
+    result = await get_cached_network_graph(
         request,
         district=district,
         crime_type=crime_type,
         limit=limit,
     )
+    return project_case_payload(result, user)
 
 
 @app.get("/api/network/offender/{offender_id}")
-async def offender_network(offender_id: str):
+async def offender_network(
+    offender_id: str,
+    user: dict = Depends(require_any_capability(
+        "network:read_case", "network:read_analytical", "network:read_command"
+    )),
+):
     """Focused sub-network around a specific offender."""
-    return await get_shared_offender_network(_validate_offender_id(offender_id))
+    result = await get_shared_offender_network(_validate_offender_id(offender_id))
+    return project_case_payload(result, user)
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -1209,14 +1389,23 @@ async def offender_network(offender_id: str):
 # ═══════════════════════════════════════════════════════════════════════════════
 
 @app.post("/api/chat")
-async def chat_endpoint(request: ChatRequest, http_request: Request, user: dict = Depends(get_current_user)):
+async def chat_endpoint(
+    request: ChatRequest,
+    http_request: Request,
+    user: dict = Depends(require_any_capability(
+        "ai:case_assist", "ai:analytical", "ai:supervisory", "ai:policy"
+    )),
+):
     """
     Conversational crime intelligence chatbot.
     Maintains session context across multiple turns.
     """
     session_id = request.session_id or str(uuid.uuid4())
     try:
-        result = await chat(session_id, request.message, request.language)
+        result = await chat(
+            session_id, request.message, request.language,
+            runtime_request=http_request, user=user,
+        )
         await nosql_append_evidence(http_request, session_id, {
             "created_at": datetime.now(UTC).isoformat(),
             "query_sha256": hashlib.sha256(request.message.encode("utf-8")).hexdigest(),
@@ -1408,7 +1597,10 @@ async def ai_recommendations(
 # ═══════════════════════════════════════════════════════════════════════════════
 
 @app.post("/api/reports/case")
-async def generate_report(request: ReportRequest, http_request: Request, user: dict = Depends(get_current_user)):
+async def generate_report(
+    request: ReportRequest, http_request: Request,
+    user: dict = Depends(require_any_capability("report:create_case")),
+):
     """Generate and download a PDF investigation report for a FIR."""
     fir_id = request.fir_id
 
@@ -1446,7 +1638,12 @@ async def generate_report(request: ReportRequest, http_request: Request, user: d
 
 
 @app.post("/api/reports/district")
-async def generate_district_report_endpoint(request: DistrictReportRequest, http_request: Request, user: dict = Depends(get_current_user)):
+async def generate_district_report_endpoint(
+    request: DistrictReportRequest, http_request: Request,
+    user: dict = Depends(require_any_capability(
+        "report:create_case", "report:create_analytical", "report:create_policy"
+    )),
+):
     """Generate and download a PDF district crime report."""
     from analytics import get_district_stats
 
@@ -1481,7 +1678,10 @@ async def generate_district_report_endpoint(request: DistrictReportRequest, http
 
 
 @app.post("/api/reports/offender")
-async def generate_offender_report_endpoint(request: OffenderReportRequest, http_request: Request, user: dict = Depends(get_current_user)):
+async def generate_offender_report_endpoint(
+    request: OffenderReportRequest, http_request: Request,
+    user: dict = Depends(require_any_capability("report:create_case")),
+):
     """Generate and download a PDF offender profile dossier."""
     offender_id = request.offender_id
     
@@ -1512,7 +1712,12 @@ async def generate_offender_report_endpoint(request: OffenderReportRequest, http
 
 
 @app.post("/api/reports/network")
-async def generate_network_report_endpoint(request: NetworkReportRequest, http_request: Request, user: dict = Depends(get_current_user)):
+async def generate_network_report_endpoint(
+    request: NetworkReportRequest, http_request: Request,
+    user: dict = Depends(require_any_capability(
+        "report:create_case", "report:create_analytical"
+    )),
+):
     """Generate and download a PDF report containing the criminal network graph."""
     try:
         import base64
@@ -1543,7 +1748,12 @@ async def generate_network_report_endpoint(request: NetworkReportRequest, http_r
 
 
 @app.post("/api/reports/recommendations")
-async def generate_recommendations_report_endpoint(request: RecommendationsReportRequest, http_request: Request, user: dict = Depends(get_current_user)):
+async def generate_recommendations_report_endpoint(
+    request: RecommendationsReportRequest, http_request: Request,
+    user: dict = Depends(require_any_capability(
+        "report:create_case", "report:create_analytical", "report:create_policy"
+    )),
+):
     """Generate and download a PDF containing AI recommendations."""
     district = request.district
     crime_type = request.crime_type
@@ -1578,17 +1788,30 @@ async def generate_recommendations_report_endpoint(request: RecommendationsRepor
 
 @app.get("/api/reports/list")
 
-async def list_reports(http_request: Request, user: dict = Depends(get_current_user)):
+async def list_reports(
+    http_request: Request,
+    user: dict = Depends(require_any_capability(
+        "report:read_own", "report:read_analytical", "report:read_command",
+        "report:read_policy"
+    )),
+):
     """List all generated PDF reports."""
     reports = await list_report_archive(100)
+    role = user.get("role")
+    if role == "Investigator":
+        reports = [r for r in reports if r.get("generated_by") == user.get("username")]
+    elif role == "Analyst":
+        reports = [r for r in reports if r.get("report_type") in {"district", "network", "recommendations"}]
+    elif role == "Policymaker":
+        reports = [r for r in reports if r.get("report_type") in {"district", "recommendations", "policy"}]
     seen = {r["filename"] for r in reports}
     stratus = await list_report_objects(http_request)
-    if stratus["used"]:
+    if stratus["used"] and role == "Supervisor":
         for report in stratus["data"]:
             if report["filename"] not in seen:
                 reports.append(report)
                 seen.add(report["filename"])
-    if REPORTS_DIR.exists():
+    if REPORTS_DIR.exists() and role == "Supervisor":
         for f in sorted(REPORTS_DIR.glob("*.pdf"), reverse=True):
             if f.name not in seen:
                 reports.append({
@@ -1606,12 +1829,29 @@ async def list_reports(http_request: Request, user: dict = Depends(get_current_u
 
 
 @app.get("/api/reports/download/{filename}")
-async def download_report_file(filename: str, http_request: Request, user: dict = Depends(get_current_user)):
+async def download_report_file(
+    filename: str, http_request: Request,
+    user: dict = Depends(require_any_capability(
+        "report:read_own", "report:read_analytical", "report:read_command",
+        "report:read_policy"
+    )),
+):
     """
     Serve a generated PDF report file with guaranteed application/pdf content-type
     and Content-Disposition: attachment so browsers download it instead of displaying it.
     """
     filename = _validate_report_filename(filename)
+    archives = await list_report_archive(500)
+    archive = next((item for item in archives if item.get("filename") == filename), None)
+    role = user.get("role")
+    allowed_type = {
+        "Analyst": {"district", "network", "recommendations"},
+        "Policymaker": {"district", "recommendations", "policy"},
+    }.get(role)
+    if role == "Investigator" and (not archive or archive.get("generated_by") != user.get("username")):
+        raise HTTPException(status_code=403, detail="Investigators may download only their own reports")
+    if allowed_type is not None and (not archive or archive.get("report_type") not in allowed_type):
+        raise HTTPException(status_code=403, detail="This report is outside the role disclosure policy")
     
     pdf_path = REPORTS_DIR / filename
     if not pdf_path.exists():

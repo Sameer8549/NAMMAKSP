@@ -9,6 +9,8 @@ from typing import Any
 from fastapi import HTTPException
 from starlette.requests import Request
 
+from authorization import canonical_role, enrich_identity
+
 
 AUTH_MODE = os.getenv("AUTH_MODE", "catalyst").strip().lower()
 DEMO_MODE = os.getenv("DEMO_MODE", "false").strip().lower() == "true"
@@ -21,6 +23,9 @@ def _role_names(env_name: str, defaults: str) -> set[str]:
 
 ADMIN_ROLES = _role_names("NAMMAKSP_ADMIN_ROLES", "Admin,App Admin,App Administrator")
 INVESTIGATOR_ROLES = _role_names("NAMMAKSP_INVESTIGATOR_ROLES", "Investigator")
+ANALYST_ROLES = _role_names("NAMMAKSP_ANALYST_ROLES", "Analyst,Crime Analyst")
+SUPERVISOR_ROLES = _role_names("NAMMAKSP_SUPERVISOR_ROLES", "Supervisor")
+POLICYMAKER_ROLES = _role_names("NAMMAKSP_POLICYMAKER_ROLES", "Policymaker,Policy Maker")
 
 
 def normalize_catalyst_user(raw: dict[str, Any]) -> dict[str, str]:
@@ -32,9 +37,15 @@ def normalize_catalyst_user(raw: dict[str, Any]) -> dict[str, str]:
     catalyst_role = str(role_details.get("role_name") or "").strip()
     role_key = catalyst_role.casefold()
     if role_key in ADMIN_ROLES:
-        role = "Admin"
+        role = "Administrator"
     elif role_key in INVESTIGATOR_ROLES:
         role = "Investigator"
+    elif role_key in ANALYST_ROLES:
+        role = "Analyst"
+    elif role_key in SUPERVISOR_ROLES:
+        role = "Supervisor"
+    elif role_key in POLICYMAKER_ROLES:
+        role = "Policymaker"
     else:
         raise HTTPException(status_code=403, detail="Catalyst role is not authorized for NAMMA KSP")
 
@@ -43,14 +54,17 @@ def normalize_catalyst_user(raw: dict[str, Any]) -> dict[str, str]:
         part for part in [str(raw.get("first_name") or "").strip(), str(raw.get("last_name") or "").strip()]
         if part
     )
-    return {
+    custom = raw.get("custom_attributes") or raw.get("custom_fields") or {}
+    return enrich_identity({
         "user_id": str(raw.get("user_id") or raw.get("zuid") or ""),
         "username": display_name or email or "Catalyst User",
         "email": email,
         "role": role,
         "catalyst_role": catalyst_role,
         "auth_provider": "catalyst",
-    }
+        "district_scope": custom.get("district_scope", ""),
+        "command_scope": custom.get("command_scope", ""),
+    })
 
 
 def _get_current_catalyst_user_sync(request: Request) -> dict[str, str]:
