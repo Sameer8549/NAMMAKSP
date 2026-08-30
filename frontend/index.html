@@ -1,87 +1,16 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Sign In — NAMMA KSP | Karnataka State Police</title>
-  <meta name="description" content="NAMMA KSP — Secure login portal for Karnataka State Police Crime Intelligence Platform." />
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Noto+Sans+Kannada:wght@400;500;600;700&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="style.css" />
-</head>
-<body>
-  <div class="login-page">
-    <div class="login-left login-gradient-bg">
-      <canvas id="particle-canvas" class="login-canvas"></canvas>
-      <div class="login-left-content">
-        <img src="assets/namma_ksp_logo_dark.png" alt="NAMMA KSP" style="max-height:140px; width:auto; object-fit:contain; margin-bottom:15px" />
-        <div class="login-quote">&ldquo;Intelligence-led policing for a safer Karnataka&rdquo;</div>
-        <div class="login-pills">
-          <span class="login-pill">AI-Powered Analysis</span>
-          <span class="login-pill">Real-time Intelligence</span>
-          <span class="login-pill">Secure &amp; Encrypted</span>
-        </div>
-        <div class="security-status-bar">
-          <div class="security-tag"><div class="security-tag-dot"></div>SSL Encrypted</div>
-          <div class="security-tag"><div class="security-tag-dot"></div>Role-Based Access</div>
-          <div class="security-tag"><div class="security-tag-dot"></div>Audit Logged</div>
-          <div class="security-tag"><div class="security-tag-dot"></div>256-bit AES</div>
-        </div>
-      </div>
-    </div>
-    <div class="login-right">
-      <div class="login-form-card">
-        <div class="login-mobile-logo">
-          <img src="assets/namma_ksp_logo_light.png" alt="NAMMA KSP" style="max-height:65px; width:auto; object-fit:contain;" />
-        </div>
-        <h1 class="login-welcome">Welcome back / ಸುಸ್ವಾಗತ</h1>
-        <p class="login-welcome-sub">Sign in to your account / ನಿಮ್ಮ ಖಾತೆಗೆ ಲಾಗ್ ಇನ್ ಮಾಡಿ</p>
-        <div id="login-error" style="display:none;background:#FEE2E2;border:1px solid #FECACA;border-radius:var(--radius-md);padding:10px 14px;font-size:13px;color:#991B1B;margin-bottom:var(--space-md);"></div>
-        <div class="form-group">
-          <label class="form-label" for="login-lang-select">Select Language / ಭಾಷೆಯನ್ನು ಆಯ್ಕೆಮಾಡಿ</label>
-          <select class="form-select" id="login-lang-select" onchange="localStorage.setItem('cl_lang', this.value)">
-            <option value="en">English (Default)</option>
-            <option value="kn">ಕನ್ನಡ (Kannada)</option>
-          </select>
-        </div>
-        <div id="catalyst-login" class="catalyst-login-frame" aria-label="Catalyst secure sign in" hidden></div>
-        <div id="demo-login-wrap">
-        <form id="login-form" onsubmit="handleLogin(event)" novalidate>
-          <div class="form-group">
-            <label class="form-label" for="username">Username / ಬಳಕೆದಾರ ಹೆಸರು</label>
-            <input class="form-input" id="username" type="text" placeholder="Enter username / ಬಳಕೆದಾರ ಹೆಸರನ್ನು ನಮೂದಿಸಿ" autocomplete="username" required />
-          </div>
-          <div class="form-group">
-            <label class="form-label" for="password">Password / ಪಾಸ್‌ವರ್ಡ್</label>
-            <div class="form-input-wrapper">
-              <input class="form-input" id="password" type="password" placeholder="Enter password / ಪಾಸ್‌ವರ್ಡ್ ನಮೂದಿಸಿ" autocomplete="current-password" required />
-              <button type="button" class="form-input-icon" data-password-toggle="password" aria-label="Toggle password visibility">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
-              </button>
-            </div>
-          </div>
-          <div class="login-role-note">
-            Role is detected automatically after sign in / ಸೈನ್ ಇನ್ ನಂತರ ಪಾತ್ರವನ್ನು ಸ್ವಯಂಚಾಲಿತವಾಗಿ ಗುರುತಿಸಲಾಗುತ್ತದೆ
-          </div>
-          <button type="submit" id="login-btn" class="btn btn-primary btn-full btn-lg" style="margin-top:var(--space-sm)">Sign In / ಸೈನ್ ಇನ್ ಮಾಡಿ</button>
-        </form>
-        </div>
-        <p class="login-warning">&#x26A0; Authorized Law Enforcement Personnel Only / ಅಧಿಕೃತ ಕಾನೂನು ಜಾರಿ ಸಿಬ್ಬಂದಿ ಮಾತ್ರ</p>
-      </div>
-    </div>
-  </div>
-  <script src="https://static.zohocdn.com/catalyst/sdk/js/4.0.0/catalystWebSDK.js"></script>
-  <script src="/__catalyst/sdk/init.js"></script>
-  <script src="app.js"></script>
-  <script>
-    document.addEventListener('DOMContentLoaded', () => {
-      initParticleNetwork('particle-canvas');
-      const savedLang = localStorage.getItem('cl_lang') || 'en';
-      const select = document.getElementById('login-lang-select');
-      if (select) select.value = savedLang;
-      initCatalystLogin();
-    });
-  </script>
-</body>
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="./favicon.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#111827" />
+    <meta name="description" content="NAMMA KSP crime intelligence and operational analytics workspace" />
+    <title>NAMMA KSP Intelligence Platform</title>
+    <script type="module" crossorigin src="./assets/index-D4g_CEbx.js"></script>
+    <link rel="stylesheet" crossorigin href="./assets/index-BcBM4im7.css" />
+  </head>
+  <body>
+    <div id="root"></div>
+  </body>
 </html>

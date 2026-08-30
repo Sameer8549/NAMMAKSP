@@ -57,7 +57,7 @@ NAMMA KSP solves this by combining conversational AI, visual analytics, criminol
 | Financial crime link analysis | Financial transaction dataset support for suspicious account and cyber/financial pattern analysis. |
 | Forecasting and early warning | Explainable moving-average forecasting, hotspot scoring, and early warning indicators. |
 | Explainable AI | Dashboard evidence cards, data-backed summaries, and report-ready reasoning outputs. |
-| Secure access and governance | Catalyst-native authentication, server-enforced Admin/Investigator RBAC, protected routes, immutable Catalyst user IDs in audit events, and automatic role detection. |
+| Secure access and governance | Catalyst-native authentication, server-enforced Administrator/Investigator/Analyst/Supervisor/Policymaker RBAC, protected routes, immutable Catalyst user IDs in audit events, and automatic role detection. |
 
 ## Core Modules
 
@@ -69,7 +69,7 @@ NAMMA KSP solves this by combining conversational AI, visual analytics, criminol
 | Criminal Network | Relationship mapping across offenders, victims, FIRs, and locations. |
 | Offender Profiles | Risk category, demographic context, previous FIRs, behavioral signals, and dossier-ready details. |
 | Investigation Reports | Case, district, offender, recommendation, and network reports with PDF export and archive workflow. |
-| Role-Based Access | Catalyst-managed Admin and Investigator identities without manual role selection on the login screen. |
+| Role-Based Access | Five role-aware workspaces: case evidence for Investigators, pseudonymized patterns for Analysts, command queues for Supervisors, aggregate planning for Policymakers, and platform governance for Administrators. |
 
 ## Authentication
 
@@ -258,6 +258,13 @@ The deployed Catalyst Development build has been verified for:
 - Context-aware English and Kannada AI chat.
 - Adaptive factual, analytical, and deep-investigation responses.
 - Sarvam bilingual TTS with automatic playback and stop controls.
+
+## Submission Documents
+
+Presenter materials are generated locally under `output/pdf/` because generated
+artifacts are excluded from the application source tree. They contain the complete
+five-minute click path, role demonstrations, system architecture, Catalyst service
+mapping, deployment evidence, and production-safety notes.
 - Interactive microphone capture and Sarvam speech transcription.
 - Dataset-backed dashboard, FIR, offender, network, hotspot, and report APIs.
 - QuickML, Cron, Job Scheduling, Signals, API Gateway, and service-evidence configuration.

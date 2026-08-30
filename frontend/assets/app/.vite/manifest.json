@@ -1,0 +1,11 @@
+{
+  "ui-src/dashboard.tsx": {
+    "file": "dashboard.js",
+    "name": "dashboard",
+    "src": "ui-src/dashboard.tsx",
+    "isEntry": true,
+    "css": [
+      "dashboard.css"
+    ]
+  }
+}

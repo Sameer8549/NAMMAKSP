@@ -6,6 +6,7 @@ All API routes for the NAMMA KSP platform.
 """
 
 import os
+import asyncio
 import secrets
 import sys
 import logging
@@ -29,6 +30,7 @@ from dotenv import load_dotenv
 
 # Add backend dir to path so sibling imports work
 sys.path.insert(0, str(Path(__file__).parent))
+from frontend_workspace import build_frontend_workspace
 
 load_dotenv(Path(__file__).parent.parent / ".env")
 
@@ -64,7 +66,7 @@ from sarvam_service import (
 from catalyst_auth import AUTH_MODE, DEMO_MODE, get_all_catalyst_users, get_current_catalyst_user
 from authorization import (
     ROLES, canonical_role, enrich_identity, has_capability,
-    project_case_payload, stable_alias, workspace_for,
+    project_case_payload, pseudonymize_record, stable_alias, workspace_for,
 )
 from catalyst_services import get_catalyst_service_matrix
 from catalyst_runtime import (
@@ -126,6 +128,15 @@ app = FastAPI(
     docs_url="/api/docs",
     redoc_url="/api/redoc"
 )
+
+
+@app.get("/__catalyst/sdk/init.js", include_in_schema=False)
+async def local_catalyst_sdk_bootstrap():
+    """Provide a harmless SDK bootstrap only when the app runs outside Catalyst hosting."""
+    return Response(
+        content="window.__NAMMA_CATALYST_LOCAL__=true;",
+        media_type="application/javascript",
+    )
 
 
 @app.exception_handler(Exception)
@@ -291,6 +302,7 @@ class ChatRequest(BaseModel):
     message:    str = Field(min_length=1, max_length=4000)
     session_id: Optional[str] = None
     language:   Optional[str] = "en-US"
+    workspace_view: Optional[str] = Field(default=None, max_length=120)
 
     @field_validator("message")
     @classmethod
@@ -386,6 +398,31 @@ class UserCreate(BaseModel):
             return canonical_role(value)
         except ValueError as exc:
             raise ValueError(f"role must be one of: {', '.join(ROLES)}") from exc
+
+class UserUpdate(BaseModel):
+    role: Optional[str] = None
+    active: Optional[bool] = None
+
+    @field_validator("role")
+    @classmethod
+    def validate_role(cls, value: str | None) -> str | None:
+        return canonical_role(value) if value is not None else None
+
+class CaseAssignmentRequest(BaseModel):
+    assignee: str = Field(min_length=2, max_length=80)
+    note: Optional[str] = Field(default=None, max_length=500)
+
+class ForecastReviewRequest(BaseModel):
+    decision: str
+    note: Optional[str] = Field(default=None, max_length=500)
+
+    @field_validator("decision")
+    @classmethod
+    def validate_decision(cls, value: str) -> str:
+        normalized = value.strip().lower().replace(" ", "_")
+        if normalized not in {"validated", "disputed", "needs_more_data"}:
+            raise ValueError("decision must be validated, disputed, or needs_more_data")
+        return normalized
 
 class ChatMessage(BaseModel):
     role: str = Field(min_length=1, max_length=20)
@@ -723,15 +760,20 @@ async def analytics_police_stations():
 
 
 @app.get("/api/analytics/sociological")
-async def analytics_sociological():
+async def analytics_sociological(user: dict = Depends(require_any_capability(
+    "sociology:read", "sociology:read_aggregate", "analytics:read_command"
+))):
     """Socio-demographic crime insights from uploaded datasets."""
     return await get_sociological_insights()
 
 
 @app.get("/api/analytics/financial-links")
-async def analytics_financial_links():
+async def analytics_financial_links(user: dict = Depends(require_any_capability(
+    "financial:read_case", "financial:read_pseudonymized", "analytics:read_command"
+))):
     """Financial transaction analysis when uploaded, otherwise FIR-based financial/cyber link analysis."""
-    return await get_financial_link_analysis()
+    result = await get_financial_link_analysis()
+    return pseudonymize_record(result) if has_capability(user, "financial:read_pseudonymized") else result
 
 
 @app.get("/api/analytics/forecast")
@@ -770,6 +812,85 @@ async def analytics_advanced_intelligence(request: Request, user: dict = Depends
         "ADVANCED_INTEL_VIEW", "analytics",
         f"Viewed advanced intelligence with {len(warnings)} warnings", ""
     )
+    return result
+
+
+@app.get("/api/frontend/bootstrap")
+async def frontend_bootstrap(user: dict = Depends(get_current_user)):
+    """Return the authenticated role's complete React workspace data contract."""
+    return await build_frontend_workspace(user)
+
+
+@app.get("/api/analytics/drilldown")
+async def analytics_role_safe_drilldown(
+    dimension: str = Query(..., pattern="^(month|crime_type|district)$"),
+    value: str = Query(..., min_length=1, max_length=100),
+    user: dict = Depends(get_current_user),
+):
+    """Return role-safe aggregate intelligence with optional case evidence."""
+    dimension = str(dimension).strip()
+    value = _validate_filter(value, dimension, max_length=100)
+    predicates = {
+        "month": ("substr(f.date, 1, 7) = ?", value),
+        "crime_type": ("f.crime_type = ?", value),
+        "district": ("f.district = ?", value),
+    }
+    where_clause, parameter = predicates[dimension]
+    params = (parameter,)
+
+    total_row = await fetch_one(
+        f"SELECT COUNT(*) AS count FROM firs f WHERE {where_clause}", params
+    )
+
+    async def grouped(column: str) -> list[dict]:
+        allowed = {"crime_type", "district", "status"}
+        if column not in allowed:
+            raise ValueError("Unsupported analytics grouping")
+        return await fetch_all(
+            f"""
+            SELECT f.{column} AS name, COUNT(*) AS count
+            FROM firs f
+            WHERE {where_clause}
+            GROUP BY f.{column}
+            ORDER BY count DESC, name ASC
+            """,
+            params,
+        )
+
+    crime_rows, district_rows, status_rows = await asyncio.gather(
+        grouped("crime_type"), grouped("district"), grouped("status")
+    )
+    may_read_cases = any(has_capability(user, capability) for capability in (
+        "case:read_assigned", "case:read_command", "analytics:read_pseudonymized"
+    ))
+    records: list[dict] = []
+    if may_read_cases:
+        records = await fetch_all(
+            f"""
+            SELECT f.fir_id, f.crime_type, f.district, f.status, f.date,
+                   f.offender_id, f.victim_id
+            FROM firs f
+            WHERE {where_clause}
+            ORDER BY f.date DESC, f.fir_id ASC
+            LIMIT 24
+            """,
+            params,
+        )
+        records = project_case_payload(records, user)
+
+    return {
+        "dimension": dimension,
+        "value": value,
+        "total": int((total_row or {}).get("count", 0)),
+        "crime_rows": crime_rows,
+        "district_rows": district_rows,
+        "status_rows": status_rows,
+        "evidence_records": records,
+        "evidence_mode": "case-records" if records else "aggregate-only",
+        "disclosure_mode": enrich_identity(user)["disclosure_mode"],
+        "source": "Verified synthetic FIR registry",
+        "generated_at": datetime.now(UTC).isoformat(),
+    }
     return result
 
 
@@ -853,6 +974,25 @@ async def resolve_early_warning(
     user: dict = Depends(require_any_capability("alert:resolve")),
 ):
     return await _apply_alert_transition(alert_id, "resolve", payload, user, http_request)
+
+
+@app.post("/api/forecast/{alert_id}/review")
+async def review_forecast_signal(
+    alert_id: int,
+    payload: ForecastReviewRequest,
+    http_request: Request,
+    user: dict = Depends(require_any_capability("forecast:validate", "forecast:review_command")),
+):
+    from database import execute_write, fetch_one
+    alert = await fetch_one("SELECT id, signal, district FROM alert_events WHERE id = ?", (alert_id,))
+    if not alert:
+        raise HTTPException(status_code=404, detail="Forecast signal not found")
+    review_id = await execute_write(
+        "INSERT INTO forecast_reviews (alert_id, reviewer, decision, note) VALUES (?, ?, ?, ?)",
+        (alert_id, user.get("username"), payload.decision, payload.note or ""),
+    )
+    await log_audit(user.get("username"), user.get("role"), "FORECAST_REVIEW", f"alert:{alert_id}", f"{payload.decision}: {payload.note or 'no note'}", _client_ip(http_request))
+    return {"id": review_id, "alert_id": alert_id, "decision": payload.decision, "status": "recorded"}
 
 
 @app.post("/api/jobs/daily-intelligence-refresh")
@@ -993,6 +1133,116 @@ async def system_status(admin_user: dict = Depends(require_admin)):
     }
 
 
+@app.get("/api/admin/intelligence")
+async def admin_intelligence(admin_user: dict = Depends(require_admin)):
+    """Deterministic governance briefing built from live operational evidence."""
+    stats = await get_db_stats()
+    er_schema = await get_er_schema_status()
+    catalyst = get_catalyst_service_matrix()
+    service_summary = catalyst["summary"]
+
+    role_rows = await fetch_all(
+        "SELECT role, COUNT(*) AS count FROM users GROUP BY role ORDER BY role"
+    )
+    failed_logins = await fetch_one("""
+        SELECT COUNT(*) AS count FROM audit_logs
+        WHERE action = 'LOGIN_FAILED' AND datetime(timestamp) >= datetime('now', '-24 hours')
+    """)
+    privileged_actions = await fetch_one("""
+        SELECT COUNT(*) AS count FROM audit_logs
+        WHERE datetime(timestamp) >= datetime('now', '-24 hours')
+          AND (action LIKE 'USER_%' OR action LIKE 'CATALYST_%' OR action LIKE 'JOB_%')
+    """)
+    active_operators = await fetch_one("""
+        SELECT COUNT(DISTINCT username) AS count FROM audit_logs
+        WHERE datetime(timestamp) >= datetime('now', '-24 hours') AND username IS NOT NULL
+    """)
+    stale_alerts = await fetch_one("""
+        SELECT COUNT(*) AS count FROM alert_events
+        WHERE status != 'resolved' AND datetime(created_at) < datetime('now', '-72 hours')
+    """)
+    open_alerts = await fetch_one(
+        "SELECT COUNT(*) AS count FROM alert_events WHERE status != 'resolved'"
+    )
+    failed_jobs = await fetch_one("""
+        SELECT COUNT(*) AS count FROM job_runs
+        WHERE lower(status) NOT IN ('success', 'completed')
+          AND datetime(started_at) >= datetime('now', '-7 days')
+    """)
+    latest_job = await fetch_one("""
+        SELECT job_name, status, started_at, detail FROM job_runs ORDER BY id DESC LIMIT 1
+    """)
+
+    failed_login_count = int((failed_logins or {}).get("count", 0))
+    stale_alert_count = int((stale_alerts or {}).get("count", 0))
+    failed_job_count = int((failed_jobs or {}).get("count", 0))
+    active_services = int(service_summary.get("active_or_ready", 0))
+    total_services = max(int(service_summary.get("total_requested", 0)), 1)
+    service_score = round((active_services / total_services) * 40)
+    identity_score = 20 if len(role_rows) >= len(ROLES) else round((len(role_rows) / len(ROLES)) * 20)
+    integrity_score = 15 if er_schema.get("valid") else 0
+    security_score = 15 if failed_login_count == 0 else max(3, 15 - min(failed_login_count, 12))
+    operations_score = 10 if not failed_job_count and not stale_alert_count else max(2, 10 - failed_job_count * 3 - min(stale_alert_count, 5))
+    readiness_score = min(100, service_score + identity_score + integrity_score + security_score + operations_score)
+
+    recommendations = []
+    if failed_login_count:
+        recommendations.append({"priority": "High", "action": "Review failed sign-ins", "evidence": f"{failed_login_count} failed login attempts in the last 24 hours"})
+    if stale_alert_count:
+        recommendations.append({"priority": "High", "action": "Escalate ageing warnings", "evidence": f"{stale_alert_count} unresolved alerts are older than 72 hours"})
+    if failed_job_count:
+        recommendations.append({"priority": "High", "action": "Repair scheduled intelligence jobs", "evidence": f"{failed_job_count} failed jobs recorded in the last seven days"})
+    missing_roles = sorted(set(ROLES) - {str(row.get("role")) for row in role_rows})
+    if missing_roles:
+        recommendations.append({"priority": "Medium", "action": "Complete role coverage", "evidence": f"No account is assigned to: {', '.join(missing_roles)}"})
+    if active_services < total_services:
+        recommendations.append({"priority": "Medium", "action": "Close Catalyst service gaps", "evidence": f"{active_services} of {total_services} services are active or configured"})
+    if not recommendations:
+        recommendations.append({"priority": "Normal", "action": "Maintain operational posture", "evidence": "No immediate governance exception was detected"})
+
+    release_gates = [
+        {"name": "ER schema integrity", "status": "pass" if er_schema.get("valid") else "fail", "detail": f"Schema {er_schema.get('schema_version', 'unknown')}"},
+        {"name": "Role coverage", "status": "pass" if not missing_roles else "attention", "detail": f"{len(role_rows)} of {len(ROLES)} roles represented"},
+        {"name": "Scheduled operations", "status": "pass" if not failed_job_count else "fail", "detail": latest_job.get("status", "No run recorded") if latest_job else "No run recorded"},
+        {"name": "Alert governance", "status": "pass" if not stale_alert_count else "attention", "detail": f"{stale_alert_count} alerts beyond SLA"},
+        {"name": "Catalyst readiness", "status": "pass" if active_services >= 9 else "attention", "detail": f"{active_services} active/configured services"},
+    ]
+
+    await log_audit(
+        admin_user.get("username"), admin_user.get("role"), "ADMIN_INTELLIGENCE_VIEW",
+        "admin/intelligence", "Viewed governance intelligence briefing", "",
+    )
+    return {
+        "generated_at": datetime.now(UTC).isoformat(),
+        "readiness": {
+            "score": readiness_score,
+            "posture": "Operational" if readiness_score >= 80 else "Attention required" if readiness_score >= 60 else "Critical",
+            "components": {
+                "catalyst_services": service_score,
+                "role_coverage": identity_score,
+                "data_integrity": integrity_score,
+                "security": security_score,
+                "operations": operations_score,
+            },
+        },
+        "identity": {"roles": role_rows, "supported_roles": list(ROLES)},
+        "security": {
+            "failed_logins_24h": failed_login_count,
+            "privileged_actions_24h": int((privileged_actions or {}).get("count", 0)),
+            "active_operators_24h": int((active_operators or {}).get("count", 0)),
+        },
+        "operations": {
+            "open_alerts": int((open_alerts or {}).get("count", 0)),
+            "stale_alerts": stale_alert_count,
+            "failed_jobs_7d": failed_job_count,
+            "latest_job": latest_job,
+            "report_archive": int(stats.get("report_archive", 0)),
+        },
+        "release_gates": release_gates,
+        "recommendations": recommendations[:6],
+    }
+
+
 @app.get("/api/system/summary")
 async def system_summary(user: dict = Depends(get_current_user)):
     """Role-safe operations summary for investigator dashboards."""
@@ -1072,29 +1322,34 @@ async def catalyst_services_verify(request: Request, user: dict = Depends(requir
 
 
 @app.get("/api/search/global")
-async def global_search(request: Request, q: str = Query(..., min_length=2, max_length=120)):
+async def global_search(request: Request, q: str = Query(..., min_length=2, max_length=120), user: dict = Depends(get_current_user)):
     """Use Catalyst Search when available, otherwise parameterized SQL."""
     term = _validate_filter(q, "q", max_length=120)
-    table_name = os.getenv("CATALYST_SEARCH_TABLE_FIRS", "namma_ksp_firs")
-    managed = await catalyst_search(request, term, {
-        table_name: ["FIR_ID", "Crime_Type", "District", "Police_Station", "Status"]
-    })
-    if managed["used"]:
-        return managed
+    if has_capability(user, "platform:admin"):
+        users = await fetch_all("SELECT username, role, COALESCE(active, 1) AS active FROM users WHERE username LIKE ? OR role LIKE ? LIMIT 30", (f"%{term}%", f"%{term}%"))
+        return {"provider": "governance-search", "used": True, "data": users, "result_type": "identity-metadata"}
+    if has_capability(user, "policy:read_aggregate"):
+        rows = await fetch_all("SELECT district, crime_type, COUNT(*) AS count FROM firs WHERE district LIKE ? OR crime_type LIKE ? GROUP BY district, crime_type ORDER BY count DESC LIMIT 30", (f"%{term}%", f"%{term}%"))
+        return {"provider": "aggregate-search", "used": True, "data": rows, "result_type": "aggregate"}
     pattern = f"%{term}%"
+    assignment_clause = " AND LOWER(assigned_to) = LOWER(?)" if has_capability(user, "case:read_assigned") and not has_capability(user, "case:read_command") else ""
+    params = [pattern, pattern, pattern, pattern, pattern]
+    if assignment_clause:
+        params.append(user.get("username"))
     rows = await fetch_all(
-        """
+        f"""
         SELECT fir_id, crime_type, date, district, police_station, status,
-               offender_id, victim_id
+               offender_id, victim_id, assigned_to, priority
         FROM firs
-        WHERE fir_id LIKE ? OR crime_type LIKE ? OR district LIKE ?
-           OR police_station LIKE ? OR status LIKE ?
+        WHERE (fir_id LIKE ? OR crime_type LIKE ? OR district LIKE ?
+           OR police_station LIKE ? OR status LIKE ?) {assignment_clause}
         ORDER BY date DESC
         LIMIT 50
         """,
-        (pattern, pattern, pattern, pattern, pattern),
+        tuple(params),
     )
-    return {"provider": "sql-search", "used": True, "data": rows, "fallback_reason": managed["error"]}
+    projected = pseudonymize_record(rows) if has_capability(user, "analytics:read_pseudonymized") else rows
+    return {"provider": "role-scoped-sql", "used": True, "data": projected, "result_type": user.get("disclosure_mode")}
 
 
 @app.post("/api/quickml/predict")
@@ -1179,7 +1434,7 @@ async def login_endpoint(request: LoginRequest, http_request: Request):
         raise HTTPException(status_code=429, detail="Too many login attempts. Try again in five minutes.")
     pw_hash = hash_password(request.password)
     user = await fetch_one(
-        "SELECT username, role FROM users WHERE LOWER(username) = ? AND password_hash = ?",
+        "SELECT username, role FROM users WHERE LOWER(username) = ? AND password_hash = ? AND COALESCE(active, 1) = 1",
         (request.username.lower(), pw_hash)
     )
     if not user:
@@ -1228,6 +1483,78 @@ async def workspace_me(user: dict = Depends(get_current_user)):
     return workspace_for(user)
 
 
+@app.get("/api/workspace/intelligence")
+async def workspace_intelligence(request: Request, user: dict = Depends(get_current_user)):
+    """Return a fresh, role-specific decision queue built from verified registries."""
+    identity = enrich_identity(user)
+    role = identity["role"]
+    cached = await get_cached_analytics_overview(request)
+    overview = cached.get("overview", {})
+    districts = cached.get("district_stats", [])
+    crime_types = cached.get("crime_type_distribution", [])
+    trends = cached.get("monthly_trends", [])
+    latest_job = (await list_job_runs(1) or [None])[0]
+    alerts = await list_alert_events(50)
+    open_alerts = [item for item in alerts if str(item.get("status", "open")).lower() != "resolved"]
+    high_alerts = [item for item in open_alerts if str(item.get("severity", "")).lower() in {"critical", "high"}]
+    top_district = districts[0] if districts else {}
+    top_crime = crime_types[0] if crime_types else {}
+    latest_trend = trends[-1] if trends else {}
+    previous_trend = trends[-2] if len(trends) > 1 else {}
+    trend_delta = 0.0
+    if float(previous_trend.get("count") or 0) > 0:
+        trend_delta = round(
+            ((float(latest_trend.get("count") or 0) - float(previous_trend["count"])) /
+             float(previous_trend["count"])) * 100,
+            1,
+        )
+
+    assigned_cases: list[dict] = []
+    assigned_open = 0
+    if role == "Investigator":
+        assigned_cases = await search_firs(limit=250, assigned_to=identity.get("username"))
+        assigned_open = sum(
+            1 for item in assigned_cases
+            if str(item.get("status", "")).lower() in {"open", "under investigation", "investigating"}
+        )
+
+    common = {
+        "generated_at": datetime.now(UTC).isoformat(),
+        "source": "NAMMA KSP verified synthetic registries",
+        "freshness": latest_job.get("started_at") if latest_job else None,
+        "decision_policy": "Human review required before operational action",
+    }
+    queues: dict[str, list[dict]] = {
+        "Investigator": [
+            {"priority": "Assigned queue", "title": "Review active assigned cases", "value": assigned_open, "evidence": "firs.assigned_to + firs.status", "action": "cases"},
+            {"priority": "Case ownership", "title": "Verify assigned evidence records", "value": len(assigned_cases), "evidence": "firs.assigned_to", "action": "cases"},
+            {"priority": "Urgent work", "title": "Prioritize high-risk assigned FIRs", "value": sum(1 for item in assigned_cases if item.get("priority") in {"Critical", "High"}), "evidence": "firs.priority", "action": "cases"},
+        ],
+        "Analyst": [
+            {"priority": "Pattern", "title": f"Validate {top_crime.get('crime_type') or 'leading crime'} concentration", "value": int(top_crime.get("count") or 0), "evidence": "firs grouped by crime_type", "action": "pattern"},
+            {"priority": "Momentum", "title": "Compare latest recorded month", "value": trend_delta, "unit": "%", "evidence": "monthly FIR series", "action": "trend"},
+            {"priority": "Early warning", "title": "Review high-priority signals", "value": len(high_alerts), "evidence": "alert_events ledger", "action": "alerts"},
+        ],
+        "Supervisor": [
+            {"priority": "Command", "title": "Triage unresolved intelligence warnings", "value": len(open_alerts), "evidence": "alert_events.status", "action": "alerts"},
+            {"priority": "Workload", "title": "Review active command pressure", "value": int(overview.get("open_cases") or 0), "evidence": "firs.status", "action": "cases"},
+            {"priority": "Accountability", "title": "Confirm intelligence refresh health", "value": latest_job.get("status") if latest_job else "Not run", "evidence": "job_runs ledger", "action": "audit"},
+        ],
+        "Policymaker": [
+            {"priority": "State trend", "title": "Review latest statewide movement", "value": trend_delta, "unit": "%", "evidence": "aggregate monthly FIR series", "action": "trend"},
+            {"priority": "Resource planning", "title": f"Compare {top_district.get('district') or 'leading district'} workload", "value": int(top_district.get("total_crimes") or 0), "evidence": "aggregate district FIR counts", "action": "district"},
+            {"priority": "Prevention", "title": "Assess represented district coverage", "value": int(overview.get("districts_covered") or 0), "unit": "districts", "evidence": "aggregate FIR registry", "action": "districts"},
+        ],
+        "Administrator": [],
+    }
+    await log_audit(
+        identity.get("username"), role, "WORKSPACE_INTELLIGENCE_VIEW", "workspace/intelligence",
+        f"Rendered {len(queues[role])} server-ranked role decisions", _client_ip(request),
+        user_id=identity.get("user_id", ""),
+    )
+    return {**common, "role": role, "items": queues[role]}
+
+
 # ═══════════════════════════════════════════════════════════════════════════════
 # USER MANAGEMENT ENDPOINTS (ADMIN ONLY)
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -1238,7 +1565,7 @@ async def list_users(http_request: Request, admin_user: dict = Depends(require_a
         users = await get_all_catalyst_users(http_request)
     else:
         from database import fetch_all
-        users = await fetch_all("SELECT username, role FROM users ORDER BY username ASC")
+        users = await fetch_all("SELECT username, role, COALESCE(active, 1) AS active FROM users ORDER BY username ASC")
     await log_audit(
         admin_user.get("username"), admin_user.get("role"), "USER_LIST_VIEW",
         "users", f"Viewed {len(users)} authorized users", _client_ip(http_request),
@@ -1310,6 +1637,27 @@ async def delete_user(username: str, admin_user: dict = Depends(require_admin)):
     return {"deleted": username}
 
 
+@app.patch("/api/users/{username}")
+async def update_user(username: str, request: UserUpdate, admin_user: dict = Depends(require_admin)):
+    if not DEMO_MODE:
+        raise HTTPException(status_code=409, detail="Manage users and roles in Catalyst Authentication")
+    from database import execute_write, fetch_one
+    target = await fetch_one("SELECT username, role, COALESCE(active, 1) AS active FROM users WHERE LOWER(username) = ?", (username.strip().lower(),))
+    if not target:
+        raise HTTPException(status_code=404, detail="User not found")
+    if target["username"].lower() == admin_user["username"].lower() and request.active is False:
+        raise HTTPException(status_code=400, detail="Cannot deactivate your own active account")
+    role = request.role or target["role"]
+    active = int(request.active if request.active is not None else bool(target["active"]))
+    await execute_write("UPDATE users SET role = ?, active = ? WHERE LOWER(username) = ?", (role, active, username.strip().lower()))
+    if not active:
+        for token, session in list(ACTIVE_SESSIONS.items()):
+            if str(session.get("username", "")).lower() == target["username"].lower():
+                ACTIVE_SESSIONS.pop(token, None)
+    await log_audit(admin_user.get("username"), admin_user.get("role"), "USER_UPDATE", "users", f"Updated {target['username']}: role={role}, active={bool(active)}", "")
+    return {"username": target["username"], "role": role, "active": bool(active)}
+
+
 # ═══════════════════════════════════════════════════════════════════════════════
 # HOTSPOT / MAP ENDPOINTS
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -1320,7 +1668,9 @@ async def hotspots(
     crime_type: Optional[str] = Query(None),
     from_date: Optional[str] = Query(None),
     to_date: Optional[str] = Query(None),
-    user: dict = Depends(get_current_user)
+    user: dict = Depends(require_any_capability(
+        "case:read_assigned", "case:read_command", "analytics:read_pseudonymized", "policy:read_aggregate"
+    ))
 ):
     """Lat/lon hotspot data for Leaflet.js heatmap."""
     district = _validate_filter(district, "district", max_length=80)
@@ -1336,7 +1686,9 @@ async def hotspot_density(
     crime_type: Optional[str] = Query(None),
     from_date: Optional[str] = Query(None),
     to_date: Optional[str] = Query(None),
-    user: dict = Depends(get_current_user)
+    user: dict = Depends(require_any_capability(
+        "case:read_assigned", "case:read_command", "analytics:read_pseudonymized", "policy:read_aggregate"
+    ))
 ):
     """District crime density for choropleth map."""
     district = _validate_filter(district, "district", max_length=80)
@@ -1349,6 +1701,13 @@ async def hotspot_density(
 # ═══════════════════════════════════════════════════════════════════════════════
 # FIR / CASE ENDPOINTS
 # ═══════════════════════════════════════════════════════════════════════════════
+
+def _case_is_in_scope(case: dict, user: dict) -> bool:
+    if has_capability(user, "case:read_command") or has_capability(user, "analytics:read_pseudonymized"):
+        return True
+    if has_capability(user, "case:read_assigned"):
+        return str(case.get("assigned_to") or "").casefold() == str(user.get("username") or "").casefold()
+    return False
 
 @app.get("/api/firs")
 async def list_firs(
@@ -1369,7 +1728,8 @@ async def list_firs(
         raise HTTPException(status_code=400, detail="status must be Open, Closed, or Under Investigation")
     from_date = _validate_date(from_date, "from_date")
     to_date = _validate_date(to_date, "to_date")
-    result = await search_firs(crime_type, district, status, from_date, to_date, limit)
+    assigned_to = user.get("username") if has_capability(user, "case:read_assigned") and not has_capability(user, "case:read_command") else None
+    result = await search_firs(crime_type, district, status, from_date, to_date, limit, assigned_to)
     return project_case_payload(result, user)
 
 
@@ -1385,6 +1745,8 @@ async def get_fir(
     data = await get_fir_detail(fir_id)
     if not data:
         raise HTTPException(status_code=404, detail=f"FIR {fir_id} not found")
+    if not _case_is_in_scope(data, user):
+        raise HTTPException(status_code=404, detail=f"FIR {fir_id} not found")
     return project_case_payload(data, user)
 
 
@@ -1396,7 +1758,31 @@ async def fir_related_cases(
     )),
 ):
     """Get related cases for a FIR."""
-    return project_case_payload(await get_related_cases(_validate_fir_id(fir_id)), user)
+    fir_id = _validate_fir_id(fir_id)
+    source = await get_fir_detail(fir_id)
+    if not source or not _case_is_in_scope(source, user):
+        raise HTTPException(status_code=404, detail=f"FIR {fir_id} not found")
+    related = await get_related_cases(fir_id)
+    scoped = [item for item in related if _case_is_in_scope(item, user)]
+    return project_case_payload(scoped, user)
+
+
+@app.post("/api/firs/{fir_id}/reassign")
+async def reassign_fir(
+    fir_id: str,
+    request: CaseAssignmentRequest,
+    http_request: Request,
+    user: dict = Depends(require_any_capability("case:reassign_command")),
+):
+    from database import execute_write, fetch_one
+    fir_id = _validate_fir_id(fir_id)
+    case = await fetch_one("SELECT fir_id, assigned_to FROM firs WHERE fir_id = ?", (fir_id,))
+    if not case:
+        raise HTTPException(status_code=404, detail=f"FIR {fir_id} not found")
+    assignee = request.assignee.strip()
+    await execute_write("UPDATE firs SET assigned_to = ?, updated_at = CURRENT_TIMESTAMP WHERE fir_id = ?", (assignee, fir_id))
+    await log_audit(user.get("username"), user.get("role"), "CASE_REASSIGN", fir_id, f"Reassigned from {case.get('assigned_to') or 'unassigned'} to {assignee}; {request.note or 'no note'}", _client_ip(http_request))
+    return {"fir_id": fir_id, "assigned_to": assignee, "status": "reassigned"}
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -1494,7 +1880,7 @@ async def chat_endpoint(
     request: ChatRequest,
     http_request: Request,
     user: dict = Depends(require_any_capability(
-        "ai:case_assist", "ai:analytical", "ai:supervisory", "ai:policy"
+        "ai:case_assist", "ai:analytical", "ai:supervisory", "ai:policy", "ai:platform_ops"
     )),
 ):
     """
@@ -1505,7 +1891,7 @@ async def chat_endpoint(
     try:
         result = await chat(
             session_id, request.message, request.language,
-            runtime_request=http_request, user=user,
+            runtime_request=http_request, user=user, workspace_view=request.workspace_view,
         )
         await nosql_append_evidence(http_request, session_id, {
             "created_at": datetime.now(UTC).isoformat(),
@@ -1657,10 +2043,15 @@ async def export_chat_endpoint(request: ExportChatRequest, http_request: Request
 
 
 @app.get("/api/ai/case-summary/{fir_id}")
-async def ai_case_summary(fir_id: str, http_request: Request, user: dict = Depends(get_current_user)):
+async def ai_case_summary(fir_id: str, http_request: Request, user: dict = Depends(require_any_capability(
+    "case:read_assigned", "case:read_command", "analytics:read_pseudonymized"
+))):
     """AI-generated investigation summary for a specific FIR."""
     try:
         fir_id = _validate_fir_id(fir_id)
+        case_data = await get_fir_detail(fir_id)
+        if not case_data or not _case_is_in_scope(case_data, user):
+            raise HTTPException(status_code=404, detail=f"FIR {fir_id} not found")
         result = await generate_case_summary(fir_id)
         if "error" in result:
             raise HTTPException(status_code=404, detail=result["error"])
@@ -1681,7 +2072,10 @@ async def ai_case_summary(fir_id: str, http_request: Request, user: dict = Depen
 @app.get("/api/ai/recommendations")
 async def ai_recommendations(
     district:   Optional[str] = Query(None),
-    crime_type: Optional[str] = Query(None)
+    crime_type: Optional[str] = Query(None),
+    user: dict = Depends(require_any_capability(
+        "ai:case_assist", "ai:analytical", "ai:supervisory", "ai:policy"
+    )),
 ):
     """AI-generated crime prevention and investigation recommendations."""
     try:
@@ -1707,6 +2101,8 @@ async def generate_report(
 
     case_data = await get_fir_detail(fir_id)
     if not case_data:
+        raise HTTPException(status_code=404, detail=f"FIR {fir_id} not found")
+    if not _case_is_in_scope(case_data, user):
         raise HTTPException(status_code=404, detail=f"FIR {fir_id} not found")
 
     related = await get_related_cases(fir_id)
@@ -1893,7 +2289,7 @@ async def list_reports(
     http_request: Request,
     user: dict = Depends(require_any_capability(
         "report:read_own", "report:read_analytical", "report:read_command",
-        "report:read_policy"
+        "report:read_policy", "report:read_system"
     )),
 ):
     """List all generated PDF reports."""
@@ -1905,6 +2301,8 @@ async def list_reports(
         reports = [r for r in reports if r.get("report_type") in {"district", "network", "recommendations"}]
     elif role == "Policymaker":
         reports = [r for r in reports if r.get("report_type") in {"district", "recommendations", "policy"}]
+    elif role == "Administrator":
+        reports = [r for r in reports if r.get("report_type") in {"system", "governance", "audit"}]
     seen = {r["filename"] for r in reports}
     stratus = await list_report_objects(http_request)
     if stratus["used"] and role == "Supervisor":
@@ -1934,7 +2332,7 @@ async def download_report_file(
     filename: str, http_request: Request,
     user: dict = Depends(require_any_capability(
         "report:read_own", "report:read_analytical", "report:read_command",
-        "report:read_policy"
+        "report:read_policy", "report:read_system"
     )),
 ):
     """
@@ -1948,6 +2346,7 @@ async def download_report_file(
     allowed_type = {
         "Analyst": {"district", "network", "recommendations"},
         "Policymaker": {"district", "recommendations", "policy"},
+        "Administrator": {"system", "governance", "audit"},
     }.get(role)
     if role == "Investigator" and (not archive or archive.get("generated_by") != user.get("username")):
         raise HTTPException(status_code=403, detail="Investigators may download only their own reports")

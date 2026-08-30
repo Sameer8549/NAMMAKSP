@@ -38,3 +38,13 @@ reports/*.pdf
 # OS
 .DS_Store
 Thumbs.db
+
+# Local frontend tooling and verification artifacts
+node_modules/
+web-client/node_modules/
+.frontend-candidate/
+.playwright-cli/
+frontend-next/
+output/
+tmp/
+debug.log

@@ -440,7 +440,8 @@ async def search_firs(
     status: str     = None,
     from_date: str  = None,
     to_date: str    = None,
-    limit: int      = 50
+    limit: int      = 50,
+    assigned_to: str = None,
 ) -> list[dict]:
     """Flexible FIR search with optional filters."""
     conditions = []
@@ -461,13 +462,16 @@ async def search_firs(
     if to_date:
         conditions.append("f.date <= ?")
         params.append(to_date)
+    if assigned_to:
+        conditions.append("LOWER(f.assigned_to) = LOWER(?)")
+        params.append(assigned_to)
 
     where = ("WHERE " + " AND ".join(conditions)) if conditions else ""
 
     query = f"""
         SELECT
             f.fir_id, f.crime_type, f.date, f.district, f.police_station,
-            f.status, f.offender_id, f.victim_id,
+            f.status, f.offender_id, f.victim_id, f.assigned_to, f.priority, f.updated_at,
             o.name AS offender_name, o.risk_category,
             v.name AS victim_name
         FROM firs f
@@ -758,7 +762,9 @@ async def get_financial_link_analysis() -> dict:
                     "districts": sorted(item["districts"]),
                     "risk_flags": sorted(item["risk_flags"]),
                     "link_score": score,
-                    "evidence": item["transaction_ids"][:8],
+                    "fir_ids": sorted(item["fir_ids"]),
+                    "transaction_ids": item["transaction_ids"][:8],
+                    "evidence": sorted(item["fir_ids"])[:8],
                     "recommended_action": "Freeze/check linked accounts, identify counterparties, and compare FIR/device/phone evidence."
                 })
         clusters.sort(key=lambda x: x["link_score"], reverse=True)
@@ -836,6 +842,7 @@ async def get_financial_link_analysis() -> dict:
                 "victim_count": len(item["victims"]),
                 "risk_category": item["risk_category"],
                 "link_score": min(score, 100),
+                "fir_ids": item["fir_ids"][:8],
                 "evidence": item["fir_ids"][:8],
                 "recommended_action": "Check bank accounts, device identifiers, phone numbers, mule accounts, and shared addresses across linked FIRs."
             })

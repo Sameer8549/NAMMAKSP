@@ -12,34 +12,40 @@ ROLES = ("Investigator", "Analyst", "Supervisor", "Policymaker", "Administrator"
 ROLE_CAPABILITIES: dict[str, frozenset[str]] = {
     "Investigator": frozenset({
         "workspace:investigator", "case:read_assigned", "case:timeline",
-        "case:similar", "entity:read_case_pii", "network:read_case",
+        "case:search_assigned", "case:similar", "entity:read_case_pii", "network:read_case",
         "offender:read_case", "ai:case_assist", "report:create_case",
-        "report:read_own", "alert:read_assigned",
+        "report:read_own", "alert:read_assigned", "financial:read_case",
+        "profile:read_own",
     }),
     "Analyst": frozenset({
         "workspace:analyst", "analytics:read_pseudonymized", "analytics:export",
         "network:read_analytical", "financial:read_pseudonymized",
         "sociology:read", "forecast:read", "offender:read_pseudonymized",
         "ai:analytical", "report:create_analytical", "report:read_analytical",
-        "alert:recommend",
+        "alert:recommend", "forecast:validate", "profile:read_own",
     }),
     "Supervisor": frozenset({
-        "workspace:supervisor", "case:read_command", "case:timeline",
+        "workspace:supervisor", "case:read_command", "case:search_command", "case:timeline",
+        "case:reassign_command", "case:escalate_command",
         "entity:read_command_pii", "network:read_command", "offender:read_command",
         "analytics:read_command", "ai:supervisory", "report:create_case",
         "report:approve", "report:read_command", "alert:read_command",
-        "alert:assign", "alert:resolve", "audit:read_command",
+        "alert:assign", "alert:resolve", "audit:read_command", "forecast:review_command",
+        "profile:read_own",
     }),
     "Policymaker": frozenset({
         "workspace:policymaker", "policy:read_aggregate", "policy:export",
         "sociology:read_aggregate", "forecast:read_aggregate",
         "network:read_aggregate", "ai:policy", "report:create_policy",
-        "report:read_policy",
+        "report:read_policy", "profile:read_own",
     }),
     "Administrator": frozenset({
         "workspace:administrator", "platform:admin", "identity:manage",
         "service:probe", "deployment:manage", "audit:read_all",
         "retention:manage", "model:manage", "report:manage_templates",
+        "report:read_system",
+        "identity:approve", "identity:deactivate", "system:health",
+        "ai:platform_ops", "profile:read_own",
     }),
 }
 
@@ -58,7 +64,7 @@ WORKSPACE_CONTRACTS: dict[str, dict[str, Any]] = {
         "purpose": "Assigned cases, evidence, linked entities and investigative leads",
         "primary_actions": ["Open assigned case", "Ask case AI", "Trace network", "Create case report"],
         "modules": ["assigned_cases", "case_timeline", "evidence_coverage", "linked_entities", "similar_cases", "lead_queue"],
-        "navigation": ["dashboard", "chat", "network", "offenders", "reports"],
+        "navigation": ["dashboard", "firs", "chat", "heatmap", "network", "offenders", "financial", "reports", "profile"],
     },
     "Analyst": {
         "workspace_id": "crime-analysis-workbench",
@@ -66,7 +72,7 @@ WORKSPACE_CONTRACTS: dict[str, dict[str, Any]] = {
         "purpose": "Patterns, hotspots, networks, social factors, financial links and forecasts",
         "primary_actions": ["Open pattern drilldown", "Compare districts", "Trace cluster", "Export analysis"],
         "modules": ["trend_analysis", "hotspots", "modus_operandi", "network_communities", "sociological", "financial_links", "forecast_validation"],
-        "navigation": ["dashboard", "chat", "network", "heatmap", "offenders", "reports"],
+        "navigation": ["dashboard", "chat", "heatmap", "network", "offenders", "financial", "forecast", "reports", "profile"],
     },
     "Supervisor": {
         "workspace_id": "supervisor-operations-board",
@@ -74,7 +80,7 @@ WORKSPACE_CONTRACTS: dict[str, dict[str, Any]] = {
         "purpose": "Command workload, ageing, alerts, approvals and accountability",
         "primary_actions": ["Assign alert", "Review ageing cases", "Approve report", "Inspect audit trail"],
         "modules": ["command_pressure", "case_ageing", "high_risk_queue", "alert_inbox", "team_workload", "approval_queue", "audit_exceptions"],
-        "navigation": ["dashboard", "chat", "network", "heatmap", "offenders", "reports", "audit"],
+        "navigation": ["dashboard", "firs", "chat", "heatmap", "network", "offenders", "forecast", "reports", "audit", "profile"],
     },
     "Policymaker": {
         "workspace_id": "policymaker-intelligence-brief",
@@ -82,7 +88,7 @@ WORKSPACE_CONTRACTS: dict[str, dict[str, Any]] = {
         "purpose": "Privacy-preserving statewide trends, prevention and resource planning",
         "primary_actions": ["Compare policy indicators", "Review forecast bands", "Generate policy brief"],
         "modules": ["statewide_trends", "district_benchmarks", "social_indicators", "prevention_outcomes", "forecast_bands", "resource_scenarios"],
-        "navigation": ["dashboard", "heatmap", "reports"],
+        "navigation": ["dashboard", "chat", "heatmap", "forecast", "reports", "profile"],
     },
     "Administrator": {
         "workspace_id": "administrator-governance-console",
@@ -90,7 +96,7 @@ WORKSPACE_CONTRACTS: dict[str, dict[str, Any]] = {
         "purpose": "Identity, services, audit integrity, models, retention and releases",
         "primary_actions": ["Manage roles", "Probe Catalyst services", "Review audit integrity", "Inspect release health"],
         "modules": ["service_health", "identities", "access_grants", "audit_integrity", "retention_jobs", "model_registry", "deployment_health"],
-        "navigation": ["dashboard", "users", "audit"],
+        "navigation": ["dashboard", "users", "audit", "health", "chat", "reports", "profile"],
     },
 }
 

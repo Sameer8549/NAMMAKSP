@@ -115,11 +115,20 @@ _RESPONSE_CACHE_LIMIT = int(os.getenv("LLM_RESPONSE_CACHE_SIZE", "100"))
 def _role_system_policy(user: dict | None) -> str:
     role = str((user or {}).get("role") or "Investigator")
     disclosure = str((user or {}).get("disclosure_mode") or "case-scoped-pii")
+    policies = {
+        "Investigator": "Answer only from cases authorized for this investigator. Structure substantive answers as Finding, Verified case evidence, and Next investigative step. Prefer the supplied case reference and never infer another officer's case data.",
+        "Analyst": "Provide pattern, correlation, hotspot, network, financial-link and forecast analysis using Pattern, Comparison, Evidence, and Limitation. Use only stable pseudonymous entity labels and never output a real person, account, contact, or address.",
+        "Supervisor": "Provide command-scoped operational oversight using Priority, Bottleneck evidence, and Authorized intervention. Do not widen beyond the authenticated command scope.",
+        "Policymaker": "Provide statewide aggregate analysis using State signal, District comparison, and Policy implication. Never list individual FIRs or identities. If asked for a FIR, person, offender, victim, account or operational control, explain that this workspace can only provide aggregate statistical answers.",
+        "Administrator": "Answer only platform operations, identity governance, audit, service health, deployment and security posture using Status, Verified control evidence, and Administrative action. Refuse crime analysis, FIR, offender, victim, network, district crime or investigative requests because this role has no crime-data scope.",
+    }
     return (
         f"Authenticated role: {role}. Disclosure mode: {disclosure}. "
         "Never reveal information beyond this disclosure mode. "
         "For aggregate-only or administrative-metadata users, refuse requests for "
-        "case identities, offender identities, victim identities, addresses, or contact data."
+        "case identities, offender identities, victim identities, addresses, or contact data. "
+        + policies.get(role, "Apply least privilege and refuse data outside the authenticated scope.")
+        + " Use clean headings and compact bullets. Never emit raw asterisks, horizontal rules, or pipe-delimited tables."
     )
 
 
@@ -586,12 +595,41 @@ def _domain_refusal(language: str) -> str:
         return "ನಾನು NAMMA KSP ಪೊಲೀಸ್ ಮತ್ತು ಅಪರಾಧ ಬುದ್ಧಿಮತ್ತೆ ವಿಷಯಗಳಿಗೆ ಮಾತ್ರ ಸಹಾಯ ಮಾಡುತ್ತೇನೆ. ದಯವಿಟ್ಟು FIR, ಪ್ರಕರಣ, ಅಪರಾಧ ಮಾದರಿ, offender, ಜಿಲ್ಲೆ, hotspot, report ಅಥವಾ ತನಿಖೆಗೆ ಸಂಬಂಧಿಸಿದ ಪ್ರಶ್ನೆ ಕೇಳಿ."
     return "I can only help with NAMMA KSP police and crime-intelligence topics. Please ask about FIRs, cases, crime patterns, offenders, districts, hotspots, reports, or investigation support."
 
+
+def _offline_context_answer(message: str, context: str, language: str) -> str:
+    """Return a deterministic answer when the external LLM provider is unavailable."""
+    compact_lines = []
+    for raw_line in context.splitlines():
+        line = raw_line.strip(" -\t")
+        if line and not line.startswith(("---", "{", "}", "[")):
+            compact_lines.append(line)
+        if len(compact_lines) >= 8:
+            break
+
+    if not compact_lines:
+        return _domain_refusal(language)
+
+    if language == "kn-IN":
+        return (
+            "AI provider currently unavailable, but verified NAMMA KSP data was retrieved. "
+            "Please review these database-backed signals:\n\n"
+            + "\n".join(f"- {line}" for line in compact_lines[:6])
+        )
+
+    return (
+        "AI provider is currently unavailable, but verified NAMMA KSP data was retrieved. "
+        "Here are the database-backed signals:\n\n"
+        + "\n".join(f"- {line}" for line in compact_lines[:6])
+    )
+
+
 async def chat(
     session_id: str,
     user_message: str,
     language: str = "en-US",
     runtime_request=None,
     user: dict | None = None,
+    workspace_view: str | None = None,
 ) -> dict:
     """
     Process a chat message and return AI response with reasoning.
@@ -686,7 +724,8 @@ async def chat(
     cache_key = _query_pattern(rewritten_query, language)
 
     # Augment user message with context (saving original message text for history clean-up)
-    augmented_message = f"""User Query: {user_message}
+    augmented_message = f"""Current authenticated workspace: {workspace_view or 'Role overview'}.
+User Query: {user_message}
 
 --- Relevant Database Context ---
 {context}
@@ -733,7 +772,24 @@ If the selected language is Kannada, write in clean, grammatically correct Kanna
                 "cached": True,
                 "warning": "AI unavailable, showing cached data",
             }
-        raise
+        logger.warning("LLM unavailable for %s; returning deterministic context answer: %s", cache_key, exc)
+        history.pop()
+        ai_reply = _offline_context_answer(clean_message, context, language)
+        history.extend([
+            {"role": "user", "content": clean_message},
+            {"role": "assistant", "content": ai_reply},
+        ])
+        await _persist_session(session_id, runtime_request)
+        return {
+            "response": ai_reply,
+            "evidence": context[:500] + "..." if len(context) > 500 else context,
+            "sources": sources,
+            "cached": False,
+            "session_id": session_id,
+            "model": "deterministic-context-fallback",
+            "tokens_used": 0,
+            "warning": "External AI provider unavailable; answer generated from verified context",
+        }
 
     # Check if we requested Kannada but response has no Kannada characters
     if language == "kn-IN" and not any('\u0c80' <= c <= '\u0cff' for c in ai_reply):

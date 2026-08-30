@@ -150,7 +150,17 @@ CREATE TABLE IF NOT EXISTS socio_economic_indicators (
 CREATE TABLE IF NOT EXISTS users (
     username      TEXT PRIMARY KEY,
     password_hash TEXT NOT NULL,
-    role          TEXT NOT NULL
+    role          TEXT NOT NULL,
+    active        INTEGER NOT NULL DEFAULT 1
+);
+
+CREATE TABLE IF NOT EXISTS forecast_reviews (
+    id          INTEGER PRIMARY KEY AUTOINCREMENT,
+    alert_id    INTEGER,
+    reviewer    TEXT NOT NULL,
+    decision    TEXT NOT NULL,
+    note        TEXT,
+    created_at  TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
 -- Audit logs for governance and traceability
@@ -249,6 +259,22 @@ async def init_db() -> None:
                 audit_columns = {row[1] for row in await cur.fetchall()}
             if "user_id" not in audit_columns:
                 await db.execute("ALTER TABLE audit_logs ADD COLUMN user_id TEXT")
+            async with db.execute("PRAGMA table_info(users)") as cur:
+                user_columns = {row[1] for row in await cur.fetchall()}
+            if "active" not in user_columns:
+                await db.execute("ALTER TABLE users ADD COLUMN active INTEGER NOT NULL DEFAULT 1")
+            async with db.execute("PRAGMA table_info(firs)") as cur:
+                fir_columns = {row[1] for row in await cur.fetchall()}
+            fir_migrations = {"assigned_to": "TEXT", "priority": "TEXT", "updated_at": "TEXT"}
+            for column, column_type in fir_migrations.items():
+                if column not in fir_columns:
+                    await db.execute(f"ALTER TABLE firs ADD COLUMN {column} {column_type}")
+            await db.execute("""
+                UPDATE firs
+                SET assigned_to = COALESCE(assigned_to, CASE WHEN CAST(SUBSTR(fir_id, 4) AS INTEGER) % 5 = 0 THEN 'officer' ELSE 'investigator_pool' END),
+                    priority = COALESCE(priority, CASE WHEN CAST(SUBSTR(fir_id, 4) AS INTEGER) % 11 = 0 THEN 'Critical' WHEN CAST(SUBSTR(fir_id, 4) AS INTEGER) % 4 = 0 THEN 'High' ELSE 'Normal' END),
+                    updated_at = COALESCE(updated_at, date)
+            """)
             async with db.execute("PRAGMA table_info(alert_events)") as cur:
                 alert_columns = {row[1] for row in await cur.fetchall()}
             alert_migrations = {
@@ -338,9 +364,17 @@ async def _ingest_csvs(db: aiosqlite.Connection) -> None:
     fdf = pd.read_csv(CSV_FILES["firs"])
     fdf.columns = [c.lower() for c in fdf.columns]
     await db.executemany(
-        "INSERT OR IGNORE INTO firs VALUES (?,?,?,?,?,?,?,?,?)",
-        fdf[["fir_id","crime_type","date","district","police_station",
-             "location_id","status","offender_id","victim_id"]].values.tolist()
+        """
+        INSERT OR IGNORE INTO firs (
+            fir_id, crime_type, date, district, police_station,
+            location_id, status, offender_id, victim_id
+        )
+        VALUES (?,?,?,?,?,?,?,?,?)
+        """,
+        fdf[[
+            "fir_id", "crime_type", "date", "district", "police_station",
+            "location_id", "status", "offender_id", "victim_id"
+        ]].values.tolist()
     )
 
     # 5. Relationships
