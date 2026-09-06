@@ -19,7 +19,7 @@ The central product idea: **every click should become traceable intelligence**. 
 
 | Surface | URL |
 |---|---|
-| Web client | [nammaksp-60074625517.development.catalystserverless.in/app/](https://nammaksp-60074625517.development.catalystserverless.in/app/) |
+| Live AppSail app | [namma-ksp-50043229029.development.catalystappsail.in](https://namma-ksp-50043229029.development.catalystappsail.in/) |
 | Backend health | [namma-ksp-50043229029.development.catalystappsail.in/api/health](https://namma-ksp-50043229029.development.catalystappsail.in/api/health) |
 | API docs | [namma-ksp-50043229029.development.catalystappsail.in/api/docs](https://namma-ksp-50043229029.development.catalystappsail.in/api/docs) |
 
