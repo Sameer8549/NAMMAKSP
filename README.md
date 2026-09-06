@@ -2,280 +2,296 @@
 
 **Intelligent Conversational AI and Crime Analytics Platform for Karnataka State Police**
 
-NAMMA KSP is a deployed Zoho Catalyst prototype that turns FIRs, offender history, victim records, locations, relationships, socio-economic indicators, and financial/cyber-adjacent patterns into an investigation-ready intelligence workspace. It is built for investigators, analysts, supervisors, and policymakers who need natural-language access to crime data plus explainable analytics, reports, and decision support.
+[![KSP Datathon](https://img.shields.io/badge/KSP%20Datathon-2026%20Prototype-f4b400)](#)
+[![Frontend](https://img.shields.io/badge/Frontend-React%2019%20%2B%20Vite-3b82f6)](#technology-stack)
+[![Backend](https://img.shields.io/badge/Backend-FastAPI%20%2B%20SQLite-22c55e)](#technology-stack)
+[![PWA](https://img.shields.io/badge/PWA-Installable%20%2B%20Offline%20Shell-7c3aed)](#progressive-web-app)
+[![Deployment](https://img.shields.io/badge/Deployment-Zoho%20Catalyst-0ea5e9)](#catalyst-deployment)
+[![Data](https://img.shields.io/badge/Data-Synthetic%20Demo%20Only-ef4444)](#prototype-boundary)
 
-[Live Catalyst App](https://nammaksp-60074625517.development.catalystserverless.in/app/index.html) | [Backend Health](https://namma-ksp-50043229029.development.catalystappsail.in/api/health)
+NAMMA KSP converts synthetic FIR records into role-aware crime intelligence. Investigators can inspect cases, analysts can discover patterns and relationships, supervisors can manage command pressure, policymakers can plan prevention, and administrators can govern the platform.
 
-## Website Screenshots
+The central product idea: **every click should become traceable intelligence**. A chart mark reveals FIR evidence. A network node reveals linked accused, victims and locations. An AI answer cites platform data. A supervisor action writes to the command audit. A report preserves the selected scope.
 
-### Login and Automatic Role Detection
+> This is a final-round datathon prototype built on synthetic data. It does not claim legal proof, production-grade forecasting, or readiness for real police records without governance approvals.
 
-![NAMMA KSP login](docs/screenshots/01-login.png)
+## Live Prototype
 
-### Intelligence Dashboard
-
-![NAMMA KSP dashboard](docs/screenshots/02-dashboard-strategic-briefing.png)
-
-### AI Crime Assistant
-
-![AI crime assistant](docs/screenshots/03-ai-chat.png)
-
-### Crime Heatmap
-
-![Crime heatmap](docs/screenshots/04-crime-heatmap.png)
-
-### Criminal Network Analysis
-
-![Criminal network analysis](docs/screenshots/05-network-analysis.png)
-
-### Offender Intelligence
-
-![Offender intelligence profiles](docs/screenshots/06-offender-profiles.png)
-
-### Investigation Reports
-
-![Investigation reports](docs/screenshots/07-reports.png)
-
-## Why This Project Exists
-
-Crime investigation data is usually scattered across FIR records, accused/offender histories, victims, locations, case notes, financial clues, and station-level updates. That makes it hard to quickly identify repeat offenders, organized crime links, emerging hotspots, social risk factors, and cases needing urgent attention.
-
-NAMMA KSP solves this by combining conversational AI, visual analytics, criminology-driven profiling, network intelligence, forecasting, and PDF reporting in one secure web application.
-
-## Datathon Coverage
-
-| Requirement | NAMMA KSP Coverage |
+| Surface | URL |
 |---|---|
-| Conversational crime intelligence | English/Kannada AI chat for FIRs, accused, victims, locations, status, summaries, and follow-up investigation questions. |
-| Conversation history PDF | Report module and PDF generation support structured investigation outputs and archived downloads. |
-| Voice interaction | Sarvam AI speech-to-text and text-to-speech in English/Kannada, automatic response playback, and an interactive listening interface. |
-| Criminal network analysis | Offender-victim-FIR-location relationship graph with repeat offender and association discovery. |
-| Pattern and trend analytics | Dashboard KPIs, monthly trends, crime type distribution, hotspot intelligence, and district analytics. |
-| Sociological insights | Socio-economic indicator dataset and proxy-based district risk interpretation. |
-| Offender profiling | Repeat offender detection, prior FIR count, risk banding, behavioral indicators, and profile reports. |
-| Investigator decision support | AI strategic briefing, case summaries, recommendations, similar-pattern reasoning, and report exports. |
-| Financial crime link analysis | Financial transaction dataset support for suspicious account and cyber/financial pattern analysis. |
-| Forecasting and early warning | Explainable moving-average forecasting, hotspot scoring, and early warning indicators. |
-| Explainable AI | Dashboard evidence cards, data-backed summaries, and report-ready reasoning outputs. |
-| Secure access and governance | Catalyst-native authentication, server-enforced Administrator/Investigator/Analyst/Supervisor/Policymaker RBAC, protected routes, immutable Catalyst user IDs in audit events, and automatic role detection. |
+| Web client | [nammaksp-60074625517.development.catalystserverless.in/app/](https://nammaksp-60074625517.development.catalystserverless.in/app/) |
+| Backend health | [namma-ksp-50043229029.development.catalystappsail.in/api/health](https://namma-ksp-50043229029.development.catalystappsail.in/api/health) |
+| API docs | [namma-ksp-50043229029.development.catalystappsail.in/api/docs](https://namma-ksp-50043229029.development.catalystappsail.in/api/docs) |
 
-## Core Modules
+Demo accounts remain enabled for judging access. Production deployment requires KSP identity federation and formal access governance.
 
-| Module | What It Delivers |
+## Product Preview
+
+### Login And Role Entry
+
+![Screenshot of the NAMMA KSP login screen with Karnataka State Police branding and role-based sign-in.](docs/screenshots/readme/01-login-desktop.png)
+
+### Analyst Crime Intelligence Workspace
+
+![Screenshot of the analyst workspace showing role-aware crime analytics and evidence-linked intelligence panels.](docs/screenshots/readme/02-analyst-workspace.png)
+
+### Relationship Network Intelligence
+
+![Screenshot of the network analysis workspace showing FIR, victim, accused and evidence-link relationships.](docs/screenshots/readme/03-network-analysis.png)
+
+### Supervisor Command Workspace
+
+![Screenshot of the supervisor workspace showing command pressure, workload signals and warning review.](docs/screenshots/readme/04-supervisor-command.png)
+
+### Policymaker Prevention Intelligence
+
+![Screenshot of the policymaker workspace showing state-level crime and prevention intelligence.](docs/screenshots/readme/05-policymaker-intelligence.png)
+
+### Admin Governance
+
+![Screenshot of the admin governance workspace showing Catalyst runtime and platform service health.](docs/screenshots/readme/06-admin-governance.png)
+
+### Mobile Network Analysis
+
+![Screenshot of the mobile network analysis view showing relationship intelligence on a small screen.](docs/screenshots/readme/07-mobile-network.png)
+
+## Why It Exists
+
+Police intelligence work becomes slow when FIRs, accused profiles, victim records, locations, station workload, warnings, reports and policy indicators sit in separate places. NAMMA KSP brings those signals into one governed workflow:
+
+1. Ask a natural-language question.
+2. Scope evidence by role and permissions.
+3. Retrieve FIR, entity, district, alert and report data.
+4. Analyze patterns, hotspots, networks and forecasts.
+5. Explain the evidence trail.
+6. Export a report or write an audited command action.
+
+## Role-Based Workspaces
+
+| Role | Workspace purpose | Key capabilities |
+|---|---|---|
+| Investigator / Officer | Case action and investigation support | FIR search, case detail, similar cases, timelines, leads, reports and AI assistance |
+| Analyst | Pattern discovery and intelligence production | Trends, hotspots, evidence registry, demographics, network analysis, modus operandi, seasonal patterns and risk-financial views |
+| Supervisor | Operational command and workload intervention | Workload distribution, station performance, aging cases, delay tracking, officer review, warnings, forecast review and command audit |
+| Policymaker | State-level prevention and resource planning | District comparison, crime-family trends, hotspots, demographic risk, forecast planning signals and prevention priorities |
+| Admin | Platform governance | User management, security audit, service health, AI usage, report archive and Catalyst service evidence |
+
+## Progressive Web App
+
+NAMMA KSP is packaged as an installable PWA so the prototype feels closer to an operational field tool than a normal browser page.
+
+| PWA capability | Current implementation |
 |---|---|
-| Intelligence Dashboard | Total FIRs, active cases, repeat offenders, districts, crime trends, distribution charts, and AI strategic briefing. |
-| AI Assistant | Context-aware investigation Q&A with adaptive factual, analytical, and deep-investigation response modes. |
-| Crime Heatmap | District and location-level hotspot visualization across Karnataka. |
-| Criminal Network | Relationship mapping across offenders, victims, FIRs, and locations. |
-| Offender Profiles | Risk category, demographic context, previous FIRs, behavioral signals, and dossier-ready details. |
-| Investigation Reports | Case, district, offender, recommendation, and network reports with PDF export and archive workflow. |
-| Role-Based Access | Five role-aware workspaces: case evidence for Investigators, pseudonymized patterns for Analysts, command queues for Supervisors, aggregate planning for Policymakers, and platform governance for Administrators. |
+| Installable app shell | `frontend-next/manifest.webmanifest` with Karnataka/KSP app icons |
+| Offline shell | Workbox service worker precaches the app shell and static assets |
+| Mobile-first access | Responsive role workspaces and mobile network/report views |
+| Faster repeat visits | Cached HTML, CSS, JS, icons and key visual assets |
+| Deployment portability | Served through Catalyst Web Client Hosting under `/app/` |
 
-## Authentication
+Operational meaning:
 
-The deployed application uses Catalyst Embedded Authentication and Catalyst
-User Management roles. Configure `Admin`/`App Administrator` and `Investigator`
-roles in the Catalyst console before deployment.
+- Officers and reviewers can reopen the app quickly after installation.
+- The UI shell can load even when connectivity is weak.
+- Sensitive live data still requires backend/API access; the PWA shell is not a substitute for secure online evidence retrieval.
 
-Legacy local credentials exist only for isolated demonstrations when
-`DEMO_MODE=true`. Demo mode is disabled by default and must not be enabled for
-production or real-data environments.
+## Challenge Coverage
+
+| Problem statement requirement | NAMMA KSP implementation |
+|---|---|
+| Conversational crime intelligence | English/Kannada chat, role-aware answers, follow-up context, voice path and PDF conversation export |
+| FIR, accused, victim and location retrieval | Search and evidence views over synthetic FIR, offender, victim, location and relationship records |
+| Criminal network analysis | FIR-to-accused-to-victim-to-location graph, centrality, communities and repeat links |
+| Crime pattern analytics | Monthly/yearly trends, district comparison, hotspots, modus operandi and seasonal views |
+| Sociological insights | District socio-economic joins for literacy, population density and social-risk comparison |
+| Offender profiling | Repeat offender detection, transparent risk factors, linked cases and dossier export |
+| Investigator decision support | Case summaries, related cases, timelines, suggested leads and investigation reports |
+| Financial link analysis | Synthetic AML-style transaction links and account relationship graph |
+| Forecasting and early warning | Backtested monitor, prediction intervals, warning queue and supervisor review lifecycle |
+| Explainable AI | Source references, evidence trails, limitation notes and audit-backed actions |
+| Secure access and governance | Role-based access, audit logs, field projection, pseudonymized policy views and service checks |
+
+## Dataset
+
+The repository uses synthetic demonstration data.
+
+| Dataset | Count | Used for |
+|---|---:|---|
+| FIR records | 5,000 | Case search, analytics, reports and AI answers |
+| Offender records | 2,000 | Repeat-offender analysis and profiling |
+| Victim records | 3,000 | Victim analysis and network relationships |
+| Location records | 100 | Maps, hotspots and district context |
+| Relationship records | 5,000 | Evidence graph construction |
+| Financial transactions | 20 | Demonstration transaction-link analysis |
+| Socio-economic rows | 15 | District-level social-risk indicators |
+
+## Architecture
+
+```mermaid
+flowchart LR
+  User[Role-based user] --> PWA[React + Vite PWA]
+  PWA --> API[FastAPI AppSail backend]
+  API --> Auth[Role checks and audit]
+  API --> DB[(SQLite synthetic evidence store)]
+  API --> AI[Groq / Mistral AI adapters]
+  API --> Voice[Sarvam STT / TTS / translation]
+  API --> Reports[ReportLab PDF reports]
+  API --> Catalyst[Zoho Catalyst services]
+  DB --> Graph[NetworkX relationship intelligence]
+  DB --> Analytics[Pandas / scikit-learn analytics]
+  Catalyst --> Store[Data Store / Cache / Stratus / Signals / Cron]
+```
+
+## Evidence-First Interaction Model
+
+```mermaid
+flowchart TD
+  Scope[Select role and scope] --> Pattern[View chart, map, case or network pattern]
+  Pattern --> Evidence[Reveal FIRs, entities, locations or alerts]
+  Evidence --> Assistant[Ask AI with scoped evidence]
+  Assistant --> Action[Export report or take command action]
+  Action --> Audit[Audit trail and report archive]
+```
 
 ## Technology Stack
 
 | Layer | Technologies |
 |---|---|
-| Frontend | HTML, CSS, JavaScript |
-| Backend | Python, FastAPI, SQLite, Pandas, NetworkX, Scikit-Learn |
-| Visualizations | Chart.js, Leaflet.js, Cytoscape.js |
-| AI | Groq LLM, adaptive response-depth router, Catalyst QuickML |
-| Voice and translation | Sarvam AI Saaras STT, Bulbul TTS, and Mayura translation |
-| Reports | ReportLab PDF generation with bilingual font support |
-| Deployment | Zoho Catalyst Web Client Hosting and AppSail |
-
-## Dataset
-
-The prototype uses the uploaded project datasets as the source of truth for analytics and demonstrations.
-
-| File | Purpose |
-|---|---|
-| `data/firs.csv` | FIR records, crime type, station, status, timeline, and location references. |
-| `data/offenders.csv` | Accused/offender identity, risk labels, repeat history, and profile attributes. |
-| `data/victims.csv` | Victim details for case and relationship analysis. |
-| `data/locations.csv` | District, station, and coordinate data for maps and hotspots. |
-| `data/relationships.csv` | Links between FIRs, offenders, victims, and locations for network intelligence. |
-| `data/financial_transactions.csv` | Financial/cyber-adjacent transaction signals for link analysis. |
-| `data/socio_economic_indicators.csv` | District-level social indicators used for sociological crime insights. |
-
-## Project Structure
-
-```text
-NAMMAKSP/
-|-- backend/
-|   |-- main.py
-|   |-- database.py
-|   |-- analytics.py
-|   |-- network.py
-|   |-- ai_service.py
-|   |-- report.py
-|   `-- fonts/
-|-- data/
-|-- docs/
-|   `-- screenshots/
-|-- frontend/
-|   |-- index.html
-|   |-- dashboard.html
-|   |-- chat.html
-|   |-- heatmap.html
-|   |-- network.html
-|   |-- offenders.html
-|   |-- reports.html
-|   |-- app.js
-|   `-- style.css
-|-- reports/
-|-- requirements.txt
-|-- app-config.json
-`-- README.md
-```
-
-## Local Setup
-
-```bash
-git clone https://github.com/Sameer8549/NAMMAKSP.git
-cd NAMMAKSP
-python -m venv .venv
-```
-
-Activate the environment on Windows PowerShell:
-
-```powershell
-.\.venv\Scripts\Activate.ps1
-```
-
-Install dependencies:
-
-```bash
-pip install -r requirements.txt
-```
-
-Create `.env` from `.env.example` and configure keys:
-
-```env
-GROQ_API_KEY=your_groq_api_key_here
-MISTRAL_API_KEY=your_mistral_api_key_here
-SARVAM_API_KEY=your_sarvam_api_key_here
-GROQ_MODEL=openai/gpt-oss-120b
-```
-
-Run locally:
-
-```bash
-uvicorn backend.main:app --host 127.0.0.1 --port 8000
-```
-
-Open:
-
-```text
-http://127.0.0.1:8000/
-```
+| Frontend | React 19, TypeScript, Vite, TanStack Query, TanStack Table, ECharts, Lucide icons |
+| PWA | Web App Manifest, Workbox service worker, precache routing, Karnataka/KSP app icons |
+| Backend | Python, FastAPI, SQLite, Pandas, NetworkX, scikit-learn |
+| AI | Groq and Mistral provider adapters, role-aware evidence retrieval, response normalization |
+| Voice and language | Sarvam AI speech-to-text, text-to-speech and English/Kannada translation adapters |
+| Reports | ReportLab PDF generation, report archive, evidence-scoped downloads |
+| Maps | Google Maps / 3D map integration with graceful configuration checks |
+| Deployment | Zoho Catalyst Web Client Hosting, AppSail, API Gateway, Data Store, Cache, Stratus, Signals, Cron and Pipelines |
 
 ## Catalyst Deployment
 
-| Component | Catalyst Service |
+The live prototype uses Catalyst services for the web client, backend runtime, routing, evidence storage adapters, caching, report storage, scheduled intelligence refresh and early-warning events.
+
+| Capability | Catalyst service |
 |---|---|
-| Frontend | Catalyst Web Client Hosting |
-| Backend API | Catalyst AppSail |
-| Runtime | Python 3.12 |
-| ML endpoint | Catalyst QuickML published FIR-status model |
-| API routing | Catalyst API Gateway |
-| Automation | Catalyst Cron and Job Scheduling |
-| Event routing | Catalyst Signals publisher and early-warning rules |
-| Operational data | Catalyst Data Store/NoSQL/Stratus/Cache adapter layer with local fallbacks |
+| Frontend and PWA hosting | Web Client Hosting |
+| Backend runtime | AppSail |
+| API routing | API Gateway |
+| FIR evidence table | Data Store |
+| Analytics acceleration | Cache |
+| Report archive | Stratus |
+| Scheduled refresh | Cron |
+| Early-warning events | Signals |
+| CI/CD path | Pipelines |
 
-Zoho Catalyst service coverage, including Catalyst Authentication, is documented in [`docs/CATALYST_SERVICES.md`](docs/CATALYST_SERVICES.md). The live app also exposes a service evidence matrix at:
+Latest documented verification: **9 services verified, 0 failed**. See [Catalyst services coverage](docs/CATALYST_SERVICES.md).
 
-```text
-GET /api/catalyst/services
+## Local Development
+
+### 1. Clone And Install
+
+```bash
+git clone https://github.com/rohith-yp/datathon.git
+cd datathon
+npm install
+python -m venv .venv
 ```
 
-Frontend:
+On Windows PowerShell:
 
-```text
-https://nammaksp-60074625517.development.catalystserverless.in/app/index.html
+```powershell
+.\.venv\Scripts\Activate.ps1
+pip install -r requirements.txt
 ```
 
-Backend:
+### 2. Configure Environment
 
-```text
-https://namma-ksp-50043229029.development.catalystappsail.in
+Create `.env` from `.env.example` and configure provider keys as needed.
+
+```env
+GROQ_API_KEY=your_groq_api_key
+MISTRAL_API_KEY=your_mistral_api_key
+SARVAM_API_KEY=your_sarvam_api_key
+GOOGLE_MAPS_API_KEY=your_google_maps_key
+DEMO_MODE=true
 ```
 
-## API Overview
+Never commit real API keys or police data.
 
-| Method | Endpoint | Description |
-|---|---|---|
-| `GET` | `/api/health` | Health check and dataset summary. |
-| `GET` | `/api/auth/config` | Return the active Catalyst/demo authentication mode. |
-| `GET` | `/api/auth/me` | Return the server-verified Catalyst user and role. |
-| `GET` | `/api/analytics/overview` | Dashboard KPIs. |
-| `GET` | `/api/analytics/crime-types` | Crime type distribution. |
-| `GET` | `/api/analytics/monthly-trends` | Monthly trend analytics. |
-| `GET` | `/api/analytics/districts` | District analytics. |
-| `GET` | `/api/firs` | FIR search and filters. |
-| `GET` | `/api/firs/{fir_id}` | FIR details. |
-| `GET` | `/api/offenders/{offender_id}` | Offender profile. |
-| `GET` | `/api/network` | Criminal network graph. |
-| `GET` | `/api/hotspots` | Crime hotspot data. |
-| `POST` | `/api/chat` | AI investigation assistant. |
-| `POST` | `/api/tts` | Text-to-speech generation. |
-| `POST` | `/api/audio-transcribe` | Sarvam bilingual speech-to-text. |
-| `POST` | `/api/translate` | Sarvam English/Kannada translation. |
-| `POST` | `/api/reports/case` | Case PDF report. |
-| `POST` | `/api/reports/district` | District PDF report. |
-| `POST` | `/api/reports/offender` | Offender dossier PDF. |
-| `POST` | `/api/reports/network` | Network analysis PDF. |
-| `GET` | `/api/reports/list` | Generated report archive. |
-| `GET` | `/api/catalyst/services` | Zoho Catalyst service usage and evidence matrix. |
-| `GET` | `/api/docs` | FastAPI Swagger documentation. |
+### 3. Run Backend
 
-## Impact
+```powershell
+.\.venv\Scripts\uvicorn.exe backend.main:app --host 127.0.0.1 --port 8000
+```
 
-NAMMA KSP helps investigation teams move from raw records to operational intelligence:
+### 4. Build Frontend
 
-1. Faster FIR and offender discovery.
-2. Stronger repeat-offender prioritization.
-3. Clearer district hotspot and trend understanding.
-4. Visual criminal relationship discovery.
-5. Bilingual AI-assisted investigation workflows.
-6. Exportable reports for reviews, briefings, and submissions.
+```bash
+npm run build:ui
+```
 
-## Verified Submission Build
+For frontend development, use Vite according to the current project configuration.
 
-The deployed Catalyst Development build has been verified for:
+## Useful Commands
 
-- Web Client Hosting and AppSail availability.
-- Browser-origin CORS preflight, login, and protected API access.
-- Context-aware English and Kannada AI chat.
-- Adaptive factual, analytical, and deep-investigation responses.
-- Sarvam bilingual TTS with automatic playback and stop controls.
+```bash
+npm run check:ui
+npm run build:ui
+npm run test:ui
+```
 
-## Submission Documents
+```powershell
+.\.venv\Scripts\python.exe -m pytest
+```
 
-Presenter materials are generated locally under `output/pdf/` because generated
-artifacts are excluded from the application source tree. They contain the complete
-five-minute click path, role demonstrations, system architecture, Catalyst service
-mapping, deployment evidence, and production-safety notes.
-- Interactive microphone capture and Sarvam speech transcription.
-- Dataset-backed dashboard, FIR, offender, network, hotspot, and report APIs.
-- QuickML, Cron, Job Scheduling, Signals, API Gateway, and service-evidence configuration.
+## API Highlights
 
-## Notes
+| Endpoint | Purpose |
+|---|---|
+| `GET /api/health` | Runtime and dataset health |
+| `GET /api/submission/readiness` | Challenge-readiness evidence |
+| `GET /api/catalyst/services` | Catalyst service evidence matrix |
+| `GET /api/firs` | FIR search and filters |
+| `GET /api/network` | Relationship graph |
+| `GET /api/hotspots` | Hotspot evidence |
+| `POST /api/chat` | Evidence-aware AI assistant |
+| `POST /api/audio-transcribe` | Voice transcription |
+| `POST /api/tts` | Text-to-speech |
+| `POST /api/translate` | English/Kannada translation |
+| `POST /api/reports/*` | Evidence-scoped PDF reports |
 
-- This is a datathon prototype, not a replacement for official police systems.
-- AI output must be reviewed before operational, legal, or disciplinary use.
-- Sensitive keys should be configured through environment variables or Catalyst settings, never committed to GitHub.
-- The uploaded datasets are treated as the project source data for prototype analytics.
+## Prototype Boundary
 
-## License
+This repository is a datathon prototype, not a production police records system.
 
-Built for prototype, hackathon, and datathon evaluation use.
+Do not overclaim:
+
+- Network communities are association evidence, not legal proof of organized crime.
+- Forecasting is monitor-only/planning-signal-only until statistically validated on real operational data.
+- Demo auth exists for judges and must be replaced by production identity federation before real use.
+- Multi-instance AppSail write consistency is not claimed until concurrent writer testing is complete.
+- Synthetic data must not be described as official KSP evidence.
+- The PWA offline shell does not make protected evidence available offline.
+
+## Documentation
+
+| Document | Purpose |
+|---|---|
+| [Full system dossier](docs/NAMMA_KSP_FULL_SYSTEM_DOSSIER.md) | End-to-end product, role, AI, analytics and deployment explanation |
+| [PWA PPT notes](docs/NAMMA_KSP_PWA_PPT_DETAILS.md) | PWA-only slide and speaker-note material |
+| [Additional evidence strategy](docs/NAMMA_KSP_ADDITIONAL_DETAILS_AND_EVIDENCE_STRATEGY.md) | PPT and judge-Q&A material around evidence-first interaction |
+| [Challenge coverage](docs/CHALLENGE_COVERAGE.md) | Problem statement capability map |
+| [Challenge audit](docs/CHALLENGE_AUDIT_2026-09-05.md) | Honest implementation evidence and remaining limitations |
+| [Catalyst services](docs/CATALYST_SERVICES.md) | Catalyst service usage and status meanings |
+| [Security](SECURITY.md) | Security posture |
+| [Limitations](LIMITATIONS.md) | Known boundaries |
+| [Ethics](ETHICS.md) | Responsible-use framing |
+
+## Final-Round Positioning
+
+NAMMA KSP is strongest when presented as an evidence-aware decision platform:
+
+- Investigators act on cases.
+- Analysts discover hidden patterns.
+- Supervisors manage operational pressure.
+- Policymakers plan prevention.
+- Admins govern the system.
+
+The prototype demonstrates a full loop from question to evidence to insight to report or audited action.
