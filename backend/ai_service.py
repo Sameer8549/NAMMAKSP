@@ -10,6 +10,7 @@ import logging
 import re
 import ast
 import operator
+import unicodedata
 from collections import OrderedDict
 from typing import AsyncGenerator
 
@@ -29,6 +30,7 @@ from sarvam_service import (
     transcribe_audio as sarvam_transcribe_audio,
 )
 from catalyst_runtime import cache_get_json, cache_put_json
+from catalyst_services import get_catalyst_service_matrix
 
 load_dotenv()
 logger = logging.getLogger(__name__)
@@ -157,11 +159,11 @@ async def _persist_session(session_id: str, runtime_request=None) -> None:
             logger.warning("Catalyst chat-session cache unavailable: %s", managed.get("error"))
 
 
-def _query_pattern(message: str, language: str) -> str:
+def _query_pattern(message: str, language: str, role: str = "Investigator") -> str:
     normalized = re.sub(r"\b(?:fir|off)\d+\b", "<record_id>", message.lower())
     normalized = re.sub(r"\b\d+\b", "<number>", normalized)
     normalized = re.sub(r"\s+", " ", normalized).strip()
-    return f"{language}:{normalized}"
+    return f"{role.lower()}:{language}:{normalized}"
 
 
 def _cache_response(key: str, payload: dict) -> None:
@@ -336,13 +338,106 @@ Output Standalone English Search Query:"""
 
 # ─── Context Fetcher ──────────────────────────────────────────────────────────
 
-async def _fetch_relevant_context(user_query: str) -> str:
+async def _fetch_relevant_context(
+    user_query: str,
+    role: str = "Investigator",
+    workspace_view: str | None = None,
+) -> str:
     """
     Pull relevant data from the DB based on query keywords
     and format as a concise context block for the LLM.
     """
     q = user_query.lower()
     context_parts = []
+
+    # Every chat turn starts with a verified role/workspace snapshot. This
+    # prevents broad prompts and assessment buttons from receiving an unrelated
+    # generic fallback merely because they did not contain a routing keyword.
+    if role == "Administrator":
+        service_matrix = get_catalyst_service_matrix()
+        service_rows = [
+            {
+                "service": row.get("service"),
+                "capability": row.get("capability"),
+                "status": row.get("status"),
+                "feature": row.get("feature"),
+                "evidence": row.get("evidence"),
+            }
+            for row in service_matrix.get("services", [])
+            if str(row.get("status", "")).lower()
+            in {"active", "configured", "published", "local", "demo-fallback", "adapter-ready"}
+        ]
+        platform_rows = await fetch_all("""
+            SELECT
+              (SELECT COUNT(*) FROM firs) AS fir_records,
+              (SELECT COUNT(*) FROM offenders) AS offender_records,
+              (SELECT COUNT(*) FROM victims) AS victim_records,
+              (SELECT COUNT(*) FROM relationships) AS relationship_records,
+              (SELECT COUNT(*) FROM audit_logs) AS audit_records
+        """)
+        context_parts.append(
+            f"Verified platform records relevant to {workspace_view or 'Overview'}: {platform_rows}"
+        )
+        context_parts.append(
+            "Verified Zoho Catalyst/AppSail service matrix for the administrator workspace: "
+            f"summary={service_matrix.get('summary')}; services={service_rows[:18]}"
+        )
+        audit_rows = await fetch_all("""
+            SELECT timestamp, actor, action, target_resource
+            FROM audit_logs
+            ORDER BY timestamp DESC
+            LIMIT 15
+        """)
+        if audit_rows:
+            context_parts.append(f"Recent administrative audit records: {audit_rows}")
+    elif role == "Supervisor":
+        command_rows = await fetch_all("""
+            SELECT district,
+                   COUNT(*) AS total_firs,
+                   SUM(CASE WHEN status='Open' THEN 1 ELSE 0 END) AS open_firs,
+                   SUM(CASE WHEN status='Closed' THEN 1 ELSE 0 END) AS closed_firs
+            FROM firs
+            GROUP BY district
+            ORDER BY open_firs DESC, total_firs DESC
+            LIMIT 10
+        """)
+        context_parts.append(
+            f"Verified supervisor command records relevant to {workspace_view or 'Overview'}: {command_rows}"
+        )
+    elif role == "Policymaker":
+        state_rows = await fetch_all("""
+            SELECT district, COUNT(*) AS total_firs,
+                   ROUND(100.0 * SUM(CASE WHEN status='Closed' THEN 1 ELSE 0 END)
+                         / NULLIF(COUNT(*), 0), 1) AS clearance_rate
+            FROM firs
+            GROUP BY district
+            ORDER BY total_firs DESC
+            LIMIT 10
+        """)
+        context_parts.append(
+            f"Verified aggregate state records relevant to {workspace_view or 'Overview'}: {state_rows}"
+        )
+    elif role == "Analyst":
+        analyst_rows = await fetch_all("""
+            SELECT district, crime_type, COUNT(*) AS fir_count
+            FROM firs
+            GROUP BY district, crime_type
+            ORDER BY fir_count DESC
+            LIMIT 12
+        """)
+        context_parts.append(
+            f"Verified analyst pattern records relevant to {workspace_view or 'Overview'}: {analyst_rows}"
+        )
+    else:
+        investigation_rows = await fetch_all("""
+            SELECT fir_id, crime_type, district, status, date
+            FROM firs
+            ORDER BY date DESC
+            LIMIT 12
+        """)
+        context_parts.append(
+            f"Verified investigation records relevant to {workspace_view or 'Overview'}: {investigation_rows}"
+        )
 
     # District query
     districts_mentioned = [
@@ -411,6 +506,36 @@ async def _fetch_relevant_context(user_query: str) -> str:
             """, (f"%{ct}%",))
             if rows:
                 context_parts.append(f"District breakdown for '{ct}': {rows}")
+
+    # Statewide district comparison. Comparative questions often do not name a
+    # district, so they need an explicit aggregate instead of the generic
+    # crime-type fallback.
+    district_comparison_terms = (
+        "highest", "lowest", "top district", "district comparison",
+        "district volume", "fir volume", "case volume", "district burden",
+        "most fir", "most cases", "clearance rate", "district ranking",
+    )
+    if any(term in q for term in district_comparison_terms):
+        district_rows = await fetch_all("""
+            SELECT district,
+                   COUNT(*) AS total_firs,
+                   SUM(CASE WHEN status='Open' THEN 1 ELSE 0 END) AS open_firs,
+                   SUM(CASE WHEN status='Closed' THEN 1 ELSE 0 END) AS closed_firs,
+                   ROUND(
+                       100.0 * SUM(CASE WHEN status='Closed' THEN 1 ELSE 0 END)
+                       / NULLIF(COUNT(*), 0),
+                       1
+                   ) AS clearance_rate
+            FROM firs
+            GROUP BY district
+            ORDER BY total_firs DESC
+            LIMIT 10
+        """)
+        if district_rows:
+            context_parts.append(
+                "Verified district FIR ranking (descending by total FIRs): "
+                f"{district_rows}"
+            )
 
     # High risk offenders query
     if any(w in q for w in ["high risk", "dangerous", "repeat", "wanted", "worst"]):
@@ -508,6 +633,47 @@ KSP_DOMAIN_TERMS = {
     "ಬಲಿ", "ತನಿಖೆ", "ಜಿಲ್ಲೆ", "ಕಳ್ಳತನ", "ದರೋಡೆ", "ಕೊಲೆ", "ಸೈಬರ್",
 }
 
+ROLE_DOMAIN_TERMS = {
+    "Investigator": {"assigned", "lead", "case load", "case workload", "case diary", "case timeline", "similar case", "financial trail", "witness", "complainant", "charge sheet"},
+    "Analyst": {"demographic", "socio-economic", "correlation", "cohort", "seasonal", "seasonality", "composition", "cluster", "financial link", "cross-signal", "comparative analysis"},
+    "Supervisor": {"workload", "aging", "ageing", "bottleneck", "queue", "sla", "station performance", "officer performance", "assignment", "reassignment", "command", "alert inbox", "review"},
+    "Policymaker": {"policy", "policymaker", "statewide", "aggregate", "resource", "allocation", "prevention", "intervention", "outcome", "district comparison", "public safety", "budget", "strategy"},
+    "Administrator": {"admin", "administrator", "user", "users", "user management", "identity", "role", "roles", "access", "permission", "password", "authentication", "audit", "security", "system health", "service", "services", "zoho", "catalyst", "appsail", "quickml", "stratus", "datastore", "cache", "deployment", "runtime", "api", "usage", "logs", "platform"},
+}
+
+QUERY_NORMALIZATIONS = {
+    "serach": "search", "seach": "search", "fir's": "FIRs", "firs": "FIRs",
+    "ditrict": "district", "distrct": "district", "anlytics": "analytics",
+    "analyics": "analytics", "tred": "trend", "treds": "trends",
+    "srvice": "service", "srvices": "services", "swrvices": "services",
+    "zoho srvices": "Zoho services", "zoho swrvices": "Zoho services",
+    "offier": "officer", "oficer": "officer", "worklod": "workload",
+    "supervisior": "supervisor", "adminstrator": "administrator",
+    "policmaker": "policymaker", "explainbility": "explainability",
+    "mysore": "Mysuru", "bangalore": "Bengaluru",
+}
+
+
+def _normalize_user_query(message: str) -> str:
+    """Normalize noisy chat input for routing and retrieval without changing meaning."""
+    value = unicodedata.normalize("NFKC", str(message or ""))
+    value = "".join(char if char in "\n\t" or not unicodedata.category(char).startswith("C") else " " for char in value)
+    value = re.sub(r"\s+", " ", value).strip()
+    for source, target in QUERY_NORMALIZATIONS.items():
+        value = re.sub(rf"\b{re.escape(source)}\b", target, value, flags=re.IGNORECASE)
+    return re.sub(r"\b(?:f\s*[.-]?\s*i\s*[.-]?\s*r)\b", "FIR", value, flags=re.IGNORECASE)
+
+
+def _normalize_ai_response(response: str) -> str:
+    """Remove model formatting debris while retaining readable headings and lists."""
+    value = unicodedata.normalize("NFKC", str(response or "")).replace("\r", "")
+    value = re.sub(r"(?m)^\s*[-_*]{3,}\s*$", "", value)
+    value = re.sub(r"\*\*(.*?)\*\*", r"\1", value)
+    value = re.sub(r"__(.*?)__", r"\1", value)
+    value = re.sub(r"(?m)^#{1,6}\s*", "", value)
+    value = re.sub(r"[ \t]+", " ", value)
+    return re.sub(r"\n{3,}", "\n\n", value).strip()
+
 FOLLOW_UP_TERMS = {
     "that", "those", "them", "it", "same", "previous", "above", "second", "first",
     "more", "details", "explain", "compare", "why", "how", "ಇದು", "ಅದು", "ಅವರ",
@@ -572,12 +738,12 @@ def _try_safe_arithmetic(message: str) -> int | float | None:
     return int(result) if isinstance(result, float) and result.is_integer() else result
 
 
-def _is_ksp_domain_query(message: str, has_history: bool) -> bool:
+def _is_ksp_domain_query(message: str, has_history: bool, role: str = "Investigator") -> bool:
     """Allow only Karnataka Police/crime-intelligence questions into the LLM path."""
     q = message.lower().strip()
     if not q:
         return False
-    if any(term in q for term in KSP_DOMAIN_TERMS):
+    if any(term in q for term in KSP_DOMAIN_TERMS | ROLE_DOMAIN_TERMS.get(role, set())):
         return True
 
     import re
@@ -590,13 +756,20 @@ def _is_ksp_domain_query(message: str, has_history: bool) -> bool:
     return False
 
 
-def _domain_refusal(language: str) -> str:
+def _domain_refusal(language: str, role: str = "Investigator") -> str:
+    role_topics = {
+        "Investigator": "assigned FIRs, evidence, suspects, timelines, similar cases, or investigative leads",
+        "Analyst": "verified trends, hotspots, demographics, networks, crime methods, or financial patterns",
+        "Supervisor": "command workload, aging cases, station performance, alerts, or authorized reviews",
+        "Policymaker": "aggregate district trends, prevention outcomes, resource priorities, or policy impact",
+        "Administrator": "users, access, audits, platform health, AI usage, security, or Catalyst services",
+    }
     if language == "kn-IN":
         return "ನಾನು NAMMA KSP ಪೊಲೀಸ್ ಮತ್ತು ಅಪರಾಧ ಬುದ್ಧಿಮತ್ತೆ ವಿಷಯಗಳಿಗೆ ಮಾತ್ರ ಸಹಾಯ ಮಾಡುತ್ತೇನೆ. ದಯವಿಟ್ಟು FIR, ಪ್ರಕರಣ, ಅಪರಾಧ ಮಾದರಿ, offender, ಜಿಲ್ಲೆ, hotspot, report ಅಥವಾ ತನಿಖೆಗೆ ಸಂಬಂಧಿಸಿದ ಪ್ರಶ್ನೆ ಕೇಳಿ."
-    return "I can only help with NAMMA KSP police and crime-intelligence topics. Please ask about FIRs, cases, crime patterns, offenders, districts, hotspots, reports, or investigation support."
+    return f"I can only assist with this NAMMA KSP {role} workspace. Ask about {role_topics.get(role, role_topics['Investigator'])}."
 
 
-def _offline_context_answer(message: str, context: str, language: str) -> str:
+def _offline_context_answer(message: str, context: str, language: str, role: str = "Investigator") -> str:
     """Return a deterministic answer when the external LLM provider is unavailable."""
     compact_lines = []
     for raw_line in context.splitlines():
@@ -607,7 +780,7 @@ def _offline_context_answer(message: str, context: str, language: str) -> str:
             break
 
     if not compact_lines:
-        return _domain_refusal(language)
+        return _domain_refusal(language, role)
 
     if language == "kn-IN":
         return (
@@ -643,6 +816,8 @@ async def chat(
       }
     """
     clean_message = user_message.strip()
+    normalized_message = _normalize_user_query(clean_message)
+    role = str((user or {}).get("role") or "Investigator")
     history = await _load_session(session_id, runtime_request)
     history[0] = {
         "role": "system",
@@ -668,22 +843,22 @@ async def chat(
         }
 
     # Handle conversational turns without inventing crime analysis.
-    normalized = clean_message.lower().strip(" .,!?")
+    normalized = normalized_message.lower().strip(" .,!?")
     greetings = {"hi", "hello", "hey", "hii", "good morning", "good afternoon", "good evening", "ನಮಸ್ಕಾರ", "ಹಾಯ್"}
     thanks = {"thanks", "thank you", "thankyou", "ok thanks", "ಧನ್ಯವಾದ", "ಧನ್ಯವಾದಗಳು"}
     if normalized in greetings or normalized in thanks:
         if normalized in thanks:
-            ai_reply = "ಸ್ವಾಗತ. ಇನ್ನೇನಾದರೂ ತನಿಖಾ ಸಹಾಯ ಬೇಕಿದ್ದರೆ ಕೇಳಿ." if language == "kn-IN" else "You're welcome. Ask whenever you need more investigative support."
+            ai_reply = "ಸ್ವಾಗತ. ನಿಮ್ಮ ಕಾರ್ಯಕ್ಷೇತ್ರಕ್ಕೆ ಸಂಬಂಧಿಸಿದ ಸಹಾಯಕ್ಕಾಗಿ ಕೇಳಿ." if language == "kn-IN" else f"You're welcome. Ask whenever you need help in the {role} workspace."
         else:
-            ai_reply = "ನಮಸ್ಕಾರ. ಇಂದು ಯಾವ ಪ್ರಕರಣ ಅಥವಾ ಅಪರಾಧ ಮಾದರಿಯನ್ನು ಪರಿಶೀಲಿಸಬೇಕು?" if language == "kn-IN" else "Hello. What case, offender, location, or crime pattern would you like to investigate?"
+            ai_reply = "ನಮಸ್ಕಾರ. ಇಂದು ನಿಮ್ಮ ಕಾರ್ಯಕ್ಷೇತ್ರದಲ್ಲಿ ಏನನ್ನು ಪರಿಶೀಲಿಸಬೇಕು?" if language == "kn-IN" else f"Hello. What would you like to examine in the {role} workspace?"
         history.extend([
             {"role": "user", "content": clean_message},
             {"role": "assistant", "content": ai_reply},
         ])
         await _persist_session(session_id, runtime_request)
         return {"response": ai_reply, "evidence": "", "sources": [], "cached": False, "session_id": session_id, "model": "conversation-router", "tokens_used": 0}
-    if not _is_ksp_domain_query(clean_message, len(history) > 1):
-        ai_reply = _domain_refusal(language)
+    if not _is_ksp_domain_query(normalized_message, len(history) > 1, role):
+        ai_reply = _domain_refusal(language, role)
         history.extend([
             {"role": "user", "content": clean_message},
             {"role": "assistant", "content": ai_reply},
@@ -702,7 +877,7 @@ async def chat(
     profile = _response_profile(clean_message, len(history) > 1)
 
     # Resolve context using query rewrite helper (translates and merges history)
-    rewritten_query = await _rewrite_query(session_id, user_message)
+    rewritten_query = await _rewrite_query(session_id, normalized_message)
 
     entity_status = await _verify_entity_references(f"{clean_message}\n{rewritten_query}")
 
@@ -711,21 +886,22 @@ async def chat(
         missing_text = ", ".join(entity_status["missing"])
         context = f"Verified ledger lookup: no record exists for {missing_text}."
     else:
-        context = await _fetch_relevant_context(rewritten_query)
+        context = await _fetch_relevant_context(rewritten_query, role, workspace_view)
     logger.info("Context fetched for session %s: %d chars", session_id, len(context))
 
     target_lang_instruction = "English" if language == "en-US" else "Kannada"
     sources = [{
         "id": "S1",
-        "title": "NAMMA KSP database retrieval",
+        "title": f"NAMMA KSP verified {role} data",
         "query": rewritten_query,
         "evidence_excerpt": context[:500] + ("..." if len(context) > 500 else ""),
     }]
-    cache_key = _query_pattern(rewritten_query, language)
+    cache_key = _query_pattern(rewritten_query, language, role)
 
     # Augment user message with context (saving original message text for history clean-up)
     augmented_message = f"""Current authenticated workspace: {workspace_view or 'Role overview'}.
-User Query: {user_message}
+Original user query: {user_message}
+Normalized retrieval query: {normalized_message}
 
 --- Relevant Database Context ---
 {context}
@@ -734,6 +910,9 @@ User Query: {user_message}
 Response depth: {profile['name']}.
 {profile['instruction']}
 Answer only what the user asked. Do not add unrelated statistics or force every analytical section into the response.
+The supplied context contains server-verified NAMMA KSP database records authorized for the authenticated {role}, augmented by the current dashboard view. It is the only source of platform facts.
+Use all relevant authorized database evidence supplied, even when it is broader than the currently visible chart. Never use general model knowledge, another role's restricted data, or invented values.
+If the supplied authorized records genuinely do not contain the requested fact, explain which filter or identifier is needed. Never claim that the database itself is unavailable and never refer to the evidence as a snapshot.
 Every numeric claim derived from the database context must include the citation [S1]. Do not cite general advice or non-numeric interpretation.
 IMPORTANT: You MUST write your entire response in {target_lang_instruction} language only.
 If the selected language is Kannada, write in clean, grammatically correct Kannada script."""
@@ -774,7 +953,7 @@ If the selected language is Kannada, write in clean, grammatically correct Kanna
             }
         logger.warning("LLM unavailable for %s; returning deterministic context answer: %s", cache_key, exc)
         history.pop()
-        ai_reply = _offline_context_answer(clean_message, context, language)
+        ai_reply = _offline_context_answer(normalized_message, context, language, role)
         history.extend([
             {"role": "user", "content": clean_message},
             {"role": "assistant", "content": ai_reply},
@@ -791,6 +970,8 @@ If the selected language is Kannada, write in clean, grammatically correct Kanna
             "warning": "External AI provider unavailable; answer generated from verified context",
         }
 
+    ai_reply = _normalize_ai_response(ai_reply)
+
     # Check if we requested Kannada but response has no Kannada characters
     if language == "kn-IN" and not any('\u0c80' <= c <= '\u0cff' for c in ai_reply):
         logger.info("Response was in English but Kannada was requested. Translating response with Sarvam...")
@@ -806,6 +987,8 @@ If the selected language is Kannada, write in clean, grammatically correct Kanna
                 )
         except Exception as te:
             logger.error("Failed to translate English response to Kannada: %s", te)
+
+    ai_reply = _normalize_ai_response(ai_reply)
 
     # Store assistant response (clean, without augmented context)
     history.append({"role": "assistant", "content": ai_reply})

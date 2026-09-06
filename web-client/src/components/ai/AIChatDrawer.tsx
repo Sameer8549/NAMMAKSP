@@ -3,7 +3,7 @@ import { useRole } from '../../context/RoleContext';
 import { useLanguage } from '../../context/LanguageContext';
 import { dataService } from '../../services/mockDataService';
 import type { AIChatMessage } from '../../types/ai';
-import { Send, X, Bot, User, Info, Mic, Square, Volume2, VolumeX, Download } from 'lucide-react';
+import { Send, X, Bot, User, Info, Mic, Square, Volume2, VolumeX, Download } from '../common/icons';
 import kspEmblemImg from '../../assets/ksp.jpg';
 import { apiClient } from '../../services/apiClient';
 import { StructuredAIResponse } from './StructuredAIResponse';
@@ -11,9 +11,11 @@ import { StructuredAIResponse } from './StructuredAIResponse';
 interface AIChatDrawerProps {
   isOpen: boolean;
   onClose: () => void;
+  initialPrompt?: string;
+  onPromptConsumed?: () => void;
 }
 
-export const AIChatDrawer: React.FC<AIChatDrawerProps> = ({ isOpen, onClose }) => {
+export const AIChatDrawer: React.FC<AIChatDrawerProps> = ({ isOpen, onClose, initialPrompt = '', onPromptConsumed }) => {
   const { activeRole, activeView, roleConfig } = useRole();
   const { language, translations } = useLanguage();
   const isKn = language === 'kn';
@@ -53,12 +55,16 @@ export const AIChatDrawer: React.FC<AIChatDrawerProps> = ({ isOpen, onClose }) =
     feedEndRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' });
   }, [messages, isThinking]);
 
+  useEffect(() => {
+    if (!isOpen || !initialPrompt.trim()) return;
+    setInputText(initialPrompt.trim());
+    onPromptConsumed?.();
+  }, [isOpen, initialPrompt, onPromptConsumed]);
+
   useEffect(() => () => {
     recorderRef.current?.stream.getTracks().forEach(track => track.stop());
     audioRef.current?.pause();
   }, []);
-
-  if (!isOpen) return null;
 
   const handleSendMessage = async (textToSend?: string) => {
     const text = textToSend || inputText;
@@ -97,7 +103,6 @@ export const AIChatDrawer: React.FC<AIChatDrawerProps> = ({ isOpen, onClose }) =
         }),
       };
       setMessages(prev => [...prev, aiMsg]);
-      void speak(aiMsg.text);
     } catch (chatError) {
       setMessages(prev => [...prev, {
         id: `AI-ERROR-${Date.now()}`,
@@ -108,6 +113,8 @@ export const AIChatDrawer: React.FC<AIChatDrawerProps> = ({ isOpen, onClose }) =
       setIsThinking(false);
     }
   };
+
+  if (!isOpen) return null;
 
   const speak = async (text: string) => {
     if (!text.trim()) return;

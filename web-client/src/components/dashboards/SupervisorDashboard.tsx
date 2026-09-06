@@ -1,3 +1,4 @@
+import { useChartMotion } from '../../context/MotionContext';
 import React, { useState, useEffect } from 'react';
 import { useRole } from '../../context/RoleContext';
 import { useLanguage } from '../../context/LanguageContext';
@@ -16,7 +17,7 @@ import {
   CartesianGrid,
   AreaChart,
   Area
-} from 'recharts';
+} from '../charts/motion';
 import {
   Users,
   AlertTriangle,
@@ -29,14 +30,14 @@ import {
   Zap,
   ChevronRight,
   TrendingUp
-} from 'lucide-react';
+} from '../common/icons';
 import { CaseDetailView } from '../detail/CaseDetailView';
 import type { CaseRecord } from '../../types/crime';
 import { SupervisorCommandIntelligence } from './SupervisorCommandIntelligence';
 
 interface SupervisorDashboardProps {
   onOpenExplainModal?: () => void;
-  onOpenChatDrawer?: () => void;
+  onOpenChatDrawer?: (prompt?: string) => void;
 }
 
 type SupervisorTab =
@@ -48,6 +49,7 @@ type SupervisorTab =
 
 
 export const SupervisorDashboard: React.FC<SupervisorDashboardProps> = ({ onOpenExplainModal }) => {
+  const chartMotion = useChartMotion();
   const { activeView } = useRole();
   const { language } = useLanguage();
   const [activeTab, setActiveTab] = useState<SupervisorTab>('WORKLOAD');
@@ -118,11 +120,11 @@ export const SupervisorDashboard: React.FC<SupervisorDashboardProps> = ({ onOpen
   useEffect(() => {
     if (activeView) {
       const v = activeView.trim().toLowerCase();
-      if (v.includes('workload')) {
+      if (v.includes('workload') || v.includes('station performance')) {
         setActiveTab('WORKLOAD');
       } else if (v.includes('station performance') || (v.includes('station') && !v.includes('review'))) {
         setActiveTab('PERFORMANCE');
-      } else if (v.includes('aging') || v.includes('ageing')) {
+      } else if (v.includes('aging') || v.includes('ageing') || v.includes('delay')) {
         setActiveTab('AGING');
       } else if (v.includes('bottleneck') || v.includes('delay') || v.includes('tracker') || v.includes('stalled')) {
         setActiveTab('BOTTLENECKS');
@@ -194,8 +196,7 @@ export const SupervisorDashboard: React.FC<SupervisorDashboardProps> = ({ onOpen
   };
 
   const commandView = activeView.toLowerCase();
-  if (commandView.includes('alert inbox')) return <SupervisorCommandIntelligence view="alerts" />;
-  if (commandView.includes('forecast review')) return <SupervisorCommandIntelligence view="forecast" />;
+  if (commandView.includes('warning') || commandView.includes('alert inbox') || commandView.includes('forecast review')) return <SupervisorCommandIntelligence view="signals" />;
   if (commandView.includes('command audit')) return <SupervisorCommandIntelligence view="audit" />;
 
   return (
@@ -242,7 +243,16 @@ export const SupervisorDashboard: React.FC<SupervisorDashboardProps> = ({ onOpen
       {/* ========================================================================= */}
       {/* 1. EXECUTIVE OPERATIONAL METRICS STRIP WITH FAST MOVING NUMBERS            */}
       {/* ========================================================================= */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(210px, 1fr))', gap: '1rem' }}>
+      <div className="workspace-actions">
+        <div className="workspace-actions__context"><strong>{({WORKLOAD:'Workload and station performance',PERFORMANCE:'Station performance',AGING:'Case delays and aging',BOTTLENECKS:'Warnings and forecast review',OFFICER_REVIEW:'Officer review'} as Record<string,string>)[activeTab] || 'Supervisor command workspace'}</strong><span>Live command scope · evidence-backed actions</span></div>
+        <ExportMenu
+          reportLabel="Generate command PDF"
+          onReport={() => setIsWhiteSheetOpen(true)}
+          onCsv={() => exportDashboardToCSV('SUPERVISOR', activeTab, language)}
+        />
+      </div>
+
+      {activeTab === 'WORKLOAD' && <div className="supervisor-command-summary">
         
         {/* Metric 1: Aging Cases */}
         <div style={{
@@ -344,18 +354,7 @@ export const SupervisorDashboard: React.FC<SupervisorDashboardProps> = ({ onOpen
           </div>
         </div>
 
-      </div>
-
-      {/* ========================================================================= */}
-      {/* 2. SUPERVISOR CAPABILITY NAVIGATION TABS & REPORT DOWNLOAD ACTIONS         */}
-      {/* ========================================================================= */}
-      <div className="workspace-actions">
-        <ExportMenu
-          reportLabel="Generate command PDF"
-          onReport={() => setIsWhiteSheetOpen(true)}
-          onCsv={() => exportDashboardToCSV('SUPERVISOR', activeTab, language)}
-        />
-      </div>
+      </div>}
 
       {/* ========================================================================= */}
       {/* 3. WORKSPACE CONTENTS BASED ON ACTIVE TAB                                 */}
@@ -435,8 +434,8 @@ export const SupervisorDashboard: React.FC<SupervisorDashboardProps> = ({ onOpen
             </div>
 
             {/* Modern Card-Style Table */}
-            <div style={{ overflowX: 'auto' }}>
-              <table style={{ width: '100%', borderCollapse: 'separate', borderSpacing: '0 0.5rem' }}>
+            <div className="supervisor-workload-table-wrap" style={{ overflowX: 'auto' }}>
+              <table className="supervisor-workload-table" style={{ width: '100%', borderCollapse: 'separate', borderSpacing: '0 0.5rem' }}>
                 <thead>
                   <tr style={{ textAlign: 'left', fontSize: '0.74rem', fontWeight: 800, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
                     <th style={{ padding: '0.6rem 0.85rem' }}>OFFICER</th>
@@ -463,7 +462,7 @@ export const SupervisorDashboard: React.FC<SupervisorDashboardProps> = ({ onOpen
                           boxShadow: 'var(--shadow-xs)'
                         }}
                       >
-                        <td style={{ padding: '0.85rem', borderRadius: 'var(--radius-md) 0 0 var(--radius-md)' }}>
+                        <td data-label="Officer" style={{ padding: '0.85rem', borderRadius: 'var(--radius-md) 0 0 var(--radius-md)' }}>
                           <strong style={{ color: 'var(--text-primary)', fontSize: '0.92rem', display: 'block' }}>
                             {off.officerName}
                           </strong>
@@ -472,11 +471,11 @@ export const SupervisorDashboard: React.FC<SupervisorDashboardProps> = ({ onOpen
                           </span>
                         </td>
 
-                        <td style={{ padding: '0.85rem', color: 'var(--text-secondary)', fontWeight: 600, fontSize: '0.82rem' }}>
+                        <td data-label="Station" style={{ padding: '0.85rem', color: 'var(--text-secondary)', fontWeight: 600, fontSize: '0.82rem' }}>
                           {off.station}
                         </td>
 
-                        <td style={{ padding: '0.85rem' }}>
+                        <td data-label="Active cases" style={{ padding: '0.85rem' }}>
                           <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem' }}>
                             <strong style={{
                               color: 'var(--text-primary)',
@@ -491,11 +490,11 @@ export const SupervisorDashboard: React.FC<SupervisorDashboardProps> = ({ onOpen
                           </div>
                         </td>
 
-                        <td style={{ padding: '0.85rem', fontWeight: 800, fontSize: '0.84rem', color: off.agingCasesCount > 3 ? 'var(--critical)' : 'var(--text-secondary)' }}>
+                        <td data-label="Aging" style={{ padding: '0.85rem', fontWeight: 800, fontSize: '0.84rem', color: off.agingCasesCount > 3 ? 'var(--critical)' : 'var(--text-secondary)' }}>
                           {off.agingCasesCount} overdue
                         </td>
 
-                        <td style={{ padding: '0.85rem' }}>
+                        <td data-label="Workload" style={{ padding: '0.85rem' }}>
                           <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
                             <span style={{
                               fontWeight: 900,
@@ -516,13 +515,13 @@ export const SupervisorDashboard: React.FC<SupervisorDashboardProps> = ({ onOpen
                           </div>
                         </td>
 
-                        <td style={{ padding: '0.85rem' }}>
+                        <td data-label="Status" style={{ padding: '0.85rem' }}>
                           <span className={`badge ${isOverloaded ? 'badge-critical' : isOptimal ? 'badge-warning' : 'badge-success'}`}>
                             {isOverloaded ? 'OVERLOADED' : isOptimal ? 'HIGH LOAD' : 'AVAILABLE'}
                           </span>
                         </td>
 
-                        <td style={{ padding: '0.85rem', textAlign: 'center', borderRadius: '0 var(--radius-md) var(--radius-md) 0' }}>
+                        <td data-label="Action" style={{ padding: '0.85rem', textAlign: 'center', borderRadius: '0 var(--radius-md) var(--radius-md) 0' }}>
                           <button
                             onClick={() => setSelectedOfficerToReassign(off)}
                             style={{
@@ -553,7 +552,7 @@ export const SupervisorDashboard: React.FC<SupervisorDashboardProps> = ({ onOpen
       )}
 
       {/* VIEW 2: STATION PERFORMANCE (REDESIGNED VIBRANT CARD GRID WITH PROGRESS BARS) */}
-      {activeTab === 'PERFORMANCE' && (
+      {activeTab === 'WORKLOAD' && (
         <div style={{
           backgroundColor: 'var(--surface-card)',
           border: '1px solid var(--border)',
@@ -801,7 +800,7 @@ export const SupervisorDashboard: React.FC<SupervisorDashboardProps> = ({ onOpen
       )}
 
       {/* VIEW 4: CASE DELAY TRACKER (SIMPLIFIED EASY ENGLISH TITLE & CARD GRID) */}
-      {activeTab === 'BOTTLENECKS' && (
+      {activeTab === 'AGING' && (
         <div style={{
           backgroundColor: 'var(--surface-card)',
           border: '1.5px solid rgba(245, 158, 11, 0.4)',
@@ -1166,8 +1165,8 @@ export const SupervisorDashboard: React.FC<SupervisorDashboardProps> = ({ onOpen
                           <XAxis dataKey="month" stroke="var(--text-muted)" fontSize={11} />
                           <YAxis stroke="var(--text-muted)" fontSize={11} />
                           <Tooltip />
-                          <Area type="monotone" dataKey="resolved" name="Resolved Cases" stroke="var(--success)" fill="rgba(16, 185, 129, 0.2)" strokeWidth={2} />
-                          <Area type="monotone" dataKey="active" name="Active Load" stroke="var(--accent)" fill="rgba(217, 119, 6, 0.15)" strokeWidth={2} />
+                          <Area {...chartMotion} type="monotone" dataKey="resolved" name="Resolved Cases" stroke="var(--success)" fill="rgba(16, 185, 129, 0.2)" strokeWidth={2} />
+                          <Area {...chartMotion} type="monotone" dataKey="active" name="Active Load" stroke="var(--accent)" fill="rgba(217, 119, 6, 0.15)" strokeWidth={2} />
                         </AreaChart>
                       </ResponsiveContainer>
                     </div>

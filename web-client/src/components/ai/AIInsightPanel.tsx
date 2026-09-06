@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
 import { useRole } from '../../context/RoleContext';
 import { dataService } from '../../services/mockDataService';
-import { FileText, ChevronRight, Info } from 'lucide-react';
+import { FileText, ChevronRight, Info } from '../common/icons';
 
 interface AIInsightPanelProps {
   onOpenExplainModal?: () => void;
-  onOpenChatDrawer?: () => void;
+  onOpenChatDrawer?: (prompt?: string) => void;
 }
 
 export const AIInsightPanel: React.FC<AIInsightPanelProps> = ({
@@ -49,7 +49,7 @@ export const AIInsightPanel: React.FC<AIInsightPanelProps> = ({
             borderRadius: 'var(--radius-sm)',
             border: '1px solid rgba(16, 185, 129, 0.3)'
           }}>
-            Confidence: {insight.confidenceScore}%
+            {insight.evidence.length} linked sources
           </span>
         </div>
       </div>
@@ -114,7 +114,7 @@ export const AIInsightPanel: React.FC<AIInsightPanelProps> = ({
 
         {onOpenChatDrawer && (
           <button
-            onClick={onOpenChatDrawer}
+            onClick={() => onOpenChatDrawer(`Review this ${activeRole.toLowerCase()} workspace summary using the verified dashboard data. Explain the key risk, the evidence behind it, and the next action.`)}
             style={{
               display: 'flex',
               alignItems: 'center',

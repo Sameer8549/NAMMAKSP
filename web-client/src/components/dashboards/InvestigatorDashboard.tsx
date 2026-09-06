@@ -1,4 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react';
+import {ResponsiveContainer,BarChart,Bar,XAxis,YAxis,Tooltip,Cell} from '../charts/motion';
 import { useRole } from '../../context/RoleContext';
 import { useLanguage } from '../../context/LanguageContext';
 import { StatusBadge } from '../common/StatusBadge';
@@ -25,13 +26,19 @@ import {
   BarChart3,
   X,
   MapPin,
-} from 'lucide-react';
+} from '../common/icons';
 import './investigatorDashboard.css';
 import { InvestigatorFinancialLeads } from './InvestigatorFinancialLeads';
+import { RoleAnalyticsWorkspace } from '../analytics/RoleAnalyticsWorkspace';
+import {
+  caseComplexityLabel,
+  classifyLinkedCaseComplexity,
+  type CaseComplexityFilter,
+} from '../../utils/caseComplexity';
 
 interface InvestigatorDashboardProps {
   onOpenExplainModal: () => void;
-  onOpenChatDrawer: () => void;
+  onOpenChatDrawer: (prompt?: string) => void;
 }
 
 type CapabilityTab = 'ALL' | 'ACTIVE_CASES' | 'FIR_SEARCH' | 'ACCUSED_CONN' | 'SIMILAR_CASES' | 'TIMELINE' | 'NETWORK' | 'LEADS';
@@ -48,22 +55,22 @@ export const InvestigatorDashboard: React.FC<InvestigatorDashboardProps> = ({ on
   const [selectedCase, setSelectedCase] = useState<CaseRecord | null>(null);
   const [selectedWhiteSheetCase, setSelectedWhiteSheetCase] = useState<CaseRecord | null>(null);
   const [actionedLeads, setActionedLeads] = useState<Record<string, boolean>>({});
+  const [caseComplexity, setCaseComplexity] = useState<CaseComplexityFilter>('ALL');
   const districts = useMemo(() => Array.from(new Set(cases.map(item => item.location?.district).filter(Boolean))).sort(), [cases]);
 
   const investigationLeads = useMemo<InvestigationLead[]>(() => cases
     .filter(item => item.status !== 'CLOSED')
     .sort((a, b) => b.daysAging - a.daysAging)
     .slice(0, 12)
-    .map((item, index) => ({
+    .map(item => ({
       id: `lead-${item.firNumber}`,
       caseFir: item.firNumber,
       title: `${item.category} evidence review`,
-      confidenceScore: Math.min(95, 55 + item.accused.reduce((max, accused) => Math.max(max, accused.riskScore), 0) / 3),
       evidenceBasis: `${item.firNumber} is ${item.daysAging} days old with ${item.accused.length} linked accused record(s).`,
       suggestedNextStep: item.priority === 'HIGH' || item.priority === 'CRITICAL'
         ? 'Review the linked evidence and escalate through the authorized command chain.'
         : 'Verify the case timeline and record the next investigation action.',
-      leadType: index % 2 === 0 ? 'MO_PATTERN' : 'SUSPECT_LOCATION',
+      leadType: 'EVIDENCE_REVIEW',
       status: item.priority === 'HIGH' || item.priority === 'CRITICAL' ? 'ACTION_REQUIRED' : 'UNDER_REVIEW',
     })), [cases]);
 
@@ -78,9 +85,13 @@ export const InvestigatorDashboard: React.FC<InvestigatorDashboardProps> = ({ on
       matchedFir: match.firNumber,
       matchedTitle: match.title,
       district: match.location.district,
-      similarityScore: activeCase.modusOperandi.primaryMethod === match.modusOperandi.primaryMethod ? 92 : 76,
+      similarityScore: 0,
       matchedSignature: match.modusOperandi.uniqueSignature,
-      overlappingMO: [activeCase.modusOperandi.primaryMethod, match.modusOperandi.primaryMethod],
+      overlappingMO: [
+        `Shared category: ${activeCase.category}`,
+        ...(activeCase.modusOperandi.primaryMethod && activeCase.modusOperandi.primaryMethod === match.modusOperandi.primaryMethod
+          ? [`Shared recorded method: ${activeCase.modusOperandi.primaryMethod}`] : []),
+      ],
     }];
   }).slice(0, 12), [cases]);
 
@@ -138,14 +149,34 @@ export const InvestigatorDashboard: React.FC<InvestigatorDashboardProps> = ({ on
   }, [cases, searchTerm, categoryFilter, priorityFilter, districtFilter]);
 
   const sortedTimelineEvents = useMemo(() => {
-    const events: Array<{ event: CaseRecord['timeline'][0]; caseFir: string; caseTitle: string }> = [];
+    const events: Array<{ event: CaseRecord['timeline'][0]; caseFir: string; caseTitle: string; complexity: Exclude<CaseComplexityFilter, 'ALL'> }> = [];
     cases.forEach(c => {
+      const complexity = classifyLinkedCaseComplexity(c.leadsCount);
+      if (caseComplexity !== 'ALL' && complexity !== caseComplexity) return;
       c.timeline.forEach(e => {
-        events.push({ event: e, caseFir: c.firNumber, caseTitle: c.title });
+        events.push({ event: e, caseFir: c.firNumber, caseTitle: c.title, complexity });
       });
     });
-    return events;
-  }, [cases]);
+    return events.sort((a, b) => new Date(b.event.timestamp).getTime() - new Date(a.event.timestamp).getTime());
+  }, [cases, caseComplexity]);
+
+  const timelineCounts = useMemo(() => cases.reduce<Record<Exclude<CaseComplexityFilter, 'ALL'>, number>>((counts, item) => {
+    counts[classifyLinkedCaseComplexity(item.leadsCount)] += 1;
+    return counts;
+  }, { SHORT: 0, MEDIUM: 0, LONG: 0 }), [cases]);
+
+  const timelineGroups = useMemo(() => {
+    const groups = new Map<string, typeof sortedTimelineEvents>();
+    sortedTimelineEvents.forEach(item => {
+      const date = new Date(item.event.timestamp);
+      const validDate = !Number.isNaN(date.getTime());
+      const key = caseComplexity === 'LONG'
+        ? validDate ? `${date.getFullYear()} Q${Math.floor(date.getMonth() / 3) + 1}` : 'Date not recorded'
+        : validDate ? date.toLocaleDateString('en-IN', { month: 'long', year: 'numeric' }) : 'Date not recorded';
+      groups.set(key, [...(groups.get(key) || []), item]);
+    });
+    return Array.from(groups.entries());
+  }, [sortedTimelineEvents, caseComplexity]);
 
   const toggleActionLead = (leadId: string) => {
     setActionedLeads(prev => ({ ...prev, [leadId]: !prev[leadId] }));
@@ -159,19 +190,45 @@ export const InvestigatorDashboard: React.FC<InvestigatorDashboardProps> = ({ on
   const { language, translations } = useLanguage();
   const [isWhiteSheetOpen, setIsWhiteSheetOpen] = useState(false);
 
-  if (activeView.toLowerCase().includes('financial')) return <InvestigatorFinancialLeads onOpenChat={onOpenChatDrawer}/>;
+  const complexityControl = (
+    <div className="case-complexity-control investigator-global-complexity" aria-label="Filter the investigation workspace by linked FIR complexity">
+      <div className="case-complexity-control__copy">
+        <strong>Investigation complexity</strong>
+        <span>One scope across timeline, relationship, and financial evidence, based on linked verified FIRs.</span>
+      </div>
+      <div className="case-complexity-control__segments">
+        {(['ALL', 'SHORT', 'MEDIUM', 'LONG'] as CaseComplexityFilter[]).map(value => (
+          <button key={value} type="button" className={caseComplexity === value ? 'is-active' : ''}
+            aria-pressed={caseComplexity === value} onClick={() => setCaseComplexity(value)}>
+            <span>{caseComplexityLabel(value)}</span>
+            <b>{value === 'ALL' ? cases.length : timelineCounts[value]}</b>
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+
+  if (activeView.toLowerCase().includes('financial')) return (
+    <div className="investigator-desk-container">
+      {complexityControl}
+      <InvestigatorFinancialLeads onOpenChat={onOpenChatDrawer} complexityFilter={caseComplexity}/>
+    </div>
+  );
 
   return (
     <div className="investigator-desk-container">
       
       {/* TOP NAVIGATION BAR & REPORT DOWNLOAD ACTIONS */}
       <div className="workspace-actions">
+        <div className="workspace-actions__context"><strong>{({ALL:'Investigation workspace',ACTIVE_CASES:'Active case pressure',FIR_SEARCH:'FIR search and retrieval',NETWORK:'Accused relationship analysis',SIMILAR_CASES:'Similar cases and crime methods',LEADS:'Evidence and case leads',TIMELINE:'Case timeline'} as Record<string,string>)[activeTab] || 'Investigation workspace'}</strong><span>Current case scope · verified FIR evidence</span></div>
         <ExportMenu
           reportLabel="Generate case PDF"
           onReport={() => setIsWhiteSheetOpen(true)}
           onCsv={() => exportDashboardToCSV('INVESTIGATOR', activeTab, language)}
         />
       </div>
+
+      {activeTab === 'ACTIVE_CASES' && <RoleAnalyticsWorkspace role="INVESTIGATOR" onOpenCase={setSelectedCase} title="My cases: evidence and pressure" />}
 
       {/* CASE DETAIL VIEW */}
       {selectedCase ? (
@@ -248,6 +305,10 @@ export const InvestigatorDashboard: React.FC<InvestigatorDashboardProps> = ({ on
           {/* PAGE 2: MY CASES */}
           {activeTab === 'ACTIVE_CASES' && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+              <section aria-label="Assigned case analytics">
+                <h3>Assigned case composition</h3>
+                <div style={{height:260,minWidth:0}}><ResponsiveContainer><BarChart data={oversightBarData} onClick={event=>setCategoryFilter(current=>current===event.activeLabel?'ALL':event.activeLabel)}><XAxis dataKey="categoryName"/><YAxis allowDecimals={false}/><Tooltip/><Bar dataKey="caseCount" name="Assigned FIRs">{oversightBarData.map(item=><Cell key={item.id} fill={item.statusColor}/>)}</Bar></BarChart></ResponsiveContainer></div>
+              </section>
               <div style={{
                 backgroundColor: 'var(--surface-card)',
                 border: '1px solid var(--border)',
@@ -553,7 +614,7 @@ export const InvestigatorDashboard: React.FC<InvestigatorDashboardProps> = ({ on
 
           {/* PAGE 4: SUSPECT NETWORKS */}
           {activeTab === 'NETWORK' && (
-            <AccusedNetworkGraph />
+            <AccusedNetworkGraph complexityFilter={caseComplexity} />
           )}
 
           {/* PAGE 5: SIMILAR CRIME METHODS */}
@@ -594,7 +655,7 @@ export const InvestigatorDashboard: React.FC<InvestigatorDashboardProps> = ({ on
                       <div className="case-card-header">
                         <span className="case-fir-tag">{match.activeFir}</span>
                         <span className="badge badge-success" style={{ fontSize: '0.72rem', fontWeight: 800 }}>
-                          {match.similarityScore}% MATCH
+                          {match.overlappingMO.length} SHARED ATTRIBUTES
                         </span>
                       </div>
 
@@ -693,7 +754,7 @@ export const InvestigatorDashboard: React.FC<InvestigatorDashboardProps> = ({ on
                         </div>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                           <span style={{ fontSize: '0.76rem', fontWeight: 800, color: 'var(--accent)' }}>
-                            CONFIDENCE: {lead.confidenceScore}%
+                            RECORDED CASE REVIEW
                           </span>
                           <span className={`badge ${isActioned ? 'badge-success' : 'badge-warning'}`}>
                             {isActioned ? 'DONE' : lead.status}
@@ -747,86 +808,40 @@ export const InvestigatorDashboard: React.FC<InvestigatorDashboardProps> = ({ on
 
           {/* PAGE 7: CASE TIMELINE */}
           {activeTab === 'TIMELINE' && (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
-              <div style={{
-                backgroundColor: 'var(--surface-card)',
-                border: '1px solid var(--border)',
-                borderTop: '2px solid var(--accent)',
-                borderRadius: 'var(--radius-lg)',
-                padding: '1.25rem 1.5rem',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                flexWrap: 'wrap',
-                gap: '1rem'
-              }}>
+            <div className="case-timeline-workspace">
+              <div className="case-timeline-header">
                 <div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                     <Clock size={22} color="var(--accent)" />
-                    <h2 style={{ fontSize: '1.3rem', fontWeight: 800, color: 'var(--text-primary)', margin: 0 }}>
-                      Case Activity Timeline
-                    </h2>
+                    <h2>Case activity timeline</h2>
                   </div>
-                  <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', margin: '0.2rem 0 0 0' }}>
-                    Chronological history of case updates, FIR filings, and phone pings
-                  </p>
+                  <p>Recorded case events in strict reverse chronology. Select an entry to inspect its FIR.</p>
                 </div>
-                <span className="badge badge-info" style={{ fontSize: '0.78rem' }}>
-                  {sortedTimelineEvents.length} Updates Listed
-                </span>
+                <span className="badge badge-info">{sortedTimelineEvents.length} recorded events</span>
               </div>
 
-              <div style={{
-                backgroundColor: 'var(--surface-card)',
-                border: '1px solid var(--border)',
-                borderRadius: 'var(--radius-lg)',
-                padding: '1.5rem',
-                display: 'flex',
-                flexDirection: 'column',
-                gap: '1.25rem'
-              }}>
-                {sortedTimelineEvents.map((item, idx) => (
-                  <button
-                    key={idx}
-                    type="button"
-                    className="timeline-evidence-row"
-                    onClick={() => setSelectedCase(cases.find(record => record.firNumber === item.caseFir) || null)}
-                    style={{
-                      display: 'flex',
-                      gap: '1rem',
-                      alignItems: 'flex-start',
-                      paddingBottom: idx !== sortedTimelineEvents.length - 1 ? '1rem' : 0,
-                      borderBottom: idx !== sortedTimelineEvents.length - 1 ? '1px solid var(--border-subtle)' : 'none'
-                    }}
-                  >
-                    <div style={{
-                      width: '36px',
-                      height: '36px',
-                      borderRadius: '50%',
-                      backgroundColor: 'var(--accent-light)',
-                      color: 'var(--accent-muted)',
-                      display: 'grid',
-                      placeItems: 'center',
-                      flexShrink: 0
-                    }}>
-                      <Clock size={16} />
+              <div className="case-timeline-periods">
+                {timelineGroups.map(([period, items]) => (
+                  <section className="case-timeline-period" key={period}>
+                    <header><h3>{period}</h3><span>{items.length} events</span></header>
+                    <div className="case-timeline-list">
+                      {items.map(item => (
+                        <button key={item.event.id} type="button" className="timeline-evidence-row" onClick={() => setSelectedCase(cases.find(record => record.firNumber === item.caseFir) || null)}>
+                          <span className="timeline-evidence-icon"><Clock size={16} /></span>
+                          <span className="timeline-evidence-content">
+                            <span className="timeline-evidence-meta">
+                              <span className="case-fir-tag">{item.caseFir}</span>
+                              <span className={`case-complexity-badge ${item.complexity.toLowerCase()}`}>{caseComplexityLabel(item.complexity)}</span>
+                              <time>{item.event.timestamp}</time>
+                            </span>
+                            <strong>{item.event.title}</strong>
+                            <span>{item.event.description}</span>
+                          </span>
+                          <ArrowRight size={17} aria-hidden="true" />
+                        </button>
+                      ))}
                     </div>
-
-                    <div style={{ flex: 1 }}>
-                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '0.4rem' }}>
-                        <span className="case-fir-tag">{item.caseFir}</span>
-                        <span style={{ fontSize: '0.74rem', color: 'var(--text-muted)', fontWeight: 600 }}>{item.event.timestamp}</span>
-                      </div>
-
-                      <h4 style={{ fontSize: '0.92rem', fontWeight: 800, color: 'var(--text-primary)', marginTop: '0.35rem' }}>
-                        {item.event.title}
-                      </h4>
-
-                      <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginTop: '0.2rem', lineHeight: 1.4 }}>
-                        {item.event.description}
-                      </p>
-                    </div>
-                  </button>
+                  </section>
                 ))}
               </div>
             </div>
