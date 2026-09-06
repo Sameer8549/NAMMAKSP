@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="docs/assets/namma-ksp-readme-banner.png" alt="NAMMA KSP crime intelligence platform banner" width="100%" />
+  <img src="docs/assets/namma-ksp-readme-banner.gif" alt="NAMMA KSP animated crime intelligence platform banner" width="100%" />
 </p>
 
 # NAMMA KSP
