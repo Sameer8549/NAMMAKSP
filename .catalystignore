@@ -1,6 +1,12 @@
 .git/**
 .appsail_deps/**
+.appsail_linux/**
 .appsail_runtime/**
+.chart-data-*/**
+.codex-finalizer/**
+.codex-ppt-build/**
+.frontend-candidate/**
+.playwright-cli/**
 .pytest_cache/**
 .venv/**
 venv/**
@@ -14,6 +20,13 @@ __pycache__/**
 .vscode/**
 .idea/**
 tmp/**
+eval/**
+node_modules/**
+web-client/node_modules/**
+web-client/dist/**
+frontend-next/**
+output/**
+test-results/**
 tools/**
 docs/**
 reports/*.pdf

@@ -10,6 +10,13 @@
         ".codex",
         ".env",
         ".appsail_deps",
+        ".appsail_linux",
+        ".appsail_runtime",
+        ".chart-data-*",
+        ".codex-finalizer",
+        ".codex-ppt-build",
+        ".frontend-candidate",
+        ".playwright-cli",
         "node_modules",
         "web-client/node_modules",
         "web-client/dist",
@@ -18,7 +25,9 @@
         "venv",
         ".venv",
         "tmp",
+        "eval",
         "output",
+        "test-results",
         "tools",
         "docs",
         "catalyst-debug.log",
@@ -36,7 +45,7 @@
     }
   ],
   "client": {
-    "source": "frontend",
+    "source": "frontend-next",
     "ignore": [
       "**/__pycache__",
       "**/*.pyc"
