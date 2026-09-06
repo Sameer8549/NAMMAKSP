@@ -1,0 +1,57 @@
+<svg width="1400" height="420" viewBox="0 0 1400 420" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc">
+  <title id="title">NAMMA KSP Crime Intelligence Platform banner</title>
+  <desc id="desc">Dark official banner for NAMMA KSP with Karnataka State Police inspired colors, evidence graph lines, and platform positioning.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1400" y2="420" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#06111F"/>
+      <stop offset="0.48" stop-color="#0B1730"/>
+      <stop offset="1" stop-color="#111827"/>
+    </linearGradient>
+    <linearGradient id="gold" x1="118" y1="62" x2="1190" y2="366" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FACC15"/>
+      <stop offset="0.5" stop-color="#F59E0B"/>
+      <stop offset="1" stop-color="#22C55E"/>
+    </linearGradient>
+    <linearGradient id="blue" x1="760" y1="40" x2="1320" y2="390" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#60A5FA" stop-opacity="0.9"/>
+      <stop offset="1" stop-color="#14B8A6" stop-opacity="0.85"/>
+    </linearGradient>
+    <filter id="glow" x="-40%" y="-40%" width="180%" height="180%" color-interpolation-filters="sRGB">
+      <feGaussianBlur stdDeviation="9" result="blur"/>
+      <feColorMatrix in="blur" type="matrix" values="1 0 0 0 0.95 0 1 0 0 0.72 0 0 1 0 0.10 0 0 0 0.8 0"/>
+      <feBlend in="SourceGraphic"/>
+    </filter>
+  </defs>
+  <rect width="1400" height="420" rx="34" fill="url(#bg)"/>
+  <path d="M0 330C178 268 296 391 463 319C630 247 660 96 836 97C1012 98 1101 269 1400 171V420H0V330Z" fill="#0E7490" opacity="0.13"/>
+  <path d="M0 83C172 159 305 38 495 98C669 153 751 236 930 202C1100 170 1206 74 1400 115" stroke="url(#blue)" stroke-width="2" opacity="0.42"/>
+  <path d="M120 300L278 224L435 257L590 174L760 214L920 119L1090 180L1265 94" stroke="url(#gold)" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" filter="url(#glow)"/>
+  <g opacity="0.95">
+    <circle cx="120" cy="300" r="9" fill="#FACC15"/>
+    <circle cx="278" cy="224" r="9" fill="#22C55E"/>
+    <circle cx="435" cy="257" r="9" fill="#60A5FA"/>
+    <circle cx="590" cy="174" r="9" fill="#F97316"/>
+    <circle cx="760" cy="214" r="9" fill="#A78BFA"/>
+    <circle cx="920" cy="119" r="9" fill="#FACC15"/>
+    <circle cx="1090" cy="180" r="9" fill="#22C55E"/>
+    <circle cx="1265" cy="94" r="9" fill="#60A5FA"/>
+  </g>
+  <g transform="translate(70 58)">
+    <rect x="0" y="0" width="96" height="96" rx="24" fill="#FACC15" fill-opacity="0.12" stroke="#FACC15" stroke-width="2"/>
+    <path d="M48 18L74 29V49C74 67 63 80 48 86C33 80 22 67 22 49V29L48 18Z" stroke="#FACC15" stroke-width="5" stroke-linejoin="round"/>
+    <path d="M36 50L44 58L62 39" stroke="#22C55E" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+  </g>
+  <text x="190" y="99" fill="#EAF2FF" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="30" font-weight="800" letter-spacing="2">KARNATAKA STATE POLICE DATATHON 2026</text>
+  <text x="70" y="210" fill="#FFFFFF" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="86" font-weight="900">NAMMA <tspan fill="#FACC15">KSP</tspan></text>
+  <text x="74" y="260" fill="#BFD2EA" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="30" font-weight="650">Conversational AI + Crime Analytics + Evidence Intelligence</text>
+  <text x="76" y="310" fill="#EAF2FF" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="22" font-weight="600">From FIR records to explainable insights, relationship discovery, command action, reports and governance.</text>
+  <g transform="translate(965 275)">
+    <rect width="300" height="58" rx="18" fill="#071320" stroke="#334155"/>
+    <circle cx="34" cy="29" r="8" fill="#22C55E"/>
+    <text x="56" y="37" fill="#DFF7EA" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="20" font-weight="800">Live AppSail Prototype</text>
+  </g>
+  <g transform="translate(965 342)">
+    <rect width="300" height="42" rx="14" fill="#FACC15" fill-opacity="0.12" stroke="#FACC15" stroke-opacity="0.7"/>
+    <text x="24" y="28" fill="#FACC15" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="16" font-weight="800">5 roles · 5,000 FIRs · PWA · Audit trail</text>
+  </g>
+</svg>
