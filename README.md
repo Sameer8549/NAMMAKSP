@@ -110,31 +110,23 @@ Police intelligence work slows down when FIRs, accused profiles, victim records,
 
 ## Architecture
 
-```mermaid
-flowchart LR
-  User[Role-based user] --> PWA[React + Vite PWA]
-  PWA --> API[FastAPI AppSail backend]
-  API --> Auth[Role checks + audit]
-  API --> DB[(SQLite synthetic evidence store)]
-  API --> AI[Groq / Mistral adapters]
-  API --> Voice[Sarvam STT / TTS / translation]
-  API --> Reports[ReportLab PDF exports]
-  API --> Catalyst[Zoho Catalyst services]
-  DB --> Graph[NetworkX relationship intelligence]
-  DB --> Analytics[Pandas / scikit-learn analytics]
-  Catalyst --> Store[Data Store / Cache / Stratus / Signals / Cron]
-```
+<p align="center">
+  <img src="docs/assets/readme-architecture-handwritten-ai.png" alt="Handwritten NAMMA KSP evidence-led crime intelligence architecture" width="100%" />
+</p>
+
+This architecture shows the working stack as one governed intelligence path: role access, PWA experience, trust gateway, FastAPI AppSail intelligence core, synthetic evidence data, AI/ML services and automation rail.
+
+- `Query -> Scope -> Evidence -> Insight -> Action -> Audit` is the spine of the system.
+- Runtime keys stay outside the repo; the README shows capability, not secrets.
+- Forecasts are planning signals and network groups are association evidence, not legal proof.
 
 ## Evidence Loop
 
-```mermaid
-flowchart TD
-  Scope[Role + filter scope] --> Signal[Chart, map, case or network signal]
-  Signal --> Evidence[Source FIRs, entities, districts or alerts]
-  Evidence --> AI[Evidence-aware AI explanation]
-  AI --> Action[Report export or command action]
-  Action --> Audit[Audit trail and report archive]
-```
+<p align="center">
+  <img src="docs/assets/readme-evidence-loop-handwritten-ai.png" alt="Handwritten every click becomes evidence loop for NAMMA KSP" width="100%" />
+</p>
+
+The product principle is simple: every meaningful click creates evidence context. Chart marks, network nodes, FIR rows, map hotspots, forecast alerts and report downloads all resolve into scoped source records, cited AI answers, action outputs and an auditable evidence ledger.
 
 ## Progressive Web App
 
